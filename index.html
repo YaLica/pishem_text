@@ -95,17 +95,46 @@ font-size: 18px; padding: 0; display: flex; align-items: center; justify-content
 min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: #e8e8e8; user-select: none;
 }
 
-/* ===== ТЕЛЕФОН: та же раскладка, что на компе, только панель уже ===== */
+/* Скрываем кнопки мобильного меню на компе */
+#mobileMenuBtn, #mobileCloseBtn { display: none; }
+
+/* ===== ТЕЛЕФОН: ПАНЕЛЬ-ШТОРКА ===== */
 @media (max-width: 820px) {
-  body { display: flex; height: 100vh; overflow: hidden; }
-  .panel { width: 240px; padding: 12px; flex-shrink: 0; }
-  .toolbar button { min-width: 30px; height: 30px; font-size: 13px; }
-  .emoji-bar span { font-size: 20px; padding: 3px; }
-  button { padding: 8px; font-size: 12px; }
-  h1 { font-size: 15px; }
+  body { display: block; height: 100vh; overflow: hidden; }
+
+  /* Холст занимает все 100% экрана */
+  .stage {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    padding: 70px 15px 15px 15px; /* отступ сверху, чтобы кнопка меню не перекрывала текст */
+  }
+
+  /* Панель прячется за левым краем */
+  .panel {
+    position: fixed; top: 0; left: -350px; width: 300px; height: 100%;
+    z-index: 2000; transition: left 0.3s ease; box-shadow: 5px 0 20px rgba(0,0,0,0.8);
+    padding: 15px; border-right: none;
+  }
+  .panel.open { left: 0; } /* Класс для открытия панели */
+
+  /* Кнопка "Настройки" поверх холста */
+  #mobileMenuBtn {
+    display: flex; align-items: center; justify-content: center;
+    position: fixed; top: 15px; left: 15px; z-index: 1500;
+    background: #171a21; border: 2px solid #3d7eff; color: white; border-radius: 8px;
+    padding: 10px 15px; font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  }
   
-  #zoomControls { bottom: 12px; right: 12px; padding: 6px; }
-  #zoomControls button { width: 34px; height: 34px; font-size: 15px; }
+  /* Кнопка "Закрыть" внутри панели */
+  #mobileCloseBtn {
+    display: block; width: 100%; background: #ff4d4d; color: white;
+    padding: 12px; margin-bottom: 15px; font-size: 15px; border-radius: 8px;
+  }
+  
+  .panel h1 { display: none; } /* прячем заголовок Текстер PRO, экономим место */
+
+  .toolbar button { min-width: 34px; height: 34px; font-size: 15px; }
+  .emoji-bar span { font-size: 24px; padding: 5px; }
+  #zoomControls { bottom: 15px; right: 15px; padding: 6px; z-index: 1400; }
   .modal { width: 92%; max-width: 500px; }
   .modal textarea { height: 160px; }
 }
@@ -124,7 +153,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 }
 #quickBar button:active { background: #3d7eff; }
 
-/* Режим "Рука" — блокируем редактирование, курсор-рука */
+/* Режим "Рука" */
 .stage.hand-mode #editor { cursor: grab; }
 .stage.hand-mode.panning #editor { cursor: grabbing; }
 #modeBtn.active { background: #10b981 !important; }
@@ -133,11 +162,12 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <body>
 
 <div class="panel">
+<button id="mobileCloseBtn" onclick="document.querySelector('.panel').classList.remove('open')">❌ Закрыть настройки</button>
 <h1>🎨 Текстер PRO</h1>
 <label>📏 Платформа (Размер холста)</label>
 <div class="row" style="margin-bottom: 10px;">
 <button class="preset active" onclick="setPreset('telegram', this)" style="flex: 1 1 60%;">💬 Редактор Telegram / MAX</button>
-<button class="preset" onclick="setPreset('custom', this)" style="flex: 1 1 30%;">⚙️ Свой размер PNG (все платформы)</button>
+<button class="preset" onclick="setPreset('custom', this)" style="flex: 1 1 30%;">⚙️ Свой размер PNG</button>
 </div>
 <div id="widthControl" style="display: none; background: #2a2f3a50; padding: 10px; border-radius: 8px; margin-top: 10px;">
 <label>Своя ширина: <span id="wLabel">800</span> px</label>
@@ -255,7 +285,8 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 </div>
 
 <div class="stage" id="stageArea">
-<!-- ПАНЕЛЬ ЗУМА -->
+<button id="mobileMenuBtn" onclick="document.querySelector('.panel').classList.add('open')">⚙️ Инструменты</button>
+
 <div id="zoomControls">
 <button id="modeBtn" onclick="toggleMode()" title="Режим: Текст / Рука" style="min-width:auto; padding:0 8px; width:auto;">✍️</button>
 <div class="toolbar-divider" style="height:24px;"></div>
