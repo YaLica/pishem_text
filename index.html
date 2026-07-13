@@ -6,8 +6,8 @@
 <title>Генератор постов (Кроссплатформа)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- Расширенный список шрифтов -->
-<link href="https://fonts.googleapis.com/css2?family=Alice&family=Amatic+SC:wght@700&family=Bebas+Neue&family=Caveat&family=Comfortaa&family=Cormorant+Garamond&family=Exo+2&family=Inter&family=Kelly+Slab&family=Lora&family=Merriweather&family=Montserrat&family=Neucha&family=Nunito&family=Open+Sans&family=Oswald&family=PT+Serif&family=Pacifico&family=Playfair+Display&family=Raleway&family=Roboto&family=Rubik&family=Russo+One&family=Tenor+Sans&family=Ubuntu&display=swap" rel="stylesheet">
+<!-- Подключены новые элегантные и рукописные шрифты -->
+<link href="https://fonts.googleapis.com/css2?family=Alice&family=Amatic+SC:wght@700&family=Bad+Script&family=Bebas+Neue&family=Caveat&family=Comfortaa&family=Cormorant+Garamond&family=Exo+2&family=Inter&family=Kelly+Slab&family=Lora&family=Marck+Script&family=Merriweather&family=Montserrat&family=Neucha&family=Nunito&family=Open+Sans&family=Oranienbaum&family=Oswald&family=PT+Serif&family=Pacifico&family=Philosopher&family=Playfair+Display&family=Raleway&family=Roboto&family=Rubik&family=Russo+One&family=Tenor+Sans&family=Ubuntu&family=Yeseva+One&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 
@@ -67,7 +67,8 @@ input[type="color"]::-webkit-color-swatch { border: none; }
 #export-node { --bg-color: #ffffff; --text-color: #000000; background: var(--bg-color); color: var(--text-color); padding: 32px 40px; border-radius: 24px 24px 24px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.15); width: 800px; position: relative; margin: auto; transition: width 0.3s, border-radius 0.3s, background 0.3s, color 0.3s; }
 #export-node::before { content: ''; position: absolute; bottom: 0; left: -16px; width: 16px; height: 32px; background: radial-gradient(circle at 0 0, transparent 16px, var(--bg-color) 16px); }
 #export-node.no-tail::before { display: none; }
-#editor { outline: none; font-size: 32px; line-height: 1.45; white-space: pre-wrap; word-wrap: break-word; min-height: 100px; text-align: left; transition: font-size 0.2s; display: flow-root; cursor: text; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
+/* Выравнивание по ширине по умолчанию (text-align: justify) */
+#editor { outline: none; font-size: 32px; line-height: 1.45; white-space: pre-wrap; word-wrap: break-word; min-height: 100px; text-align: justify; transition: font-size 0.2s; display: flow-root; cursor: text; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 #editor[placeholder]:empty:before { content: attr(placeholder); opacity: 0.5; }
 #editor code { background: rgba(128,128,128,0.2); padding: 4px 8px; border-radius: 6px; font-family: monospace; }
 #editor a { color: #3d7eff; text-decoration: underline; cursor: pointer; }
@@ -153,7 +154,6 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   .modal { width: 92%; max-width: 500px; }
 
   /* ===== ПРЯЧЕМ НА ТЕЛЕФОНЕ ЛИШНЕЕ (есть на клавиатуре quickBar) ===== */
-  /* Важно: Метёлка удалена из этого списка скрытия, теперь она видна! */
   .emoji-wrap, label[style*="😀 Эмодзи"] { display: none !important; }
 
   .toolbar button[title="Жирный"],
@@ -221,6 +221,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <label style="color: #fff; margin-top: 0;">🔤 Шрифт текста</label>
 <select id="fontFamilySelector" onchange="updateFontFamily(this.value)">
 <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">Стандартный (Системный)</option>
+<option value="'Times New Roman', Times, serif" style="font-family: 'Times New Roman', Times, serif">Times New Roman (Классика)</option>
 <option value="'Roboto', sans-serif" style="font-family: 'Roboto', sans-serif">Roboto (Классика)</option>
 <option value="'Open Sans', sans-serif" style="font-family: 'Open Sans', sans-serif">Open Sans (Открытый)</option>
 <option value="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif">Montserrat (Современный)</option>
@@ -241,12 +242,17 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <option value="'Comfortaa', cursive" style="font-family: 'Comfortaa', cursive">Comfortaa (Пузырьковый)</option>
 <option value="'Caveat', cursive" style="font-family: 'Caveat', cursive">Caveat (Рукописный)</option>
 <option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif">BEBAS NEUE (Заголовки)</option>
-<!-- НОВЫЕ ШРИФТЫ -->
 <option value="'Russo One', sans-serif" style="font-family: 'Russo One', sans-serif">Russo One (Мощный)</option>
 <option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">Pacifico (Летний)</option>
 <option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">Kelly Slab (Киберпанк)</option>
 <option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">Neucha (Маркер)</option>
 <option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">Amatic SC (Кино)</option>
+<!-- Добавленные изящные шрифты -->
+<option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">Marck Script (Кофейня)</option>
+<option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">Bad Script (Рукописный)</option>
+<option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">Yeseva One (Салон красоты)</option>
+<option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">Philosopher (Изящный)</option>
+<option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">Oranienbaum (Антиква)</option>
 </select>
 </div>
 
@@ -274,6 +280,8 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <button onclick="format('justifyLeft')" title="По левому краю">|≡</button>
 <button onclick="format('justifyCenter')" title="По центру">≡</button>
 <button onclick="format('justifyRight')" title="По правому краю">≡|</button>
+<!-- Кнопка выравнивания по ширине -->
+<button onclick="format('justifyFull')" title="По ширине">≡≡</button>
 <div class="toolbar-divider"></div>
 <button onclick="insertLink()" title="Ссылка">🔗</button>
 <input type="color" id="wordColor" value="#ff0000" oninput="applyTextColor(this.value)" title="Цвет выделенного текста">
@@ -290,7 +298,6 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 
 <div style="background: #2a2f3a50; padding: 15px; border-radius: 8px;">
 <label style="color: #4ade80;">🖼️ КАРТИНКИ</label>
-<!-- Добавлен атрибут multiple для выбора нескольких картинок сразу -->
 <input type="file" accept="image/*" multiple onchange="insertMultipleImages(event)">
 <div style="font-size: 11px; color: #9aa4b2; margin-top: 6px;">
 <b>Мультивыбор:</b> можешь выбрать сразу несколько картинок.<br>
@@ -778,6 +785,7 @@ if (currentImgBox) {
 if (command === 'justifyLeft') { currentImgBox.classList.remove('align-right', 'align-center'); saveHistory(); return; }
 else if (command === 'justifyCenter') { currentImgBox.classList.remove('align-right'); currentImgBox.classList.add('align-center'); saveHistory(); return; }
 else if (command === 'justifyRight') { currentImgBox.classList.remove('align-center'); currentImgBox.classList.add('align-right'); saveHistory(); return; }
+else if (command === 'justifyFull') { currentImgBox.classList.remove('align-right', 'align-center'); saveHistory(); return; }
 }
 restoreSelection();
 document.execCommand(command, false, value || null);
@@ -1157,6 +1165,7 @@ else result += inner;
 return result;
 }
 
+// ==== ОБНОВЛЕННЫЙ ЭКСПОРТ (Решение проблемы Айфона) ====
 function processExport() {
 const btn = document.getElementById('exportBtn');
 const originalText = btn.innerHTML;
