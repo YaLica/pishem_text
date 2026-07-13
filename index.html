@@ -66,6 +66,7 @@ input[type="color"]::-webkit-color-swatch { border: none; }
 #export-node::before { content: ''; position: absolute; bottom: 0; left: -16px; width: 16px; height: 32px; background: radial-gradient(circle at 0 0, transparent 16px, var(--bg-color) 16px); }
 #export-node.no-tail::before { display: none; }
 
+/* Умный перенос слов */
 #editor { 
   outline: none; font-size: 32px; line-height: 1.45; white-space: pre-wrap; 
   word-break: normal; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; 
@@ -296,6 +297,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 
 <button class="primary" id="exportBtn" onclick="processExport()">⬇️ Скачать картинку (PNG)</button>
 
+<!-- ДВЕ НОВЫЕ КНОПКИ ДЛЯ КОПИРОВАНИЯ ТЕКСТА -->
 <div style="display: flex; gap: 8px; margin-top: 10px;">
   <button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="margin-top:0; background:#38bdf8; flex:1; padding: 12px 8px; font-size: 13px;">💬 Текст для Telegram</button>
   <button class="primary" id="copyMaxBtn" onclick="copyRichText()" style="margin-top:0; background:#f43f5e; flex:1; padding: 12px 8px; font-size: 13px;">✨ Текст для MAX / VK</button>
@@ -1092,6 +1094,7 @@ bar.appendChild(span);
 emojiWrap.appendChild(bar);
 });
 
+// Умный фильтр для Telegram (Markdown)
 function wrapMarkdown(text, mark) {
   if (!text.trim()) return text; 
   const match = text.match(/^(\s*)([\s\S]*?)(\s*)$/);
@@ -1182,6 +1185,7 @@ navigator.clipboard.writeText(textarea.value).catch(function() {});
 alert('Текст скопирован! 📋');
 }
 
+// 1. Старое доброе копирование для Телеграма (Markdown)
 function copyForTelegram() {
 const btn = document.getElementById('copyTgBtn');
 const original = btn.innerHTML;
@@ -1197,56 +1201,30 @@ document.getElementById('textModal').style.display = 'flex';
 });
 }
 
-// НОВОЕ СУПЕР-КОПИРОВАНИЕ ДЛЯ МАКСА (РАБОТАЕТ И НА ПК, И НА ТЕЛЕФОНАХ)
-async function copyRichText() {
+// 2. НОВОЕ: Хитрое копирование для MAX, ВКонтакте, WhatsApp и т.д.
+function copyRichText() {
   const btn = document.getElementById('copyMaxBtn');
   const original = btn.innerHTML;
   
   if (!editor.innerText.trim()) { alert('Сначала напиши текст. ✍️'); return; }
 
-  // 1. Очищаем копируемый код от картинок, чтобы не сломать мессенджер
-  const tempWrap = document.createElement('div');
-  tempWrap.innerHTML = editor.innerHTML;
-  tempWrap.querySelectorAll('.img-box, .img-resizer').forEach(el => el.remove());
-  
-  const htmlContent = tempWrap.innerHTML;
-  const plainContent = generateMarkdown(); // Фоллбэк: если вставят как голый текст, он будет красивым
-
-  try {
-    // Попытка 1: Самый современный метод (Apple и Google это любят)
-    if (navigator.clipboard && window.ClipboardItem) {
-      const htmlBlob = new Blob([htmlContent], { type: 'text/html' });
-      const textBlob = new Blob([plainContent], { type: 'text/plain' });
-      const clipboardItem = new ClipboardItem({
-        'text/html': htmlBlob,
-        'text/plain': textBlob
-      });
-      await navigator.clipboard.write([clipboardItem]);
-      
-      btn.innerHTML = '✅ Скопировано!';
-      setTimeout(function() { btn.innerHTML = original; }, 2000);
-      return;
-    }
-  } catch (e) {
-    console.warn('Современный API заблокирован, пробуем старый способ...', e);
-  }
-
-  // Попытка 2: Хитрый метод для старых смартфонов
+  // Создаем временный невидимый контейнер
   const temp = document.createElement('div');
   temp.contentEditable = 'true';
-  // ВАЖНО: не убираем за экран! Делаем прозрачным, но в зоне видимости, иначе Safari заблокирует.
   temp.style.position = 'fixed';
-  temp.style.top = '0';
-  temp.style.left = '0';
-  temp.style.width = '1px';
-  temp.style.height = '1px';
-  temp.style.opacity = '0';
-  temp.style.pointerEvents = 'none';
-  temp.innerHTML = htmlContent;
+  temp.style.left = '-9999px';
+
+  // Копируем весь HTML из редактора
+  const tempWrap = document.createElement('div');
+  tempWrap.innerHTML = editor.innerHTML;
+  
+  // ВАЖНО: Удаляем все картинки, чтобы не сломать мессенджер
+  tempWrap.querySelectorAll('.img-box').forEach(el => el.remove());
+  
+  temp.innerHTML = tempWrap.innerHTML;
   document.body.appendChild(temp);
 
-  temp.focus(); // iOS часто требует фокус для копирования
-
+  // Программно выделяем текст внутри невидимого контейнера
   const range = document.createRange();
   range.selectNodeContents(temp);
   const sel = window.getSelection();
@@ -1254,17 +1232,15 @@ async function copyRichText() {
   sel.addRange(range);
 
   try {
-    const success = document.execCommand('copy');
-    if (success) {
-      btn.innerHTML = '✅ Скопировано!';
-      setTimeout(function() { btn.innerHTML = original; }, 2000);
-    } else {
-      throw new Error('Команда copy вернула ошибку');
-    }
+    // Копируем как Rich Text (форматированный текст) напрямую в систему
+    document.execCommand('copy');
+    btn.innerHTML = '✅ Для MAX скопировано!';
+    setTimeout(function() { btn.innerHTML = original; }, 2000);
   } catch (err) {
-    alert('Твой браузер жестко заблокировал копирование стилей 😢. Попробуй скопировать вручную.');
+    alert('Ошибка системного копирования 😢');
   }
 
+  // Убираем за собой мусор
   document.body.removeChild(temp);
   restoreSelection();
 }
