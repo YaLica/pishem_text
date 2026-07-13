@@ -118,18 +118,20 @@ border: none;
 /* ===== АДАПТИВ ДЛЯ ТЕЛЕФОНА ===== */
 @media (max-width: 820px) {
   body {
-    flex-direction: column;
+    display: block;
     height: 100vh;
     overflow: hidden;
   }
   #mobileToggle { display: flex; }
-
   #zoomControls { display: none; }
 
+  /* ХОЛСТ — прибит вверху, стоит намертво */
   .stage {
-    order: 1;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-    height: 60vh;
+    height: 55vh;
     flex: none;
     padding: 12px;
     overflow: hidden;
@@ -137,15 +139,18 @@ border: none;
     align-items: center;
     justify-content: center;
     touch-action: none;
+    z-index: 1;
+    transition: height 0.2s;
   }
 
+  /* ПАНЕЛЬ — прибита внизу, скроллится сама */
   .panel {
-    order: 2;
-    width: 100%;
-    height: 40vh;
     position: fixed;
     bottom: 0;
     left: 0;
+    width: 100%;
+    height: 45vh;
+    padding: 16px;
     border-right: none;
     border-top: 2px solid #3d7eff;
     border-radius: 16px 16px 0 0;
@@ -154,9 +159,9 @@ border: none;
     z-index: 100;
   }
 
-  .panel.collapsed { display: none; }
-
-  body:has(.panel.collapsed) .stage { height: 100vh; }
+  /* Панель свёрнута — холст на весь экран */
+  body.panel-hidden .panel { display: none; }
+  body.panel-hidden .stage { height: 100vh; }
 
   #zoom-wrapper { transform-origin: center center; }
 
@@ -176,9 +181,9 @@ border: none;
 </head>
 <body>
 
-<button id="mobileToggle" onclick="document.querySelector('.panel').classList.toggle('collapsed')">☰</button>
+<button id="mobileToggle" onclick="document.body.classList.toggle('panel-hidden')">☰</button>
 
-<div class="panel collapsed">
+<div class="panel">
 <h1>🎨 Текстер PRO</h1>
 <label>📏 Платформа (Размер холста)</label>
 <div class="row" style="margin-bottom: 10px;">
