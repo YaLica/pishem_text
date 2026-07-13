@@ -27,13 +27,18 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .primary:hover { background: #2b66d9; }
 .danger { background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border: 1px solid #ff4d4d; width: 100%; margin-top: 10px; padding: 12px;}
 .danger:hover { background: #ff4d4d; color: #fff; }
+
+/* Улучшенный дизайн кнопок цвета (особенно для телефонов) */
 input[type=range] { padding: 0; cursor: pointer; width: 100%; }
-input[type=color] { height: 40px; padding: 2px; cursor: pointer; border-radius: 6px; border: 1px solid #2a2f3a; background: #0f1115; }
+input[type=color] { height: 40px; padding: 0; cursor: pointer; border-radius: 6px; border: 1px solid #2a2f3a; background: #0f1115; overflow: hidden; }
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+input[type="color"]::-webkit-color-swatch { border: none; }
+
 .toolbar { display: flex; flex-wrap: wrap; gap: 6px; background: #0f1115; padding: 10px; border-radius: 8px; border: 1px solid #2a2f3a; align-items: center; }
 .toolbar button { flex: none; min-width: 32px; height: 32px; padding: 0 6px; background: #2a2f3a; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; border-radius: 6px; }
 .toolbar button:hover:not(:disabled) { background: #3d7eff; }
-.toolbar input[type=color] { width: 32px; height: 32px; padding: 0; border: none; border-radius: 6px; cursor: pointer; }
-.toolbar-divider { width: 1px; height: 24px; background: #4a5568; margin: 0 2px; }
+.toolbar input[type=color] { width: 32px; height: 32px; padding: 0; border: none; border-radius: 6px; cursor: pointer; overflow: hidden; }
+.toolbar .toolbar-divider { width: 1px; height: 24px; background: #4a5568; margin: 0 2px; }
 .emoji-section-title { font-size: 11px; color: #9aa4b2; margin: 10px 0 4px; font-weight: bold; }
 .emoji-bar { display: flex; flex-wrap: wrap; gap: 2px; }
 .emoji-bar span { cursor: pointer; font-size: 20px; padding: 3px; border-radius: 6px; user-select: none; }
@@ -116,10 +121,10 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   }
   .panel.open { left: 0; } /* Класс для открытия панели */
 
-  /* Язычок вынесен из панели, зафиксирован по центру экрана */
+  /* Язычок зафиксирован чуть выше середины экрана (top: 30%) */
   #panelHandle {
     display: flex; align-items: center; justify-content: center;
-    position: fixed; top: 50%; left: 0; transform: translateY(-50%);
+    position: fixed; top: 30%; left: 0; transform: translateY(-50%);
     width: 34px; height: 70px; z-index: 2001;
     background: #171a21; border: 2px solid #3d7eff; border-left: none;
     border-radius: 0 12px 12px 0; color: #3d7eff;
