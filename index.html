@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Генератор постов (Кроссплатформа)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -95,61 +95,39 @@ font-size: 18px; padding: 0; display: flex; align-items: center; justify-content
 min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: #e8e8e8; user-select: none;
 }
 
-/* ===== МОБИЛЬНАЯ КНОПКА-ГАМБУРГЕР ===== */
-#mobileToggle {
-display: none;
-position: fixed;
-top: 12px;
-left: 12px;
-z-index: 500;
-width: 46px;
-height: 46px;
-border-radius: 10px;
-background: #3d7eff;
-color: #fff;
-font-size: 22px;
-box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-align-items: center;
-justify-content: center;
-cursor: pointer;
-border: none;
-}
-
 /* ===== АДАПТИВ ДЛЯ ТЕЛЕФОНА ===== */
 @media (max-width: 820px) {
-  body {
-    display: block;
-    height: 100vh;
+  html, body {
+    height: 100%;
     overflow: hidden;
+    display: block;
   }
-  #mobileToggle { display: flex; }
   #zoomControls { display: none; }
 
-  /* ХОЛСТ — прибит вверху, стоит намертво */
+  /* ХОЛСТ — верх, ровно половина реального экрана, статичный, серый */
   .stage {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    height: 55vh;
+    height: calc(var(--vh, 1vh) * 50);
     flex: none;
-    padding: 12px;
+    padding: 10px;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
     touch-action: none;
     z-index: 1;
-    transition: height 0.2s;
   }
 
-  /* ПАНЕЛЬ — прибита внизу, скроллится сама */
+  /* ПАНЕЛЬ — низ, вторая половина, скроллится */
   .panel {
     position: fixed;
-    bottom: 0;
+    top: calc(var(--vh, 1vh) * 50);
     left: 0;
     width: 100%;
-    height: 45vh;
+    height: calc(var(--vh, 1vh) * 50);
     padding: 16px;
     border-right: none;
     border-top: 2px solid #3d7eff;
@@ -158,10 +136,6 @@ border: none;
     -webkit-overflow-scrolling: touch;
     z-index: 100;
   }
-
-  /* Панель свёрнута — холст на весь экран */
-  body.panel-hidden .panel { display: none; }
-  body.panel-hidden .stage { height: 100vh; }
 
   #zoom-wrapper { transform-origin: center center; }
 
@@ -180,8 +154,6 @@ border: none;
 </style>
 </head>
 <body>
-
-<button id="mobileToggle" onclick="document.body.classList.toggle('panel-hidden')">☰</button>
 
 <div class="panel">
 <h1>🎨 Текстер PRO</h1>
@@ -308,6 +280,7 @@ border: none;
 <div class="stage" id="stageArea">
 <!-- ПАНЕЛЬ ЗУМА -->
 <div id="zoomControls">
+<button id="modeBtn" onclick="toggleMode()" title="Режим: Текст / Рука" style="min-width:auto; padding:
 <button id="modeBtn" onclick="toggleMode()" title="Режим: Текст / Рука" style="min-width:auto; padding:0 8px; width:auto;">✍️</button>
 <div class="toolbar-divider" style="height:24px;"></div>
 <button onclick="zoomStep(-0.1)" title="Отдалить">➖</button>
@@ -347,6 +320,15 @@ let savedSelection = null;
 let currentImgBox = null;
 let historyStack = [];
 let historyIndex = -1;
+
+// === ФИКС РЕАЛЬНОЙ ВЫСОТЫ ЭКРАНА (убирает чёрную пустоту в Telegram-браузере) ===
+function setRealVH() {
+  const vh = window.innerHeight * 0.01;
+  document.documentElement.style.setProperty('--vh', vh + 'px');
+  autoScreenFit();
+}
+window.addEventListener('resize', setRealVH);
+window.addEventListener('orientationchange', function(){ setTimeout(setRealVH, 200); });
 
 function updateUndoRedoButtons() {
 document.getElementById('btnUndo').disabled = (historyIndex <= 0);
@@ -463,8 +445,8 @@ if (label) label.textContent = Math.round(currentZoom * 100) + '%';
 
 function autoScreenFit() {
 if (userZoomed) { applyZoom(); return; }
-const availW = stageArea.clientWidth - 60;
-const availH = stageArea.clientHeight - 60;
+const availW = stageArea.clientWidth - (isMobile() ? 20 : 60);
+const availH = stageArea.clientHeight - (isMobile() ? 20 : 60);
 const nodeW = exportNode.offsetWidth;
 const nodeH = exportNode.offsetHeight;
 let scale = Math.min(availW / nodeW, availH / nodeH, 1);
@@ -494,21 +476,18 @@ if (handMode) return true;
 return !target.closest('#editor');
 }
 
-// === ИСПРАВЛЕННЫЙ СКРОЛЛ МЫШЬЮ ===
+// === СКРОЛЛ МЫШЬЮ ===
 stageArea.addEventListener('wheel', function(e) {
-e.preventDefault(); // Блокируем стандартный системный скролл, чтобы сделать свой плавный
+e.preventDefault();
 userZoomed = true;
-
 if (e.ctrlKey || e.metaKey) {
-// Зум (если зажат Ctrl)
 currentZoom += (e.deltaY < 0 ? 0.1 : -0.1);
 } else {
-// Обычная прокрутка (вверх-вниз или вправо-влево)
 if (e.shiftKey) {
-panX -= e.deltaY; // Прокрутка по горизонтали
+panX -= e.deltaY;
 } else {
 panX -= e.deltaX;
-panY -= e.deltaY; // Прокрутка по вертикали
+panY -= e.deltaY;
 }
 }
 applyZoom();
@@ -592,11 +571,8 @@ stageArea.classList.remove('panning');
 zoomWrapper.classList.remove('dragging');
 }
 }, { passive: false });
-// ===============================================
 
-window.addEventListener('resize', autoScreenFit);
-
-window.onload = () => { saveHistory(); editor.focus(); updateRatio(); autoScreenFit(); };
+window.onload = () => { saveHistory(); editor.focus(); setRealVH(); updateRatio(); autoScreenFit(); };
 
 function updateBgColor(color) { exportNode.style.setProperty('--bg-color', color); }
 function updateMainTextColor(color) { exportNode.style.setProperty('--text-color', color); }
@@ -721,9 +697,8 @@ const sel = window.getSelection();
 if (sel.rangeCount > 0 && editor.contains(sel.anchorNode)) savedSelection = sel.getRangeAt(0);
 });
 
-// === ИСПРАВЛЕННОЕ ВОССТАНОВЛЕНИЕ ВЫДЕЛЕНИЯ ДЛЯ ТЕЛЕФОНА ===
 function restoreSelection() {
-editor.focus(); // КРИТИЧНО для телефона: возвращаем фокус на редактор ДО применения стиля
+editor.focus();
 if (savedSelection && editor.contains(savedSelection.commonAncestorContainer)) {
 const sel = window.getSelection();
 sel.removeAllRanges();
@@ -739,7 +714,7 @@ if (command === 'justifyLeft') { currentImgBox.classList.remove('align-right', '
 else if (command === 'justifyCenter') { currentImgBox.classList.remove('align-right'); currentImgBox.classList.add('align-center'); saveHistory(); return; }
 else if (command === 'justifyRight') { currentImgBox.classList.remove('align-center'); currentImgBox.classList.add('align-right'); saveHistory(); return; }
 }
-restoreSelection(); // ТЕПЕРЬ СТИЛИ ТОЧНО ПРИМЕНЯТСЯ НА ТЕЛЕФОНЕ!
+restoreSelection();
 document.execCommand(command, false, value || null);
 saveHistory();
 editor.focus();
@@ -825,7 +800,7 @@ if (updateImgCounter() >= 6) { alert('Максимум 6 картинок. 🖼�
 
 const reader = new FileReader();
 reader.onload = function(ev) {
-const dataUrl = ev.target.result; // base64 — переживёт Undo/Redo
+const dataUrl = ev.target.result;
 const box = createImageBox(dataUrl);
 box.querySelector('img').onload = updateRatio;
 
@@ -1131,7 +1106,6 @@ else if (e.key === 'u') { e.preventDefault(); format('underline'); }
 // === СОХРАНЕНИЕ ВЫДЕЛЕНИЯ ПРИ РАБОТЕ С ПАНЕЛЬЮ (КОМП) ===
 const panelEl = document.querySelector('.panel');
 
-// КОМП: не даём мыши сбить фокус/выделение при клике по кнопке
 panelEl.addEventListener('mousedown', function(e) {
 if (e.target.closest('button') || e.target.closest('.emoji-bar span')) {
 e.preventDefault();
