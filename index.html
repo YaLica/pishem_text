@@ -95,8 +95,8 @@ font-size: 18px; padding: 0; display: flex; align-items: center; justify-content
 min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: #e8e8e8; user-select: none;
 }
 
-/* Скрываем кнопки мобильного меню на компе */
-#mobileMenuBtn, #mobileCloseBtn, #panelHandle { display: none; }
+/* Скрываем мобильные элементы на компе */
+#mobileCloseBtn, #panelHandle { display: none; }
 
 /* ===== ТЕЛЕФОН: ПАНЕЛЬ-ШТОРКА ===== */
 @media (max-width: 820px) {
@@ -105,36 +105,30 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   /* Холст занимает все 100% экрана */
   .stage {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    padding: 70px 15px 15px 15px; /* отступ сверху, чтобы кнопка меню не перекрывала текст */
+    padding: 15px;
   }
 
   /* Панель прячется за левым краем */
   .panel {
-    position: fixed; top: 0; left: -350px; width: 300px; height: 100%;
+    position: fixed; top: 0; left: -320px; width: 320px; height: 100%;
     z-index: 2000; transition: left 0.3s ease; box-shadow: 5px 0 20px rgba(0,0,0,0.8);
     padding: 15px; border-right: none;
   }
   .panel.open { left: 0; } /* Класс для открытия панели */
 
-  /* Язычок-стрелка на краю панели */
+  /* Язычок вынесен из панели, зафиксирован по центру экрана */
   #panelHandle {
     display: flex; align-items: center; justify-content: center;
-    position: absolute; top: 50%; right: -34px; transform: translateY(-50%);
-    width: 34px; height: 70px;
+    position: fixed; top: 50%; left: 0; transform: translateY(-50%);
+    width: 34px; height: 70px; z-index: 2001;
     background: #171a21; border: 2px solid #3d7eff; border-left: none;
     border-radius: 0 12px 12px 0; color: #3d7eff;
     font-size: 22px; font-weight: bold; padding: 0;
     box-shadow: 3px 0 8px rgba(0,0,0,0.4);
+    transition: left 0.3s ease;
   }
+  #panelHandle.open { left: 320px; } /* Едет вместе с панелью */
 
-  /* Кнопка "Настройки" поверх холста */
-  #mobileMenuBtn {
-    display: flex; align-items: center; justify-content: center;
-    position: fixed; top: 15px; left: 15px; z-index: 1500;
-    background: #171a21; border: 2px solid #3d7eff; color: white; border-radius: 8px;
-    padding: 10px 15px; font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-  }
-  
   /* Кнопка "Закрыть" внутри панели */
   #mobileCloseBtn {
     display: block; width: 100%; background: #ff4d4d; color: white;
@@ -145,19 +139,16 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 
   .toolbar button { min-width: 34px; height: 34px; font-size: 15px; }
   .emoji-bar span { font-size: 24px; padding: 5px; }
-  #zoomControls { bottom: 15px; right: 15px; padding: 6px; z-index: 1400; }
+  
+  /* Прячем зум-панель на телефоне, чтобы не мешала печатать */
+  #zoomControls { display: none !important; }
+  
   .modal { width: 92%; max-width: 500px; }
   .modal textarea { height: 160px; }
 
   /* ===== ПРЯЧЕМ НА ТЕЛЕФОНЕ ЛИШНЕЕ (есть на клавиатуре quickBar) ===== */
+  .emoji-wrap, label[style*="😀 Эмодзи"] { display: none !important; }
 
-  /* блок эмодзи целиком */
-  .emoji-wrap,
-  label[style*="😀 Эмодзи"] {
-    display: none !important;
-  }
-
-  /* лишние кнопки форматирования в тулбаре */
   .toolbar button[title="Жирный"],
   .toolbar button[title="Курсив"],
   .toolbar button[title="Подчеркнутый"],
@@ -196,7 +187,6 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <body>
 
 <div class="panel">
-<button id="panelHandle" onclick="togglePanel()">‹</button>
 <button id="mobileCloseBtn" onclick="togglePanel()">❌ Закрыть настройки</button>
 <h1>🎨 Текстер PRO</h1>
 <label>📏 Платформа (Размер холста)</label>
@@ -319,9 +309,10 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <button class="danger" onclick="clearEditor()">🗑️ Очистить холст</button>
 </div>
 
-<div class="stage" id="stageArea">
-<button id="mobileMenuBtn" onclick="togglePanel()">⚙️ Инструменты</button>
+<!-- Вынесли язычок наружу, чтобы он не скроллился с панелью -->
+<button id="panelHandle" onclick="togglePanel()">›</button>
 
+<div class="stage" id="stageArea">
 <div id="zoomControls">
 <button id="modeBtn" onclick="toggleMode()" title="Режим: Текст / Рука" style="min-width:auto; padding:0 8px; width:auto;">✍️</button>
 <div class="toolbar-divider" style="height:24px;"></div>
@@ -526,10 +517,12 @@ if (handMode) toggleMode();
 autoScreenFit();
 }
 
+// ==== ИЗМЕНЕННАЯ ФУНКЦИЯ: Разрешаем тащить за текст на телефоне ====
 function canPan(target) {
 if (target.closest('#zoomControls')) return false;
 if (target.closest('.img-box')) return false;
 if (handMode) return true;
+if (isMobile()) return true; // Разрешаем двигать прямо за текст, если мы с телефона
 return !target.closest('#editor');
 }
 
@@ -1222,7 +1215,7 @@ function togglePanel() {
   const panel = document.querySelector('.panel');
   const handle = document.getElementById('panelHandle');
   panel.classList.toggle('open');
-  // разворачиваем стрелку: открыта ‹ (спрятать), закрыта › (открыть)
+  handle.classList.toggle('open');
   handle.textContent = panel.classList.contains('open') ? '‹' : '›';
 }
 
