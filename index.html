@@ -114,22 +114,13 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 /* ===== ТЕЛЕФОН: ПАНЕЛЬ-ШТОРКА ===== */
 @media (max-width: 820px) {
   body { display: block; height: 100vh; overflow: hidden; }
-
-  /* Холст занимает все 100% экрана */
-  .stage {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    padding: 15px;
-  }
-
-  /* Панель прячется за левым краем */
+  .stage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; }
   .panel {
     position: fixed; top: 0; left: -320px; width: 320px; height: 100%;
     z-index: 2000; transition: left 0.3s ease; box-shadow: 5px 0 20px rgba(0,0,0,0.8);
     padding: 15px; border-right: none;
   }
-  .panel.open { left: 0; } /* Класс для открытия панели */
-
-  /* Язычок зафиксирован чуть выше середины экрана (top: 30%) */
+  .panel.open { left: 0; }
   #panelHandle {
     display: flex; align-items: center; justify-content: center;
     position: fixed; top: 30%; left: 0; transform: translateY(-50%);
@@ -140,39 +131,21 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
     box-shadow: 3px 0 8px rgba(0,0,0,0.4);
     transition: left 0.3s ease;
   }
-  #panelHandle.open { left: 320px; } /* Едет вместе с панелью */
-
-  /* Кнопка "Закрыть" внутри панели */
+  #panelHandle.open { left: 320px; }
   #mobileCloseBtn {
     display: block; width: 100%; background: #ff4d4d; color: white;
     padding: 12px; margin-bottom: 15px; font-size: 15px; border-radius: 8px;
   }
-  
-  .panel h1 { display: none; } /* прячем заголовок Текстер PRO, экономим место */
-
+  .panel h1 { display: none; }
   .toolbar button { min-width: 34px; height: 34px; font-size: 15px; }
   .emoji-bar span { font-size: 24px; padding: 5px; }
-  
-  /* Прячем зум-панель на телефоне, чтобы не мешала печатать */
   #zoomControls { display: none !important; }
-  
   .modal { width: 92%; max-width: 500px; }
-
-  /* ===== ПРЯЧЕМ НА ТЕЛЕФОНЕ ЛИШНЕЕ (есть на клавиатуре quickBar) ===== */
   .emoji-wrap, label[style*="😀 Эмодзи"] { display: none !important; }
-
-  .toolbar button[title="Жирный"],
-  .toolbar button[title="Курсив"],
-  .toolbar button[title="Подчеркнутый"],
-  .toolbar button[title="Зачеркнутый"],
-  .toolbar button[title="Код"],
-  .toolbar button[title="Ссылка"],
-  .toolbar button[title="Увеличить выделенное"],
-  .toolbar button[title="Уменьшить выделенное"],
-  .toolbar button[title="Удалить выделенное"],
-  .toolbar .toolbar-divider {
-    display: none !important;
-  }
+  .toolbar button[title="Жирный"], .toolbar button[title="Курсив"], .toolbar button[title="Подчеркнутый"],
+  .toolbar button[title="Зачеркнутый"], .toolbar button[title="Код"], .toolbar button[title="Ссылка"],
+  .toolbar button[title="Увеличить выделенное"], .toolbar button[title="Уменьшить выделенное"],
+  .toolbar button[title="Удалить выделенное"], .toolbar .toolbar-divider { display: none !important; }
 }
 
 /* ===== ПАНЕЛЬ БЫСТРОГО ДОСТУПА НАД КЛАВИАТУРОЙ (только телефон) ===== */
@@ -189,7 +162,6 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 }
 #quickBar button:active { background: #3d7eff; }
 
-/* Режим "Рука" */
 .stage.hand-mode #editor { cursor: grab; }
 .stage.hand-mode.panning #editor { cursor: grabbing; }
 #modeBtn.active { background: #10b981 !important; }
@@ -252,7 +224,6 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">Kelly Slab (Киберпанк)</option>
 <option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">Neucha (Маркер)</option>
 <option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">Amatic SC (Кино)</option>
-<!-- Добавленные изящные шрифты -->
 <option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">Marck Script (Кофейня)</option>
 <option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">Bad Script (Рукописный)</option>
 <option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">Yeseva One (Салон красоты)</option>
@@ -285,7 +256,6 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <button onclick="format('justifyLeft')" title="По левому краю">|≡</button>
 <button onclick="format('justifyCenter')" title="По центру">≡</button>
 <button onclick="format('justifyRight')" title="По правому краю">≡|</button>
-<!-- Кнопка выравнивания по ширине -->
 <button onclick="format('justifyFull')" title="По ширине">≡≡</button>
 <div class="toolbar-divider"></div>
 <button onclick="insertLink()" title="Ссылка">🔗</button>
@@ -335,7 +305,6 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <button class="danger" onclick="clearEditor()">🗑️ Очистить холст</button>
 </div>
 
-<!-- Вынесли язычок наружу, чтобы он не скроллился с панелью -->
 <button id="panelHandle" onclick="togglePanel()">›</button>
 
 <div class="stage" id="stageArea">
@@ -396,7 +365,6 @@ let currentImgBox = null;
 let historyStack = [];
 let historyIndex = -1;
 
-// === ФИКС РЕАЛЬНОЙ ВЫСОТЫ ЭКРАНА ===
 function setRealVH() {
   const vh = window.innerHeight * 0.01;
   document.documentElement.style.setProperty('--vh', vh + 'px');
@@ -484,7 +452,6 @@ const WARN_RATIO = 1.60;
 
 function isMobile() { return window.innerWidth <= 820; }
 
-// === ЛОГИКА ЗУМА + ПЕРЕТАСКИВАНИЯ (ПАНОРАМА) ===
 let currentZoom = 1;
 let userZoomed = false;
 let panX = 0;
@@ -544,7 +511,6 @@ if (handMode) toggleMode();
 autoScreenFit();
 }
 
-// ==== Разрешаем тащить за текст на телефоне ====
 function canPan(target) {
 if (target.closest('#zoomControls')) return false;
 if (target.closest('.img-box')) return false;
@@ -553,7 +519,6 @@ if (isMobile()) return true;
 return !target.closest('#editor');
 }
 
-// === СКРОЛЛ МЫШЬЮ ===
 stageArea.addEventListener('wheel', function(e) {
 e.preventDefault();
 userZoomed = true;
@@ -570,7 +535,6 @@ panY -= e.deltaY;
 applyZoom();
 }, { passive: false });
 
-// --- Перетаскивание МЫШЬЮ (десктоп) ---
 let isPanning = false, panStartX = 0, panStartY = 0, panOrigX = 0, panOrigY = 0;
 stageArea.addEventListener('mousedown', function(e) {
 if (!canPan(e.target)) return;
@@ -594,11 +558,8 @@ stageArea.classList.remove('panning');
 zoomWrapper.classList.remove('dragging');
 });
 
-// --- ТЕЛЕФОН: 1 палец = двигать, 2 пальца = зум ---
-let pinchStartDist = 0;
-let pinchStartZoom = 1;
-let touchPanStartX = 0, touchPanStartY = 0;
-let touchPanOrigX = 0, touchPanOrigY = 0;
+let pinchStartDist = 0, pinchStartZoom = 1;
+let touchPanStartX = 0, touchPanStartY = 0, touchPanOrigX = 0, touchPanOrigY = 0;
 let touchMode = null;
 
 stageArea.addEventListener('touchstart', function(e) {
@@ -653,7 +614,6 @@ window.onload = () => { saveHistory(); editor.focus(); setRealVH(); updateRatio(
 
 function updateBgColor(color) { exportNode.style.setProperty('--bg-color', color); }
 function updateMainTextColor(color) { exportNode.style.setProperty('--text-color', color); }
-
 function updateFontFamily(font) { editor.style.fontFamily = font; updateRatio(); saveHistory(); }
 
 function updateRatio() {
@@ -705,12 +665,7 @@ el.style.fontSize = '';
 });
 }
 
-function updateBaseFontSize(size) {
-applyBase(size);
-updateRatio();
-clearTimeout(typeTimer);
-typeTimer = setTimeout(saveHistory, 400);
-}
+function updateBaseFontSize(size) { applyBase(size); updateRatio(); clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); }
 
 let typeTimer = null;
 editor.addEventListener('input', function() {
@@ -871,13 +826,12 @@ document.getElementById('imgCount').textContent = count;
 return count;
 }
 
-// === НОВАЯ ФУНКЦИЯ ДЛЯ ВСТАВКИ СРАЗУ НЕСКОЛЬКИХ КАРТИНОК ===
 async function insertMultipleImages(event) {
   const files = event.target.files;
   if (!files || files.length === 0) return;
 
   let currentCount = updateImgCounter();
-  const maxImages = 10; // Увеличенный лимит картинок
+  const maxImages = 10; 
 
   if (currentCount >= maxImages) {
     alert(`Максимум ${maxImages} картинок. 🖼️`);
@@ -902,7 +856,6 @@ async function insertMultipleImages(event) {
     
     const file = files[i];
     
-    // Ждем загрузки файла в память
     const dataUrl = await new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => resolve(e.target.result);
@@ -918,7 +871,6 @@ async function insertMultipleImages(event) {
       box.parentNode.insertBefore(zwspAfter, box.nextSibling);
       ensureAnchorBeforeImages();
       
-      // Смещаем курсор после вставленной картинки, чтобы следующая встала ЗА ней
       range.setStartAfter(zwspAfter);
       range.collapse(true);
     } else {
@@ -940,10 +892,9 @@ async function insertMultipleImages(event) {
   updateRatio();
   saveHistory();
   
-  event.target.value = ''; // Очищаем инпут
+  event.target.value = ''; 
   setTimeout(() => editor.focus(), 50);
 }
-
 
 function createImageBox(url) {
 const box = document.createElement('span');
@@ -1032,7 +983,6 @@ let dragBox = null;
 let isTouchDraggingImg = false;
 let imgGhost = null;
 
-// Стандартный Drag&Drop для компа
 editor.addEventListener('dragstart', function(e) { const box = e.target.closest('.img-box'); if (box) dragBox = box; });
 editor.addEventListener('dragover', function(e) { if (dragBox) e.preventDefault(); });
 editor.addEventListener('drop', function(e) {
@@ -1062,7 +1012,6 @@ saveHistory();
 });
 editor.addEventListener('dragend', function() { dragBox = null; });
 
-// Touch Drag&Drop для мобилок
 editor.addEventListener('touchstart', function(e) {
   const box = e.target.closest('.img-box');
   if (box && !e.target.closest('.img-resizer')) {
@@ -1082,7 +1031,7 @@ editor.addEventListener('touchmove', function(e) {
     document.body.appendChild(imgGhost);
   }
   if (isTouchDraggingImg) {
-    e.preventDefault(); // Блокируем скролл экрана при перетаскивании картинки
+    e.preventDefault(); 
     const touch = e.touches[0];
     imgGhost.style.left = (touch.clientX - imgGhost.offsetWidth/2) + 'px';
     imgGhost.style.top = (touch.clientY - imgGhost.offsetHeight/2) + 'px';
@@ -1125,7 +1074,6 @@ editor.addEventListener('touchend', function(e) {
   }
 });
 
-
 const emojiGroups = {
 '😀 Эмоции': ['😊','😂','🤣','🥰','😍','😎','🤩','😉','🙂','😌','🤔','😏','😢','😭','😤','😡','🥺','😱','🤯','😴','🤗','😇','🥳','😜','🤪','🙄','😬','😐'],
 '👍 Жесты': ['👍','👎','👏','🙌','🙏','🤝','✌️','🤞','👌','🤙','💪','👋','🫶','☝️','👇','👆','👉','👈','🤟','✊'],
@@ -1146,29 +1094,49 @@ bar.appendChild(span);
 emojiWrap.appendChild(bar);
 });
 
-function generateMarkdown() { return processNode(editor).replace(/\u200B/g, '').trim(); }
+
+// === НОВАЯ УМНАЯ ФУНКЦИЯ ДЛЯ МАРКДАУНА (БЕЗ ПРОБЕЛОВ В ТЕГАХ) ===
+function wrapMarkdown(text, mark) {
+  if (!text.trim()) return text; // если одни пробелы, просто возвращаем их
+  // Регулярка отделяет пробелы в начале, сам текст, и пробелы в конце
+  const match = text.match(/^(\s*)([\s\S]*?)(\s*)$/);
+  // Пробелы остаются СНАРУЖИ звездочек
+  return match[1] + mark + match[2] + mark + match[3];
+}
 
 function processNode(node) {
-let result = '';
-node.childNodes.forEach(function(child) {
-if (child.nodeType === Node.TEXT_NODE) result += child.textContent;
-else if (child.nodeType === Node.ELEMENT_NODE) {
-if (child.classList && child.classList.contains('img-box')) return;
-if (child.classList && child.classList.contains('img-resizer')) return;
-const tag = child.tagName.toLowerCase();
-const inner = processNode(child);
-if (tag === 'b' || tag === 'strong') result += '**' + inner + '**';
-else if (tag === 'i' || tag === 'em') result += '__' + inner + '__';
-else if (tag === 's' || tag === 'strike' || tag === 'del') result += '~~' + inner + '~~';
-else if (tag === 'code') result += '`' + inner + '`';
-else if (tag === 'a') result += '[' + inner + '](' + child.getAttribute('href') + ')';
-else if (tag === 'br') result += '\n';
-else if (tag === 'div' || tag === 'p') result += (result.length && !result.endsWith('\n') ? '\n' : '') + inner;
-else result += inner;
+  let result = '';
+  node.childNodes.forEach(function(child) {
+    if (child.nodeType === Node.TEXT_NODE) {
+      // Сразу убираем невидимые символы \u200B, чтобы они не мешались
+      result += child.textContent.replace(/\u200B/g, ''); 
+    }
+    else if (child.nodeType === Node.ELEMENT_NODE) {
+      if (child.classList && child.classList.contains('img-box')) return;
+      if (child.classList && child.classList.contains('img-resizer')) return;
+      
+      const tag = child.tagName.toLowerCase();
+      const inner = processNode(child);
+      
+      // Используем нашу умную функцию обертки
+      if (tag === 'b' || tag === 'strong') result += wrapMarkdown(inner, '**');
+      else if (tag === 'i' || tag === 'em') result += wrapMarkdown(inner, '__');
+      else if (tag === 's' || tag === 'strike' || tag === 'del') result += wrapMarkdown(inner, '~~');
+      else if (tag === 'code') result += wrapMarkdown(inner, '`');
+      else if (tag === 'a') {
+        const cleanInner = inner.trim();
+        if(cleanInner) result += '[' + cleanInner + '](' + child.getAttribute('href') + ')';
+      }
+      else if (tag === 'br') result += '\n';
+      else if (tag === 'div' || tag === 'p') result += (result.length && !result.endsWith('\n') ? '\n' : '') + inner;
+      else result += inner;
+    }
+  });
+  return result;
 }
-});
-return result;
-}
+
+function generateMarkdown() { return processNode(editor).trim(); }
+
 
 function processExport() {
 const btn = document.getElementById('exportBtn');
@@ -1183,7 +1151,6 @@ setTimeout(function() {
 html2canvas(exportNode, { backgroundColor: null, scale: 2, useCORS: true }).then(function(canvas) {
 const dataUrl = canvas.toDataURL('image/png');
 
-// Вставляем картинку прямо в существующее модальное окно для текста
 let imgPreview = document.getElementById('previewImage');
 if (!imgPreview) {
   imgPreview = document.createElement('img');
@@ -1194,7 +1161,6 @@ if (!imgPreview) {
 }
 imgPreview.src = dataUrl;
 
-// Для ПК по-прежнему скачиваем автоматом
 if (!isMobile()) {
   const link = document.createElement('a');
   link.download = 'texter-post.png';
@@ -1240,7 +1206,6 @@ document.getElementById('textModal').style.display = 'flex';
 });
 }
 
-// === ГОРЯЧИЕ КЛАВИШИ + ЗАЩИТА КАРТИНКИ ===
 editor.addEventListener('keydown', function(e) {
 const sel = window.getSelection();
 
@@ -1313,16 +1278,13 @@ else if (e.key === 'u') { e.preventDefault(); format('underline'); }
 }
 });
 
-// === СОХРАНЕНИЕ ВЫДЕЛЕНИЯ ПРИ РАБОТЕ С ПАНЕЛЬЮ (КОМП) ===
 const panelEl = document.querySelector('.panel');
-
 panelEl.addEventListener('mousedown', function(e) {
 if (e.target.closest('button') || e.target.closest('.emoji-bar span')) {
 e.preventDefault();
 }
 });
 
-// === ПАНЕЛЬ БЫСТРОГО ДОСТУПА НАД КЛАВИАТУРОЙ (только телефон) ===
 const quickBar = document.getElementById('quickBar');
 editor.addEventListener('focus', function() {
   if (isMobile()) quickBar.classList.add('visible');
@@ -1370,7 +1332,6 @@ function qbLink(e) {
   insertLink();
 }
 
-// === ПЕРЕКЛЮЧАТЕЛЬ ПАНЕЛИ (язычок-стрелка) ===
 function togglePanel() {
   const panel = document.querySelector('.panel');
   const handle = document.getElementById('panelHandle');
