@@ -76,8 +76,8 @@ input[type="color"]::-webkit-color-swatch { border: none; }
 .img-box:active { cursor: grabbing; }
 .img-box img { display: block; width: 100%; border-radius: 12px; pointer-events: none; }
 .img-box.selected { outline: 3px solid #3d7eff; outline-offset: 3px; }
-.img-resizer { position: absolute; right: 0; bottom: 0; width: 28px; height: 28px; cursor: nwse-resize; z-index: 10; display: none; }
-.img-resizer::after { content: ''; position: absolute; right: 4px; bottom: 4px; width: 14px; height: 14px; border-right: 3px solid #fff; border-bottom: 3px solid #fff; border-radius: 2px; filter: drop-shadow(0 0 3px rgba(0,0,0,0.8)); }
+.img-resizer { position: absolute; right: 0; bottom: 0; width: 32px; height: 32px; cursor: nwse-resize; z-index: 10; display: none; background: rgba(0,0,0,0.1); border-radius: 4px; }
+.img-resizer::after { content: ''; position: absolute; right: 6px; bottom: 6px; width: 14px; height: 14px; border-right: 3px solid #fff; border-bottom: 3px solid #fff; border-radius: 2px; filter: drop-shadow(0 0 3px rgba(0,0,0,0.8)); }
 .img-box.selected .img-resizer { display: block; }
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
 .modal { background: #171a21; width: 500px; padding: 20px; border-radius: 12px; border: 1px solid #2a2f3a; }
@@ -163,7 +163,6 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   .toolbar button[title="Увеличить выделенное"],
   .toolbar button[title="Уменьшить выделенное"],
   .toolbar button[title="Удалить выделенное"],
-  .toolbar button[title="Сбросить стили выделенного (Метёлка)"],
   .toolbar .toolbar-divider {
     display: none !important;
   }
@@ -246,7 +245,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <div style="display: flex; gap: 10px; margin-bottom: 15px;">
 <div style="flex: 1;">
 <label style="color: #fff; margin-top: 0;">🔠 Размер: <span id="baseFontSizeLabel">32</span> px</label>
-<input type="range" id="baseFontSlider" min="16" max="80" value="32" oninput="updateBaseFontSize(this.value)">
+<input type="range" id="baseFontSlider" min="16" max="80" value="32" oninput="updateBaseFontSize(this.value)" onchange="updateBaseFontSize(this.value)">
 </div>
 <div style="flex: 1;">
 <label style="color: #fff; margin-top: 0;">↕️ Интервал: <span id="lineHeightLabel">1.45</span></label>
@@ -355,10 +354,9 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   <button onmousedown="qbSize(event,1.2)" ontouchstart="qbSize(event,1.2)">A+</button>
   <button onmousedown="qbSize(event,0.85)" ontouchstart="qbSize(event,0.85)">A-</button>
   <button onmousedown="qbLink(event)" ontouchstart="qbLink(event)">🔗</button>
-  <button onmousedown="qbText(event,'✅ ')" ontouchstart="qbText(event,'✅ ')">✅</button>
+  <button onmousedown="qbHide(event)" ontouchstart="qbHide(event)">✅</button>
   <button onmousedown="qbText(event,'🔥 ')" ontouchstart="qbText(event,'🔥 ')">🔥</button>
   <button onmousedown="qbText(event,'👍 ')" ontouchstart="qbText(event,'👍 ')">👍</button>
-  <button onmousedown="qbHide(event)" ontouchstart="qbHide(event)">⌨️✕</button>
 </div>
 
 <script>
@@ -522,7 +520,7 @@ if (handMode) toggleMode();
 autoScreenFit();
 }
 
-// ==== ИЗМЕНЕННАЯ ФУНКЦИЯ: Разрешаем тащить за текст на телефоне ====
+// ==== Разрешаем тащить за текст на телефоне ====
 function canPan(target) {
 if (target.closest('#zoomControls')) return false;
 if (target.closest('.img-box')) return false;
@@ -902,20 +900,24 @@ bindResizer(box);
 return box;
 }
 
+// ==== ИЗМЕНЕННАЯ ФУНКЦИЯ: Поддержка тача для изменения размера картинки ====
 function bindResizer(box) {
 const resizer = box.querySelector('.img-resizer');
 if (!resizer) return;
 const newResizer = resizer.cloneNode(true);
 resizer.parentNode.replaceChild(newResizer, resizer);
-newResizer.addEventListener('mousedown', function(e) {
+
+function startResize(e) {
 e.preventDefault();
 e.stopPropagation();
 box.setAttribute('draggable', 'false');
-let startX = e.clientX;
+let startX = e.clientX || (e.touches && e.touches[0].clientX);
 let startW = box.offsetWidth;
-let parentW = editor.offsetWidth - 80;
-function doDrag(e) {
-let newW = startW + (e.clientX - startX);
+let parentW = editor.offsetWidth - (isMobile() ? 30 : 80);
+
+function doDrag(ev) {
+let currentX = ev.clientX || (ev.touches && ev.touches[0].clientX);
+let newW = startW + (currentX - startX);
 let percent = (newW / parentW) * 100;
 if (percent < 15) percent = 15;
 if (percent > 100) percent = 100;
@@ -925,13 +927,21 @@ updateRatio();
 function stopDrag() {
 document.removeEventListener('mousemove', doDrag);
 document.removeEventListener('mouseup', stopDrag);
+document.removeEventListener('touchmove', doDrag);
+document.removeEventListener('touchend', stopDrag);
 box.setAttribute('draggable', 'true');
 saveHistory();
 }
 document.addEventListener('mousemove', doDrag);
 document.addEventListener('mouseup', stopDrag);
-});
+document.addEventListener('touchmove', doDrag, {passive: false});
+document.addEventListener('touchend', stopDrag);
 }
+
+newResizer.addEventListener('mousedown', startResize);
+newResizer.addEventListener('touchstart', startResize, {passive: false});
+}
+
 
 function selectImgBox(box) {
 editor.querySelectorAll('.img-box').forEach(function(b) { b.classList.remove('selected'); });
@@ -958,7 +968,11 @@ currentImgBox = null;
 }
 });
 
+// ==== ИЗМЕНЕННАЯ ФУНКЦИЯ: Поддержка перетаскивания (Drag & Drop) картинки пальцем ====
 let dragBox = null;
+let isTouchDraggingImg = false;
+let imgGhost = null;
+
 editor.addEventListener('dragstart', function(e) { const box = e.target.closest('.img-box'); if (box) dragBox = box; });
 editor.addEventListener('dragover', function(e) { if (dragBox) e.preventDefault(); });
 editor.addEventListener('drop', function(e) {
@@ -987,6 +1001,69 @@ updateRatio();
 saveHistory();
 });
 editor.addEventListener('dragend', function() { dragBox = null; });
+
+// Touch Drag&Drop для мобилок
+editor.addEventListener('touchstart', function(e) {
+  const box = e.target.closest('.img-box');
+  if (box && !e.target.closest('.img-resizer')) {
+    dragBox = box;
+  }
+}, {passive: true});
+
+editor.addEventListener('touchmove', function(e) {
+  if (dragBox && !isTouchDraggingImg) {
+    isTouchDraggingImg = true;
+    imgGhost = dragBox.cloneNode(true);
+    imgGhost.style.position = 'fixed';
+    imgGhost.style.opacity = '0.6';
+    imgGhost.style.pointerEvents = 'none';
+    imgGhost.style.zIndex = '99999';
+    imgGhost.style.width = dragBox.offsetWidth + 'px';
+    document.body.appendChild(imgGhost);
+  }
+  if (isTouchDraggingImg) {
+    e.preventDefault(); 
+    const touch = e.touches[0];
+    imgGhost.style.left = (touch.clientX - imgGhost.offsetWidth/2) + 'px';
+    imgGhost.style.top = (touch.clientY - imgGhost.offsetHeight/2) + 'px';
+  }
+}, {passive: false});
+
+editor.addEventListener('touchend', function(e) {
+  if (isTouchDraggingImg && dragBox && imgGhost) {
+    e.preventDefault();
+    const touch = e.changedTouches[0];
+    let range = null;
+    if (document.caretRangeFromPoint) {
+      range = document.caretRangeFromPoint(touch.clientX, touch.clientY);
+    } else if (document.caretPositionFromPoint) {
+      const pos = document.caretPositionFromPoint(touch.clientX, touch.clientY);
+      if (pos) {
+        range = document.createRange();
+        range.setStart(pos.offsetNode, pos.offset);
+      }
+    }
+    if (range && editor.contains(range.startContainer)) {
+      dragBox.remove();
+      const editorRect = editor.getBoundingClientRect();
+      const dropX = touch.clientX - editorRect.left;
+      dragBox.classList.remove('align-right', 'align-center');
+      if (dropX > editorRect.width / 2) dragBox.classList.add('align-right');
+      range.insertNode(dragBox);
+      const zwsp = document.createTextNode('\u200B');
+      dragBox.parentNode.insertBefore(zwsp, dragBox.nextSibling);
+      ensureAnchorBeforeImages();
+    }
+    imgGhost.remove();
+    imgGhost = null;
+    isTouchDraggingImg = false;
+    dragBox = null;
+    updateRatio();
+    saveHistory();
+  } else {
+    dragBox = null;
+  }
+});
 
 const emojiGroups = {
 '😀 Эмоции': ['😊','😂','🤣','🥰','😍','😎','🤩','😉','🙂','😌','🤔','😏','😢','😭','😤','😡','🥺','😱','🤯','😴','🤗','😇','🥳','😜','🤪','🙄','😬','😐'],
