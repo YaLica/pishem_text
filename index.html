@@ -6,7 +6,8 @@
 <title>Генератор постов (Кроссплатформа)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Alice&family=Bebas+Neue&family=Caveat&family=Comfortaa&family=Cormorant+Garamond&family=Exo+2&family=Inter&family=Lora&family=Merriweather&family=Montserrat&family=Nunito&family=Open+Sans&family=Oswald&family=PT+Serif&family=Playfair+Display&family=Raleway&family=Roboto&family=Rubik&family=Tenor+Sans&family=Ubuntu&display=swap" rel="stylesheet">
+<!-- Расширенный список шрифтов -->
+<link href="https://fonts.googleapis.com/css2?family=Alice&family=Amatic+SC:wght@700&family=Bebas+Neue&family=Caveat&family=Comfortaa&family=Cormorant+Garamond&family=Exo+2&family=Inter&family=Kelly+Slab&family=Lora&family=Merriweather&family=Montserrat&family=Neucha&family=Nunito&family=Open+Sans&family=Oswald&family=PT+Serif&family=Pacifico&family=Playfair+Display&family=Raleway&family=Roboto&family=Rubik&family=Russo+One&family=Tenor+Sans&family=Ubuntu&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 
@@ -240,6 +241,12 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <option value="'Comfortaa', cursive" style="font-family: 'Comfortaa', cursive">Comfortaa (Пузырьковый)</option>
 <option value="'Caveat', cursive" style="font-family: 'Caveat', cursive">Caveat (Рукописный)</option>
 <option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif">BEBAS NEUE (Заголовки)</option>
+<!-- НОВЫЕ ШРИФТЫ -->
+<option value="'Russo One', sans-serif" style="font-family: 'Russo One', sans-serif">Russo One (Мощный)</option>
+<option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">Pacifico (Летний)</option>
+<option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">Kelly Slab (Киберпанк)</option>
+<option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">Neucha (Маркер)</option>
+<option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">Amatic SC (Кино)</option>
 </select>
 </div>
 
@@ -283,8 +290,10 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 
 <div style="background: #2a2f3a50; padding: 15px; border-radius: 8px;">
 <label style="color: #4ade80;">🖼️ КАРТИНКИ</label>
-<input type="file" accept="image/*" onchange="insertSingleImage(event)">
+<!-- Добавлен атрибут multiple для выбора нескольких картинок сразу -->
+<input type="file" accept="image/*" multiple onchange="insertMultipleImages(event)">
 <div style="font-size: 11px; color: #9aa4b2; margin-top: 6px;">
+<b>Мультивыбор:</b> можешь выбрать сразу несколько картинок.<br>
 <b>Перемещение:</b> зажми картинку мышью и тащи. Кинешь вправо — встанет справа.<br>
 <b>Размер:</b> кликни и потяни за правый нижний угол ⇲.
 </div>
@@ -305,7 +314,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <div class="stats-box">
 <div class="stats-row">
 <span>Символы: <span id="charCount">0</span></span>
-<span>Фото: <span id="imgCount">0</span>/6</span>
+<span>Фото: <span id="imgCount">0</span>/10</span>
 </div>
 </div>
 
@@ -849,42 +858,79 @@ document.getElementById('imgCount').textContent = count;
 return count;
 }
 
-function insertSingleImage(event) {
-const file = event.target.files[0];
-if (!file) return;
-if (updateImgCounter() >= 6) { alert('Максимум 6 картинок. 🖼️'); event.target.value = ''; return; }
+// === НОВАЯ ФУНКЦИЯ ДЛЯ ВСТАВКИ СРАЗУ НЕСКОЛЬКИХ КАРТИНОК ===
+async function insertMultipleImages(event) {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
 
-const reader = new FileReader();
-reader.onload = function(ev) {
-const dataUrl = ev.target.result;
-const box = createImageBox(dataUrl);
-box.querySelector('img').onload = updateRatio;
+  let currentCount = updateImgCounter();
+  const maxImages = 10; // Увеличенный лимит картинок
 
-restoreSelection();
-const sel = window.getSelection();
-if (sel.rangeCount > 0 && editor.contains(sel.anchorNode)) sel.getRangeAt(0).insertNode(box);
-else editor.appendChild(box);
+  if (currentCount >= maxImages) {
+    alert(`Максимум ${maxImages} картинок. 🖼️`);
+    event.target.value = '';
+    return;
+  }
 
-const zwspAfter = document.createTextNode('\u200B');
-box.parentNode.insertBefore(zwspAfter, box.nextSibling);
-ensureAnchorBeforeImages();
+  restoreSelection();
+  const sel = window.getSelection();
+  let range = null;
+  if (sel.rangeCount > 0 && editor.contains(sel.anchorNode)) {
+    range = sel.getRangeAt(0);
+  }
 
-const newRange = document.createRange();
-newRange.setStartAfter(zwspAfter);
-newRange.collapse(true);
-sel.removeAllRanges();
-sel.addRange(newRange);
+  let added = 0;
+  
+  for (let i = 0; i < files.length; i++) {
+    if (currentCount + added >= maxImages) {
+      alert(`Достигнут лимит в ${maxImages} картинок. Остальные не добавлены.`);
+      break;
+    }
+    
+    const file = files[i];
+    
+    // Ждем загрузки файла в память
+    const dataUrl = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(file);
+    });
 
-updateImgCounter();
-updateRatio();
-selectImgBox(box);
-saveHistory();
-editor.focus();
+    const box = createImageBox(dataUrl);
+    box.querySelector('img').onload = updateRatio;
 
-};
-reader.readAsDataURL(file);
-event.target.value = '';
+    if (range) {
+      range.insertNode(box);
+      const zwspAfter = document.createTextNode('\u200B');
+      box.parentNode.insertBefore(zwspAfter, box.nextSibling);
+      ensureAnchorBeforeImages();
+      
+      // Смещаем курсор после вставленной картинки, чтобы следующая встала ЗА ней
+      range.setStartAfter(zwspAfter);
+      range.collapse(true);
+    } else {
+      editor.appendChild(box);
+      const zwspAfter = document.createTextNode('\u200B');
+      editor.appendChild(zwspAfter);
+      ensureAnchorBeforeImages();
+    }
+    
+    added++;
+  }
+
+  if (range) {
+    sel.removeAllRanges();
+    sel.addRange(range);
+  }
+
+  updateImgCounter();
+  updateRatio();
+  saveHistory();
+  
+  event.target.value = ''; // Очищаем инпут
+  setTimeout(() => editor.focus(), 50);
 }
+
 
 function createImageBox(url) {
 const box = document.createElement('span');
@@ -903,7 +949,6 @@ bindResizer(box);
 return box;
 }
 
-// === ИЗМЕНЕННАЯ ФУНКЦИЯ: Поддержка тача для ресайза картинки (СТРОГО КАК В ТВОЕМ КОДЕ) ===
 function bindResizer(box) {
 const resizer = box.querySelector('.img-resizer');
 if (!resizer) return;
@@ -970,7 +1015,6 @@ currentImgBox = null;
 }
 });
 
-// === ИЗМЕНЕННАЯ ФУНКЦИЯ: Поддержка перетаскивания (Drag & Drop) пальцем (СТРОГО КАК В ТВОЕМ КОДЕ) ===
 let dragBox = null;
 let isTouchDraggingImg = false;
 let imgGhost = null;
@@ -1113,7 +1157,6 @@ else result += inner;
 return result;
 }
 
-// ==== ОБНОВЛЕННЫЙ ЭКСПОРТ (Решение проблемы Айфона) ====
 function processExport() {
 const btn = document.getElementById('exportBtn');
 const originalText = btn.innerHTML;
