@@ -96,7 +96,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 }
 
 /* Скрываем кнопки мобильного меню на компе */
-#mobileMenuBtn, #mobileCloseBtn { display: none; }
+#mobileMenuBtn, #mobileCloseBtn, #panelHandle { display: none; }
 
 /* ===== ТЕЛЕФОН: ПАНЕЛЬ-ШТОРКА ===== */
 @media (max-width: 820px) {
@@ -115,6 +115,17 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
     padding: 15px; border-right: none;
   }
   .panel.open { left: 0; } /* Класс для открытия панели */
+
+  /* Язычок-стрелка на краю панели */
+  #panelHandle {
+    display: flex; align-items: center; justify-content: center;
+    position: absolute; top: 50%; right: -34px; transform: translateY(-50%);
+    width: 34px; height: 70px;
+    background: #171a21; border: 2px solid #3d7eff; border-left: none;
+    border-radius: 0 12px 12px 0; color: #3d7eff;
+    font-size: 22px; font-weight: bold; padding: 0;
+    box-shadow: 3px 0 8px rgba(0,0,0,0.4);
+  }
 
   /* Кнопка "Настройки" поверх холста */
   #mobileMenuBtn {
@@ -137,6 +148,29 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   #zoomControls { bottom: 15px; right: 15px; padding: 6px; z-index: 1400; }
   .modal { width: 92%; max-width: 500px; }
   .modal textarea { height: 160px; }
+
+  /* ===== ПРЯЧЕМ НА ТЕЛЕФОНЕ ЛИШНЕЕ (есть на клавиатуре quickBar) ===== */
+
+  /* блок эмодзи целиком */
+  .emoji-wrap,
+  label[style*="😀 Эмодзи"] {
+    display: none !important;
+  }
+
+  /* лишние кнопки форматирования в тулбаре */
+  .toolbar button[title="Жирный"],
+  .toolbar button[title="Курсив"],
+  .toolbar button[title="Подчеркнутый"],
+  .toolbar button[title="Зачеркнутый"],
+  .toolbar button[title="Код"],
+  .toolbar button[title="Ссылка"],
+  .toolbar button[title="Увеличить выделенное"],
+  .toolbar button[title="Уменьшить выделенное"],
+  .toolbar button[title="Сбросить стили выделенного (Метёлка)"],
+  .toolbar input[type="color"],
+  .toolbar .toolbar-divider {
+    display: none !important;
+  }
 }
 
 /* ===== ПАНЕЛЬ БЫСТРОГО ДОСТУПА НАД КЛАВИАТУРОЙ (только телефон) ===== */
@@ -162,7 +196,8 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <body>
 
 <div class="panel">
-<button id="mobileCloseBtn" onclick="document.querySelector('.panel').classList.remove('open')">❌ Закрыть настройки</button>
+<button id="panelHandle" onclick="togglePanel()">‹</button>
+<button id="mobileCloseBtn" onclick="togglePanel()">❌ Закрыть настройки</button>
 <h1>🎨 Текстер PRO</h1>
 <label>📏 Платформа (Размер холста)</label>
 <div class="row" style="margin-bottom: 10px;">
@@ -285,7 +320,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 </div>
 
 <div class="stage" id="stageArea">
-<button id="mobileMenuBtn" onclick="document.querySelector('.panel').classList.add('open')">⚙️ Инструменты</button>
+<button id="mobileMenuBtn" onclick="togglePanel()">⚙️ Инструменты</button>
 
 <div id="zoomControls">
 <button id="modeBtn" onclick="toggleMode()" title="Режим: Текст / Рука" style="min-width:auto; padding:0 8px; width:auto;">✍️</button>
@@ -1172,6 +1207,15 @@ function qbHide(e) {
   e.preventDefault();
   editor.blur();
   quickBar.classList.remove('visible');
+}
+
+// === ПЕРЕКЛЮЧАТЕЛЬ ПАНЕЛИ (язычок-стрелка) ===
+function togglePanel() {
+  const panel = document.querySelector('.panel');
+  const handle = document.getElementById('panelHandle');
+  panel.classList.toggle('open');
+  // разворачиваем стрелку: открыта ‹ (спрятать), закрыта › (открыть)
+  handle.textContent = panel.classList.contains('open') ? '‹' : '›';
 }
 
 </script>
