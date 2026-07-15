@@ -71,7 +71,8 @@ input[type="color"]::-webkit-color-swatch { border: none; }
   outline: none; font-size: 32px; line-height: 1.45; white-space: pre-wrap; 
   word-break: normal; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; 
   min-height: 100px; text-align: justify; transition: font-size 0.2s; display: flow-root; 
-  cursor: text; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; 
+  cursor: text; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
+  caret-color: #000000;
 }
 #editor[placeholder]:empty:before { content: attr(placeholder); opacity: 0.5; }
 #editor code { background: rgba(128,128,128,0.2); padding: 4px 8px; border-radius: 6px; font-family: monospace; }
@@ -335,7 +336,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <h2>Твоя картинка и текст</h2>
 <p style="font-size: 12px; color: #fbbf24; margin-top: 0;">Если скачивание не началось (на Айфоне), зажми палец на картинке ниже и нажми "Сохранить в Фото".</p>
 <img id="previewImage" src="" alt="Готовый пост">
-<p style="font-size: 12px; color: #9aa4b2; margin-top: 10px;">Вставь это под картинкой в Телеграм:</p>
+<p style="font-size: 12px; color: #9aa4b2; margin-top: 10px;">Вставь это под картинкой (Telegram / MAX):</p>
 <textarea id="markdownOutput" readonly></textarea>
 <div style="display: flex; gap: 10px;">
 <button class="primary" style="margin-top:0;" onclick="copyRichTextModal()">📋 Скопировать текст</button>
@@ -1099,43 +1100,14 @@ bar.appendChild(span);
 emojiWrap.appendChild(bar);
 });
 
-// Умный фильтр для Telegram (Markdown) - Оставлен только как фоллбэк для текстового поля в модалке
-function wrapMarkdown(text, mark) {
-  if (!text.trim()) return text; 
-  const match = text.match(/^(\s*)([\s\S]*?)(\s*)$/);
-  return match[1] + mark + match[2] + mark + match[3];
+// Генерация ЧИСТОГО текста для модального окна (без звёздочек и Markdown)
+function generatePlainText() {
+  const clone = editor.cloneNode(true);
+  // Удаляем картинки из копии, чтобы они не мешали
+  clone.querySelectorAll('.img-box').forEach(el => el.remove());
+  // Берём чистый текст и убираем "невидимые" символы-якоря (\u200B)
+  return clone.innerText.replace(/\u200B/g, '').trim();
 }
-
-function processNode(node) {
-  let result = '';
-  node.childNodes.forEach(function(child) {
-    if (child.nodeType === Node.TEXT_NODE) {
-      result += child.textContent.replace(/\u200B/g, ''); 
-    }
-    else if (child.nodeType === Node.ELEMENT_NODE) {
-      if (child.classList && child.classList.contains('img-box')) return;
-      if (child.classList && child.classList.contains('img-resizer')) return;
-      
-      const tag = child.tagName.toLowerCase();
-      const inner = processNode(child);
-      
-      if (tag === 'b' || tag === 'strong') result += wrapMarkdown(inner, '**');
-      else if (tag === 'i' || tag === 'em') result += wrapMarkdown(inner, '__');
-      else if (tag === 's' || tag === 'strike' || tag === 'del') result += wrapMarkdown(inner, '~~');
-      else if (tag === 'code') result += wrapMarkdown(inner, '`');
-      else if (tag === 'a') {
-        const cleanInner = inner.trim();
-        if(cleanInner) result += '[' + cleanInner + '](' + child.getAttribute('href') + ')';
-      }
-      else if (tag === 'br') result += '\n';
-      else if (tag === 'div' || tag === 'p') result += (result.length && !result.endsWith('\n') ? '\n' : '') + inner;
-      else result += inner;
-    }
-  });
-  return result;
-}
-
-function generateMarkdown() { return processNode(editor).trim(); }
 
 function processExport() {
 const btn = document.getElementById('exportBtn');
@@ -1167,7 +1139,7 @@ if (!isMobile()) {
   link.click();
 }
 
-document.getElementById('markdownOutput').value = generateMarkdown();
+document.getElementById('markdownOutput').value = generatePlainText();
 document.getElementById('textModal').style.display = 'flex';
 btn.innerHTML = originalText;
 btn.disabled = false;
