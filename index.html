@@ -1154,7 +1154,7 @@ zoomWrapper.style.transform = savedTransform;
 }, 100);
 }
 
-// ЕДИНОЕ КОПИРОВАНИЕ ДЛЯ ОСНОВНОЙ КНОПКИ (v3 - воздух через &nbsp; + два MIME-типа)
+// ЕДИНОЕ КОПИРОВАНИЕ ДЛЯ ОСНОВНОЙ КНОПКИ (v4 - честный DOM, без задвоения переносов и с сохранением жирности)
 async function copyRichText() {
   const btn = document.getElementById('copyMaxBtn');
   const original = btn ? btn.innerHTML : '';
@@ -1162,55 +1162,80 @@ async function copyRichText() {
   if (!editor.innerText.trim()) { alert('Сначала напиши текст. ✍️'); return; }
 
   // 1. Клонируем содержимое редактора
-  const tempWrap = document.createElement('div');
-  tempWrap.innerHTML = editor.innerHTML;
+  const src = document.createElement('div');
+  src.innerHTML = editor.innerHTML;
 
   // 2. Удаляем картинки
-  tempWrap.querySelectorAll('.img-box').forEach(el => el.remove());
+  src.querySelectorAll('.img-box').forEach(el => el.remove());
 
-  // 3. Чистим сложные теги: оставляем только базовое форматирование.
-  // Убираем span/style/class/data-атрибуты, чтобы парсер MAX (ProseMirror) не глючил.
-  tempWrap.querySelectorAll('*').forEach(function(el) {
-    // Разворачиваем span'ы (в т.ч. цвет/размер) в чистый текст
-    if (el.tagName === 'SPAN' || el.tagName === 'FONT') {
-      const parent = el.parentNode;
-      while (el.firstChild) parent.insertBefore(el.firstChild, el);
-      parent.removeChild(el);
-    }
+  // 3. Разворачиваем span/font (цвет/размер), чтобы MAX не спотыкался, но НЕ трогаем b/i/u/s/a/code
+  src.querySelectorAll('span, font').forEach(function(el) {
+    const parent = el.parentNode;
+    while (el.firstChild) parent.insertBefore(el.firstChild, el);
+    parent.removeChild(el);
   });
-  // Второй проход: снимаем атрибуты стилей с оставшихся разрешённых тегов
-  tempWrap.querySelectorAll('b,strong,i,em,u,s,strike,del,a,code,div,p,br').forEach(function(el) {
+
+  // 4. Снимаем style/class с оставшихся тегов (кроме href у ссылок)
+  src.querySelectorAll('b,strong,i,em,u,s,strike,del,a,code,div,p').forEach(function(el) {
     el.removeAttribute('style');
     el.removeAttribute('class');
-    if (el.tagName !== 'A') { // у ссылки оставляем href
-      Array.from(el.attributes).forEach(a => el.removeAttribute(a.name));
-    } else {
+    el.removeAttribute('data-custom-size');
+    if (el.tagName === 'A') {
       Array.from(el.attributes).forEach(a => { if (a.name !== 'href') el.removeAttribute(a.name); });
     }
   });
 
-  // 4. Приводим переносы к единому виду \n
-  let html = tempWrap.innerHTML;
-  html = html.replace(/<br\s*\/?>/gi, '\n');    // <br> -> \n
-  html = html.replace(/<\/(div|p)>/gi, '\n');   // конец блока -> \n
-  html = html.replace(/<(div|p)[^>]*>/gi, '');  // начало блока -> убираем
-  html = html.replace(/\u200B/g, '');           // убираем невидимые якоря
+  // 5. Убираем невидимые якоря \u200B из текстовых узлов
+  const walker = document.createTreeWalker(src, NodeFilter.SHOW_TEXT, null);
+  const textNodes = [];
+  while (walker.nextNode()) textNodes.push(walker.currentNode);
+  textNodes.forEach(function(t) { t.textContent = t.textContent.replace(/\u200B/g, ''); });
 
-  // 5. Собираем HTML для буфера:
-  // - обычная строка -> <div>текст</div>
-  // - ПУСТАЯ строка ("воздух") -> <div>&nbsp;</div> (главный трюк для MAX!)
-  const lines = html.split('\n');
+  // 6. Разбиваем содержимое на "строки" (абзацы).
+  const lines = [];
+  let current = '';
+
+  function pushCurrent() {
+    lines.push(current);
+    current = '';
+  }
+
+  Array.from(src.childNodes).forEach(function(node) {
+    if (node.nodeType === Node.ELEMENT_NODE && (node.tagName === 'DIV' || node.tagName === 'P')) {
+      // Внутри блока могут быть свои <br> — разбиваем и по ним
+      const inner = node.innerHTML.replace(/<br\s*\/?>/gi, '\n');
+      const parts = inner.split('\n');
+      if (current.trim() !== '') pushCurrent();
+      else if (current !== '') current = ''; // сбрасываем пустой мусор
+      parts.forEach(function(p, idx) {
+        current = p;
+        pushCurrent();
+      });
+    } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'BR') {
+      pushCurrent();
+    } else {
+      // Текст или инлайновый тег (b/i/u/a/code) — добавляем в текущую строку
+      if (node.nodeType === Node.ELEMENT_NODE) current += node.outerHTML;
+      else current += node.textContent;
+    }
+  });
+  if (current !== '') pushCurrent();
+
+  // 7. Убираем лишнюю пустую строку в самом конце
+  while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
+
+  // 8. Собираем HTML:
   const finalHtml = lines.map(function(line) {
     return '<div>' + (line.trim() === '' ? '&nbsp;' : line) + '</div>';
   }).join('');
 
-  // 6. Собираем PLAIN-текст (fallback):
-  // - тут "воздух" делаем через \u00A0 (неразрывный пробел), чтобы MAX не схлопнул
+  // 9. PLAIN-текст (fallback)
   const finalPlain = lines.map(function(line) {
-    return (line.trim() === '' ? '\u00A0' : line.replace(/<[^>]+>/g, ''));
+    const clean = line.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+    return clean === '' ? '\u00A0' : clean;
   }).join('\n');
 
-  // 7. Пишем ОБА формата через Clipboard API (Telegram возьмёт своё, MAX — своё)
+  // 10. Пишем ОБА формата через Clipboard API
   let ok = false;
   try {
     if (navigator.clipboard && window.ClipboardItem) {
@@ -1225,7 +1250,7 @@ async function copyRichText() {
     ok = false;
   }
 
-  // 8. Fallback для старых браузеров / iOS Safari (через execCommand)
+  // 11. Fallback через execCommand (старые браузеры / iOS)
   if (!ok) {
     const temp = document.createElement('div');
     temp.contentEditable = 'true';
@@ -1240,12 +1265,7 @@ async function copyRichText() {
     sel.removeAllRanges();
     sel.addRange(range);
 
-    try {
-      document.execCommand('copy');
-      ok = true;
-    } catch (e) {
-      ok = false;
-    }
+    try { document.execCommand('copy'); ok = true; } catch (e) { ok = false; }
     document.body.removeChild(temp);
   }
 
