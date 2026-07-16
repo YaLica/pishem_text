@@ -724,7 +724,8 @@ setTimeout(updateRatio, 100);
 }
 
 function updateCustomWidth() {
-const w = document.getElementById('width').value;
+const w = document.getElementById('width').value
+;
 document.getElementById('wLabel').textContent = w;
 exportNode.style.width = w + 'px';
 updateRatio();
@@ -1103,9 +1104,7 @@ emojiWrap.appendChild(bar);
 // Генерация ЧИСТОГО текста для модального окна (без звёздочек и Markdown)
 function generatePlainText() {
   const clone = editor.cloneNode(true);
-  // Удаляем картинки из копии, чтобы они не мешали
   clone.querySelectorAll('.img-box').forEach(el => el.remove());
-  // Берём чистый текст и убираем "невидимые" символы-якоря (\u200B)
   return clone.innerText.replace(/\u200B/g, '').trim();
 }
 
@@ -1154,24 +1153,94 @@ zoomWrapper.style.transform = savedTransform;
 }, 100);
 }
 
-// ЕДИНОЕ КОПИРОВАНИЕ ДЛЯ ОСНОВНОЙ КНОПКИ
-function copyRichText() {
-  const btn = document.getElementById('copyMaxBtn');
-  const original = btn ? btn.innerHTML : '';
-  
-  if (!editor.innerText.trim()) { alert('Сначала напиши текст. ✍️'); return; }
+/* ============================================================
+   КОПИРОВАНИЕ v3 — для Telegram И MAX одновременно.
+   По рекомендациям: пустые строки = <div>&nbsp;</div>,
+   чистка HTML от span/style/class, запись обоих MIME-типов
+   через Clipboard API (с fallback на execCommand).
+   ============================================================ */
 
+// Оставляем только базовые теги, которые понимает парсер MAX (ProseMirror).
+function sanitizeForMessengers(rootHtml) {
+  const src = document.createElement('div');
+  src.innerHTML = rootHtml;
+
+  // Убираем картинки-редактора и невидимые якоря
+  src.querySelectorAll('.img-box').forEach(el => el.remove());
+
+  const ALLOWED = { 'B':1,'STRONG':1,'I':1,'EM':1,'U':1,'S':1,'STRIKE':1,'DEL':1,'A':1,'CODE':1,'PRE':1,'BR':1 };
+
+  function clean(node) {
+    const children = Array.from(node.childNodes);
+    for (const child of children) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        child.textContent = child.textContent.replace(/\u200B/g, '');
+        continue;
+      }
+      if (child.nodeType !== Node.ELEMENT_NODE) { child.remove(); continue; }
+
+      const tag = child.tagName;
+
+      // DIV/P — оставляем как блоки-абзацы, но чистим атрибуты
+      if (tag === 'DIV' || tag === 'P') {
+        child.removeAttribute('style');
+        child.removeAttribute('class');
+        clean(child);
+        continue;
+      }
+
+      if (ALLOWED[tag]) {
+        // Разрешённые теги: чистим все атрибуты, кроме href у ссылок
+        if (tag === 'A') {
+          const href = child.getAttribute('href') || '';
+          // Оставляем только http/https ссылки
+          Array.from(child.attributes).forEach(a => child.removeAttribute(a.name));
+          if (/^https?:\/\//i.test(href)) child.setAttribute('href', href);
+        } else {
+          Array.from(child.attributes).forEach(a => child.removeAttribute(a.name));
+        }
+        clean(child);
+      } else {
+        // Неразрешённый тег (span, font и т.д.) — разворачиваем, оставляя содержимое
+        clean(child);
+        while (child.firstChild) child.parentNode.insertBefore(child.firstChild, child);
+        child.remove();
+      }
+    }
+  }
+  clean(src);
+  return src.innerHTML;
+}
+
+// Собираем финальный HTML: каждая строка = <div>, пустая = <div>&nbsp;</div>
+function buildMessengerHtml() {
+  let html = sanitizeForMessengers(editor.innerHTML);
+
+  // Приводим все переносы к \n
+  html = html.replace(/<br\s*\/?>/gi, '\n');
+  html = html.replace(/<\/(div|p)>/gi, '\n');
+  html = html.replace(/<(div|p)[^>]*>/gi, '');
+
+  const lines = html.split('\n');
+  return lines.map(function(line) {
+    const trimmed = line.trim();
+    // Пустая строка -> блок с неразрывным пробелом (воздух сохранится в MAX)
+    return '<div>' + (trimmed === '' ? '&nbsp;' : line) + '</div>';
+  }).join('');
+}
+
+// Plain-text версия: пустые строки как \n\n (fallback для Telegram)
+function buildMessengerPlain() {
+  return generatePlainText();
+}
+
+// Fallback через execCommand (если Clipboard API недоступен, напр. старый iOS Safari)
+function legacyCopy(finalHtml) {
   const temp = document.createElement('div');
   temp.contentEditable = 'true';
   temp.style.position = 'fixed';
   temp.style.left = '-9999px';
-
-  const tempWrap = document.createElement('div');
-  tempWrap.innerHTML = editor.innerHTML;
-  
-  tempWrap.querySelectorAll('.img-box').forEach(el => el.remove());
-  
-  temp.innerHTML = tempWrap.innerHTML;
+  temp.innerHTML = finalHtml;
   document.body.appendChild(temp);
 
   const range = document.createRange();
@@ -1180,159 +1249,159 @@ function copyRichText() {
   sel.removeAllRanges();
   sel.addRange(range);
 
-  try {
-    document.execCommand('copy');
-    if (btn) {
-      btn.innerHTML = '✅ Скопировано!';
-      setTimeout(function() { btn.innerHTML = original; }, 2000);
-    }
-  } catch (err) {
-    alert('Ошибка системного копирования 😢');
-  }
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
 
   document.body.removeChild(temp);
   restoreSelection();
+  return ok;
 }
 
-// ЕДИНОЕ КОПИРОВАНИЕ ДЛЯ КНОПКИ ВНУТРИ МОДАЛКИ
-function copyRichTextModal() {
-  copyRichText();
-  alert('Текст скопирован! 📋');
-}
+async function copyRichText() {
+  const btn = document.getElementById('copyMaxBtn');
+    const original = btn ? btn.innerHTML : '';
 
-editor.addEventListener('keydown', function(e) {
-const sel = window.getSelection();
+  const finalHtml = buildMessengerHtml();
+  const finalPlain = buildMessengerPlain();
 
-function imgNextTo(direction) {
-if (!sel.rangeCount) return null;
-const r = sel.getRangeAt(0);
-if (!r.collapsed) return null;
-let node = r.startContainer;
-let offset = r.startOffset;
-
-if (direction === 'back') {
-  if (node.nodeType === Node.TEXT_NODE) {
-    if (offset > 0) return null;
-    let prev = node.previousSibling;
-    while (prev && prev.nodeType === Node.TEXT_NODE && prev.textContent === '\u200B') prev = prev.previousSibling;
-    if (prev && prev.classList && prev.classList.contains('img-box')) return prev;
-  } else {
-    let child = node.childNodes[offset - 1];
-    while (child && child.nodeType === Node.TEXT_NODE && child.textContent === '\u200B') child = child.previousSibling;
-    if (child && child.classList && child.classList.contains('img-box')) return child;
+  function done() {
+    if (btn) {
+      btn.innerHTML = '✅ Скопировано!';
+      setTimeout(() => { btn.innerHTML = original; }, 1800);
+    }
   }
-} else {
-  if (node.nodeType === Node.TEXT_NODE) {
-    if (offset < node.textContent.length) return null;
-    let next = node.nextSibling;
-    while (next && next.nodeType === Node.TEXT_NODE && next.textContent === '\u200B') next = next.nextSibling;
-    if (next && next.classList && next.classList.contains('img-box')) return next;
-  } else {
-    let child = node.childNodes[offset];
-    while (child && child.nodeType === Node.TEXT_NODE && child.textContent === '\u200B') child = child.nextSibling;
-    if (child && child.classList && child.classList.contains('img-box')) return child;
+  function fail() {
+    if (legacyCopy(finalHtml)) { done(); }
+    else { alert('Не удалось скопировать. Выдели текст вручную.'); if (btn) btn.innerHTML = original; }
+  }
+
+  // Пробуем современный Clipboard API с двумя форматами
+  if (navigator.clipboard && window.ClipboardItem) {
+    try {
+      const htmlBlob = new Blob([finalHtml], { type: 'text/html' });
+      const plainBlob = new Blob([finalPlain], { type: 'text/plain' });
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': plainBlob })
+      ]);
+      done();
+      return;
+    } catch (e) {
+      fail();
+      return;
+    }
+  }
+  // Старый способ
+  fail();
+}
+
+// Копирование из модального окна (тот же движок)
+async function copyRichTextModal() {
+  const finalHtml = buildMessengerHtml();
+  const finalPlain = buildMessengerPlain();
+
+  if (navigator.clipboard && window.ClipboardItem) {
+    try {
+      const htmlBlob = new Blob([finalHtml], { type: 'text/html' });
+      const plainBlob = new Blob([finalPlain], { type: 'text/plain' });
+      await navigator.clipboard.write([
+        new ClipboardItem({ 'text/html': htmlBlob, 'text/plain': plainBlob })
+      ]);
+      alert('✅ Текст скопирован! Вставляй в Telegram или MAX.');
+      return;
+    } catch (e) { /* упадём в fallback ниже */ }
+  }
+
+  // Fallback: копируем plain из textarea
+  const ta = document.getElementById('markdownOutput');
+  ta.select();
+  ta.setSelectionRange(0, 99999);
+  try {
+    if (legacyCopy(finalHtml)) { alert('✅ Текст скопирован!'); }
+    else { document.execCommand('copy'); alert('✅ Текст скопирован!'); }
+  } catch (e) {
+    alert('Не удалось скопировать автоматически. Выдели текст в поле вручную.');
   }
 }
-return null;
 
+/* ============================================================
+   МОБИЛЬНАЯ ПАНЕЛЬ + QUICKBAR
+   ============================================================ */
+
+function togglePanel() {
+const panel = document.querySelector('.panel');
+const handle = document.getElementById('panelHandle');
+panel.classList.toggle('open');
+handle.classList.toggle('open');
+handle.textContent = panel.classList.contains('open') ? '‹' : '›';
 }
 
-if (e.key === 'Backspace') {
-const box = imgNextTo('back');
-if (box) { e.preventDefault(); selectImgBox(box); return; }
+// Quick-bar появляется при выделении текста на мобиле
+let qbSavedRange = null;
+
+function saveQbRange() {
+  const sel = window.getSelection();
+  if (sel.rangeCount > 0 && editor.contains(sel.anchorNode)) {
+    qbSavedRange = sel.getRangeAt(0).cloneRange();
+  }
 }
-if (e.key === 'Delete') {
-const box = imgNextTo('forward');
-if (box) { e.preventDefault(); selectImgBox(box); return; }
+function restoreQbRange() {
+  editor.focus();
+  if (qbSavedRange) {
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(qbSavedRange);
+  }
 }
 
-if (currentImgBox && (e.key === 'Delete' || e.key === 'Backspace')) {
-e.preventDefault();
-deleteSelectedImage();
-return;
+function updateQuickBar() {
+  const qbar = document.getElementById('quickBar');
+  if (!isMobile()) { qbar.classList.remove('visible'); return; }
+  const sel = window.getSelection();
+  const hasText = sel && sel.rangeCount > 0 && sel.toString().trim().length > 0 && editor.contains(sel.anchorNode);
+  if (hasText) { saveQbRange(); qbar.classList.add('visible'); }
+  else { qbar.classList.remove('visible'); }
 }
 
-if (currentImgBox && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-const box = currentImgBox;
-box.classList.remove('selected');
-currentImgBox = null;
-const range = document.createRange();
-range.setStartAfter(box);
-range.collapse(true);
-sel.removeAllRanges();
-sel.addRange(range);
-}
+document.addEventListener('selectionchange', updateQuickBar);
 
-if (e.ctrlKey || e.metaKey) {
-if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoAction(); }
-else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redoAction(); }
-else if (e.key === 'b') { e.preventDefault(); format('bold'); }
-else if (e.key === 'i') { e.preventDefault(); format('italic'); }
-else if (e.key === 'u') { e.preventDefault(); format('underline'); }
-}
-});
-
-const panelEl = document.querySelector('.panel');
-panelEl.addEventListener('mousedown', function(e) {
-if (e.target.closest('button') || e.target.closest('.emoji-bar span')) {
-e.preventDefault();
-}
-});
-
-const quickBar = document.getElementById('quickBar');
-editor.addEventListener('focus', function() {
-  if (isMobile()) quickBar.classList.add('visible');
-});
-editor.addEventListener('blur', function() {
-  setTimeout(function() {
-    if (!editor.matches(':focus')) quickBar.classList.remove('visible');
-  }, 150);
-});
-
-if (window.visualViewport) {
-  window.visualViewport.addEventListener('resize', positionQuickBar);
-  window.visualViewport.addEventListener('scroll', positionQuickBar);
-}
-function positionQuickBar() {
-  if (!quickBar.classList.contains('visible')) return;
-  const vv = window.visualViewport;
-  const bottomGap = window.innerHeight - (vv.height + vv.offsetTop);
-  quickBar.style.bottom = bottomGap + 'px';
-}
-
-function qb(e, command) {
+function qb(e, cmd) {
   e.preventDefault();
-  document.execCommand(command, false, null);
+  restoreQbRange();
+  document.execCommand(cmd, false, null);
   saveHistory();
+  saveQbRange();
 }
-function qbText(e, text) {
+function qbSize(e, factor) {
   e.preventDefault();
-  document.execCommand('insertText', false, text);
-  updateRatio();
+  restoreQbRange();
+  savedSelection = window.getSelection().rangeCount ? window.getSelection().getRangeAt(0) : null;
+  changeWordSize(factor);
+  saveQbRange();
+}
+function qbLink(e) {
+  e.preventDefault();
+  restoreQbRange();
+  savedSelection = window.getSelection().rangeCount ? window.getSelection().getRangeAt(0) : null;
+  insertLink();
+}
+function qbText(e, txt) {
+  e.preventDefault();
+  restoreQbRange();
+  document.execCommand('insertText', false, txt);
   saveHistory();
 }
 function qbHide(e) {
   e.preventDefault();
+  document.getElementById('quickBar').classList.remove('visible');
+  window.getSelection().removeAllRanges();
   editor.blur();
-  quickBar.classList.remove('visible');
 }
 
-function qbSize(e, factor) {
-  e.preventDefault();
-  changeWordSize(factor);
-}
-function qbLink(e) {
-  e.preventDefault();
-  insertLink();
-}
-
-function togglePanel() {
-  const panel = document.querySelector('.panel');
-  const handle = document.getElementById('panelHandle');
-  panel.classList.toggle('open');
-  handle.classList.toggle('open');
-  handle.textContent = panel.classList.contains('open') ? '‹' : '›';
-}
+// Горячие клавиши Undo/Redo
+document.addEventListener('keydown', function(e) {
+if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); undoAction(); }
+else if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { e.preventDefault(); redoAction(); }
+});
 
 </script>
 </body>
