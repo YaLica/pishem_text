@@ -1280,16 +1280,69 @@ async function writeToClipboard(html, plain, btnId) {
   restoreSelection();
 }
 
-// 3. ТОЛЬКО ДЛЯ TELEGRAM (Никаких DIV блоков, только сплошной текст и <br>)
+// 3. ДЛЯ TELEGRAM — ГИБРИД: живой HTML через ClipboardItem (телефон+ПК),
+//    с запасным execCommand через невидимый div (старый рабочий метод)
 async function copyForTelegram() {
+  const btn = document.getElementById('copyTgBtn');
+  const original = btn ? btn.innerHTML : '';
+
   if (!editor.innerText.trim()) { alert('Сначала напиши текст. ✍️'); return; }
-  const lines = getEditorLines();
-  
-  // Telegram ненавидит блочные элементы. Мы отдаем ему сырую строку, где каждый перенос - это просто <br>.
-  const finalHtml = lines.join('<br>');
-  const finalPlain = lines.join('\n');
-  
-  await writeToClipboard(finalHtml, finalPlain, 'copyTgBtn');
+
+  // Готовим чистый HTML: копируем содержимое редактора и вырезаем картинки
+  const tempWrap = document.createElement('div');
+  tempWrap.innerHTML = editor.innerHTML;
+  tempWrap.querySelectorAll('.img-box').forEach(el => el.remove());
+  // Убираем zero-width пробелы (якоря картинок)
+  tempWrap.innerHTML = tempWrap.innerHTML.replace(/\u200B/g, '');
+
+  const finalHtml = tempWrap.innerHTML;
+  const finalPlain = tempWrap.innerText.replace(/\u200B/g, '').trim();
+
+  let ok = false;
+
+  // === ПОПЫТКА 1: современный ClipboardItem (работает на телефоне и ПК) ===
+  try {
+    if (navigator.clipboard && window.ClipboardItem) {
+      const item = new ClipboardItem({
+        'text/html': new Blob([finalHtml], { type: 'text/html' }),
+        'text/plain': new Blob([finalPlain], { type: 'text/plain' })
+      });
+      await navigator.clipboard.write([item]);
+      ok = true;
+    }
+  } catch (err) { ok = false; }
+
+  // === ПОПЫТКА 2 (запасная): execCommand через невидимый div (старый метод для ПК) ===
+  if (!ok) {
+    const temp = document.createElement('div');
+    temp.contentEditable = 'true';
+    temp.style.position = 'fixed';
+    temp.style.left = '-9999px';
+    temp.innerHTML = finalHtml;
+    document.body.appendChild(temp);
+
+    const range = document.createRange();
+    range.selectNodeContents(temp);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    try { document.execCommand('copy'); ok = true; } catch (e) { ok = false; }
+    document.body.removeChild(temp);
+  }
+
+  if (ok) {
+    if (btn) {
+      btn.innerHTML = '✅ Скопировано!';
+      setTimeout(function() { btn.innerHTML = original; }, 2000);
+    } else {
+      alert('✅ Текст успешно скопирован!');
+    }
+  } else {
+    alert('Ошибка системного копирования 😢');
+  }
+
+  restoreSelection();
 }
 
 // 4. ТОЛЬКО ДЛЯ MAX (Строгие блоки DIV для каждой строки)
