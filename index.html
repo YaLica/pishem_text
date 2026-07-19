@@ -68,7 +68,7 @@ input[type="color"]::-webkit-color-swatch { border: none; }
 
 /* Умный перенос слов */
 #editor { 
-  outline: none; font-size: 32px; line-height: 1.45; white-space: pre-wrap; 
+  outline: none; font-size: 32px; line-height: 1.2; white-space: pre-wrap; 
   word-break: normal; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; 
   min-height: 100px; text-align: justify; transition: font-size 0.2s; display: flow-root; 
   cursor: text; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
@@ -240,8 +240,8 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <input type="range" id="baseFontSlider" min="16" max="80" value="32" oninput="updateBaseFontSize(this.value)">
 </div>
 <div style="flex: 1;">
-<label style="color: #fff; margin-top: 0;">↕️ Интервал: <span id="lineHeightLabel">1.45</span></label>
-<input type="range" id="lineHeightSlider" min="1.0" max="2.5" step="0.05" value="1.45" oninput="updateLineHeight(this.value)">
+<label style="color: #fff; margin-top: 0;">↕️ Интервал: <span id="lineHeightLabel">1.2</span></label>
+<input type="range" id="lineHeightSlider" min="0.8" max="2.5" step="0.05" value="1.2" oninput="updateLineHeight(this.value)">
 </div>
 </div>
 
@@ -1165,14 +1165,14 @@ function getEditorLines() {
   src.innerHTML = editor.innerHTML;
   src.querySelectorAll('.img-box').forEach(el => el.remove());
 
-  // Снимаем опасные span'ы, оставляя только голый текст и b/i/u
+  // Снимаем опасные span'ы, оставляя только b/i/u/s/a/code
   src.querySelectorAll('span, font').forEach(function(el) {
     const parent = el.parentNode;
     while (el.firstChild) parent.insertBefore(el.firstChild, el);
     parent.removeChild(el);
   });
 
-  // Очищаем от стилей
+  // Чистим стили
   src.querySelectorAll('b,strong,i,em,u,s,strike,del,a,code,div,p').forEach(function(el) {
     el.removeAttribute('style');
     el.removeAttribute('class');
@@ -1182,40 +1182,56 @@ function getEditorLines() {
     }
   });
 
-  // Убираем якоря картинок
+  // Убираем zero-width пробелы (якоря картинок)
   const walker = document.createTreeWalker(src, NodeFilter.SHOW_TEXT, null);
   const textNodes = [];
   while (walker.nextNode()) textNodes.push(walker.currentNode);
-  textNodes.forEach(function(t) { t.textContent = t.textContent.replace(/\u200B/g, ''); });
+  textNodes.forEach(t => { t.textContent = t.textContent.replace(/\u200B/g, ''); });
 
-  const lines = [];
-  let current = '';
-
-  function pushCurrent() {
-    lines.push(current);
-    current = '';
+  // Превращаем DOM в единый HTML, где перенос = ОДИН \n
+  // <br> -> \n, конец каждого <div>/<p> -> \n, начало <div> НЕ добавляет \n
+  let html = '';
+  function walk(node) {
+    node.childNodes.forEach(function(child) {
+      if (child.nodeType === Node.TEXT_NODE) {
+        html += child.textContent;
+      } else if (child.nodeType === Node.ELEMENT_NODE) {
+        const tag = child.tagName;
+        if (tag === 'BR') {
+          html += '\n';
+        } else if (tag === 'DIV' || tag === 'P') {
+          // перед блоком гарантируем перенос, если текущая строка не пустая
+          if (html.length && !html.endsWith('\n')) html += '\n';
+          walk(child);
+          if (!html.endsWith('\n')) html += '\n';
+        } else {
+          // b, i, u, s, a, code и т.д. — сохраняем тег вокруг содержимого
+          html += '<' + tag.toLowerCase() + (tag === 'A' && child.getAttribute('href') ? ' href="' + child.getAttribute('href') + '"' : '') + '>';
+          walk(child);
+          html += '</' + tag.toLowerCase() + '>';
+        }
+      }
+    });
   }
+  walk(src);
 
-  // Честно идем по DOM дереву
-  Array.from(src.childNodes).forEach(function(node) {
-    if (node.nodeType === Node.ELEMENT_NODE && (node.tagName === 'DIV' || node.tagName === 'P')) {
-      const inner = node.innerHTML.replace(/<br\s*\/?>/gi, '\n');
-      const parts = inner.split('\n');
-      if (current.trim() !== '') pushCurrent();
-      else if (current !== '') current = ''; 
-      parts.forEach(function(p) { current = p; pushCurrent(); });
-    } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'BR') {
-      pushCurrent();
-    } else {
-      if (node.nodeType === Node.ELEMENT_NODE) current += node.outerHTML;
-      else current += node.textContent;
-    }
-  });
-  if (current !== '') pushCurrent();
+  // Режем на строки по ОДИНОЧНОМУ переносу
+  let lines = html.split('\n');
 
-  // Удаляем пустую строку в самом конце (главный источник лишнего пробела снизу)
+  // Убираем пустые строки в начале и конце
+  while (lines.length && lines[0].trim() === '') lines.shift();
   while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
-  return lines;
+
+  // Схлопываем несколько подряд пустых строк в одну
+  const cleaned = [];
+  let prevEmpty = false;
+  for (const line of lines) {
+    const isEmpty = line.trim() === '';
+    if (isEmpty && prevEmpty) continue;
+    cleaned.push(line);
+    prevEmpty = isEmpty;
+  }
+  return cleaned;
 }
 
 // 2. Системная запись в буфер
