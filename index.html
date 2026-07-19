@@ -74,6 +74,8 @@ input[type="color"]::-webkit-color-swatch { border: none; }
   cursor: text; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
   caret-color: #000000;
 }
+#editor, #editor * { caret-color: #000000 !important; }
+
 #editor[placeholder]:empty:before { content: attr(placeholder); opacity: 0.5; }
 #editor code { background: rgba(128,128,128,0.2); padding: 4px 8px; border-radius: 6px; font-family: monospace; }
 #editor a { color: #3d7eff; text-decoration: underline; cursor: pointer; }
@@ -1345,19 +1347,72 @@ async function copyForTelegram() {
   restoreSelection();
 }
 
-// 4. ТОЛЬКО ДЛЯ MAX (Строгие блоки DIV для каждой строки)
+// 4. ТОЛЬКО ДЛЯ MAX (ProseMirror-движок). 
+// Жёстко используем ClipboardItem (он НЕ портит <div>&nbsp;</div>, 
+// в отличие от execCommand, который съедает пустые строки на ПК).
 async function copyForMax() {
+  const btn = document.getElementById('copyMaxBtn');
+  const original = btn ? btn.innerHTML : '';
+
   if (!editor.innerText.trim()) { alert('Сначала напиши текст. ✍️'); return; }
+
   const lines = getEditorLines();
-  
-  // MAX требует оборачивать каждую строку в <div>. Пустые строки - это <div>&nbsp;</div>.
+
+  // MAX (ProseMirror) требует оборачивать КАЖДУЮ строку в <div>.
+  // Пустые строки — это <div>&nbsp;</div> (иначе санитайзер MAX их выкинет).
   const finalHtml = lines.map(function(line) {
-    return '<div>' + (line === '' ? '&nbsp;' : line) + '</div>';
+    return '<div>' + (line === '\u00A0' || line === '' ? '&nbsp;' : line) + '</div>';
   }).join('');
-  
-  const finalPlain = lines.join('\n');
-  
-  await writeToClipboard(finalHtml, finalPlain, 'copyMaxBtn');
+
+  // Plain-текст: пустые строки как реальные переносы (запасной вариант).
+  const finalPlain = lines.map(function(line) {
+    return (line === '\u00A0') ? '' : line;
+  }).join('\n');
+
+  let ok = false;
+
+  // === ГЛАВНЫЙ ПУТЬ: ClipboardItem (и ПК, и телефон) ===
+  // Кладём HTML "как есть" — браузер его НЕ нормализует, пустые строки доходят целыми.
+  try {
+    if (navigator.clipboard && window.ClipboardItem) {
+      const item = new ClipboardItem({
+        'text/html': new Blob([finalHtml], { type: 'text/html' }),
+        'text/plain': new Blob([finalPlain], { type: 'text/plain' })
+      });
+      await navigator.clipboard.write([item]);
+      ok = true;
+    }
+  } catch (err) { ok = false; }
+
+  // === ЗАПАСНОЙ ПУТЬ: только если ClipboardItem недоступен (очень старые браузеры) ===
+  if (!ok) {
+    const temp = document.createElement('div');
+    temp.contentEditable = 'true';
+    temp.style.position = 'fixed';
+    temp.style.left = '-9999px';
+    temp.innerHTML = finalHtml;
+    document.body.appendChild(temp);
+
+    const range = document.createRange();
+    range.selectNodeContents(temp);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+
+    try { document.execCommand('copy'); ok = true; } catch (e) { ok = false; }
+    document.body.removeChild(temp);
+  }
+
+  if (ok) {
+    if (btn) {
+      btn.innerHTML = '✅ Скопировано!';
+      setTimeout(function() { btn.innerHTML = original; }, 2000);
+    } else { alert('✅ Текст успешно скопирован!'); }
+  } else {
+    alert('Ошибка системного копирования 😢');
+  }
+
+  restoreSelection();
 }
 
 editor.addEventListener('keydown', function(e) {
