@@ -304,8 +304,11 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 
 <button class="primary" id="exportBtn" onclick="processExport()">⬇️ Скачать текст (PNG)</button>
 
-<!-- ЕДИНАЯ КНОПКА ДЛЯ КОПИРОВАНИЯ -->
-<button class="primary" id="copyMaxBtn" onclick="copyRichText()" style="background:#10b981; margin-top:10px;">📋 Скопировать текст для Telegram / MAX</button>
+<!-- КНОПКИ ДЛЯ КОПИРОВАНИЯ (ИДЕАЛЬНО РАЗДЕЛЕННЫЕ) -->
+<div style="display: flex; gap: 8px; margin-top: 10px; flex-direction: column;">
+  <button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">✈️ Скопировать для Telegram</button>
+  <button class="primary" id="copyMaxBtn" onclick="copyForMax()" style="background:#10b981; margin-top: 0; padding: 12px; font-size: 14px;">💬 Скопировать для MAX</button>
+</div>
 
 <button class="danger" onclick="clearEditor()">🗑️ Очистить холст</button>
 </div>
@@ -336,11 +339,14 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <h2>Твоя картинка и текст</h2>
 <p style="font-size: 12px; color: #fbbf24; margin-top: 0;">Если скачивание не началось (на Айфоне), зажми палец на картинке ниже и нажми "Сохранить в Фото".</p>
 <img id="previewImage" src="" alt="Готовый пост">
-<p style="font-size: 12px; color: #9aa4b2; margin-top: 10px;">Вставь это под картинкой (Telegram / MAX):</p>
+<p style="font-size: 12px; color: #9aa4b2; margin-top: 10px;">Вставь это под картинкой:</p>
 <textarea id="markdownOutput" readonly></textarea>
-<div style="display: flex; gap: 10px;">
-<button class="primary" style="margin-top:0;" onclick="copyRichTextModal()">📋 Скопировать текст</button>
-<button class="danger" style="margin-top:0;" onclick="document.getElementById('textModal').style.display='none'">Закрыть</button>
+<div style="display: flex; gap: 8px; flex-direction: column;">
+  <div style="display: flex; gap: 8px;">
+    <button class="primary" style="margin-top:0; background:#2481cc; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForTelegram()">✈️ Скопировать<br>для Telegram</button>
+    <button class="primary" style="margin-top:0; background:#10b981; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForMax()">💬 Скопировать<br>для MAX</button>
+  </div>
+  <button class="danger" style="margin-top:0; padding: 10px; font-size: 14px;" onclick="document.getElementById('textModal').style.display='none'">Закрыть</button>
 </div>
 </div>
 </div>
@@ -1100,12 +1106,9 @@ bar.appendChild(span);
 emojiWrap.appendChild(bar);
 });
 
-// Генерация ЧИСТОГО текста для модального окна (без звёздочек и Markdown)
 function generatePlainText() {
   const clone = editor.cloneNode(true);
-  // Удаляем картинки из копии, чтобы они не мешали
   clone.querySelectorAll('.img-box').forEach(el => el.remove());
-  // Берём чистый текст и убираем "невидимые" символы-якоря (\u200B)
   return clone.innerText.replace(/\u200B/g, '').trim();
 }
 
@@ -1154,28 +1157,22 @@ zoomWrapper.style.transform = savedTransform;
 }, 100);
 }
 
-// ЕДИНОЕ КОПИРОВАНИЕ ДЛЯ ОСНОВНОЙ КНОПКИ (v4 - честный DOM, без задвоения переносов и с сохранением жирности)
-async function copyRichText() {
-  const btn = document.getElementById('copyMaxBtn');
-  const original = btn ? btn.innerHTML : '';
+// === ИДЕАЛЬНАЯ ЛОГИКА КОПИРОВАНИЯ БЕЗ СЮРПРИЗОВ === //
 
-  if (!editor.innerText.trim()) { alert('Сначала напиши текст. ✍️'); return; }
-
-  // 1. Клонируем содержимое редактора
+// 1. Общая функция: разбирает редактор на ЧИСТЫЙ массив строк
+function getEditorLines() {
   const src = document.createElement('div');
   src.innerHTML = editor.innerHTML;
-
-  // 2. Удаляем картинки
   src.querySelectorAll('.img-box').forEach(el => el.remove());
 
-  // 3. Разворачиваем span/font (цвет/размер), чтобы MAX не спотыкался, но НЕ трогаем b/i/u/s/a/code
+  // Снимаем опасные span'ы, оставляя только голый текст и b/i/u
   src.querySelectorAll('span, font').forEach(function(el) {
     const parent = el.parentNode;
     while (el.firstChild) parent.insertBefore(el.firstChild, el);
     parent.removeChild(el);
   });
 
-  // 4. Снимаем style/class с оставшихся тегов (кроме href у ссылок)
+  // Очищаем от стилей
   src.querySelectorAll('b,strong,i,em,u,s,strike,del,a,code,div,p').forEach(function(el) {
     el.removeAttribute('style');
     el.removeAttribute('class');
@@ -1185,13 +1182,12 @@ async function copyRichText() {
     }
   });
 
-  // 5. Убираем невидимые якоря \u200B из текстовых узлов
+  // Убираем якоря картинок
   const walker = document.createTreeWalker(src, NodeFilter.SHOW_TEXT, null);
   const textNodes = [];
   while (walker.nextNode()) textNodes.push(walker.currentNode);
   textNodes.forEach(function(t) { t.textContent = t.textContent.replace(/\u200B/g, ''); });
 
-  // 6. Разбиваем содержимое на "строки" (абзацы).
   const lines = [];
   let current = '';
 
@@ -1200,63 +1196,51 @@ async function copyRichText() {
     current = '';
   }
 
+  // Честно идем по DOM дереву
   Array.from(src.childNodes).forEach(function(node) {
     if (node.nodeType === Node.ELEMENT_NODE && (node.tagName === 'DIV' || node.tagName === 'P')) {
-      // Внутри блока могут быть свои <br> — разбиваем и по ним
       const inner = node.innerHTML.replace(/<br\s*\/?>/gi, '\n');
       const parts = inner.split('\n');
       if (current.trim() !== '') pushCurrent();
-      else if (current !== '') current = ''; // сбрасываем пустой мусор
-      parts.forEach(function(p, idx) {
-        current = p;
-        pushCurrent();
-      });
+      else if (current !== '') current = ''; 
+      parts.forEach(function(p) { current = p; pushCurrent(); });
     } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === 'BR') {
       pushCurrent();
     } else {
-      // Текст или инлайновый тег (b/i/u/a/code) — добавляем в текущую строку
       if (node.nodeType === Node.ELEMENT_NODE) current += node.outerHTML;
       else current += node.textContent;
     }
   });
   if (current !== '') pushCurrent();
 
-  // 7. Убираем лишнюю пустую строку в самом конце
+  // Удаляем пустую строку в самом конце (главный источник лишнего пробела снизу)
   while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
+  return lines;
+}
 
-  // 8. Собираем HTML:
-  const finalHtml = lines.map(function(line) {
-    return '<div>' + (line.trim() === '' ? '&nbsp;' : line) + '</div>';
-  }).join('');
-
-  // 9. PLAIN-текст (fallback)
-  const finalPlain = lines.map(function(line) {
-    const clean = line.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
-    return clean === '' ? '\u00A0' : clean;
-  }).join('\n');
-
-  // 10. Пишем ОБА формата через Clipboard API
+// 2. Системная запись в буфер
+async function writeToClipboard(html, plain, btnId) {
   let ok = false;
+  const btn = btnId ? document.getElementById(btnId) : null;
+  const original = btn ? btn.innerHTML : '';
+
   try {
     if (navigator.clipboard && window.ClipboardItem) {
       const item = new ClipboardItem({
-        'text/html': new Blob([finalHtml], { type: 'text/html' }),
-        'text/plain': new Blob([finalPlain], { type: 'text/plain' })
+        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/plain': new Blob([plain], { type: 'text/plain' })
       });
       await navigator.clipboard.write([item]);
       ok = true;
     }
-  } catch (err) {
-    ok = false;
-  }
+  } catch (err) { ok = false; }
 
-  // 11. Fallback через execCommand (старые браузеры / iOS)
   if (!ok) {
     const temp = document.createElement('div');
     temp.contentEditable = 'true';
     temp.style.position = 'fixed';
     temp.style.left = '-9999px';
-    temp.innerHTML = finalHtml;
+    temp.innerHTML = html;
     document.body.appendChild(temp);
 
     const range = document.createRange();
@@ -1273,18 +1257,37 @@ async function copyRichText() {
     if (btn) {
       btn.innerHTML = '✅ Скопировано!';
       setTimeout(function() { btn.innerHTML = original; }, 2000);
-    }
-  } else {
-    alert('Ошибка системного копирования 😢');
-  }
+    } else { alert('✅ Текст успешно скопирован!'); }
+  } else { alert('Ошибка системного копирования 😢'); }
 
   restoreSelection();
 }
 
-// ЕДИНОЕ КОПИРОВАНИЕ ДЛЯ КНОПКИ ВНУТРИ МОДАЛКИ
-function copyRichTextModal() {
-  copyRichText();
-  alert('Текст скопирован! 📋');
+// 3. ТОЛЬКО ДЛЯ TELEGRAM (Никаких DIV блоков, только сплошной текст и <br>)
+async function copyForTelegram() {
+  if (!editor.innerText.trim()) { alert('Сначала напиши текст. ✍️'); return; }
+  const lines = getEditorLines();
+  
+  // Telegram ненавидит блочные элементы. Мы отдаем ему сырую строку, где каждый перенос - это просто <br>.
+  const finalHtml = lines.join('<br>');
+  const finalPlain = lines.join('\n');
+  
+  await writeToClipboard(finalHtml, finalPlain, 'copyTgBtn');
+}
+
+// 4. ТОЛЬКО ДЛЯ MAX (Строгие блоки DIV для каждой строки)
+async function copyForMax() {
+  if (!editor.innerText.trim()) { alert('Сначала напиши текст. ✍️'); return; }
+  const lines = getEditorLines();
+  
+  // MAX требует оборачивать каждую строку в <div>. Пустые строки - это <div>&nbsp;</div>.
+  const finalHtml = lines.map(function(line) {
+    return '<div>' + (line.trim() === '' ? '&nbsp;' : line) + '</div>';
+  }).join('');
+  
+  const finalPlain = lines.join('\n');
+  
+  await writeToClipboard(finalHtml, finalPlain, 'copyMaxBtn');
 }
 
 editor.addEventListener('keydown', function(e) {
