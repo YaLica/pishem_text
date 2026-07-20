@@ -305,9 +305,10 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 
 <button class="primary" id="exportBtn" onclick="processExport()">⬇️ Скачать текст (PNG)</button>
 
-<!-- ЕДИНАЯ КНОПКА КОПИРОВАНИЯ (работает и для Telegram, и для MAX) -->
+<!-- КНОПКИ ДЛЯ КОПИРОВАНИЯ (ИДЕАЛЬНО РАЗДЕЛЕННЫЕ) -->
 <div style="display: flex; gap: 8px; margin-top: 10px; flex-direction: column;">
-  <button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">✈️💬 Скопировать для Telegram / MAX</button>
+  <button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">✈️ Скопировать для Telegram</button>
+  <button class="primary" id="copyMaxBtn" onclick="copyForMax()" style="background:#10b981; margin-top: 0; padding: 12px; font-size: 14px;">💬 Скопировать для MAX</button>
 </div>
 
 <button class="danger" onclick="clearEditor()">🗑️ Очистить холст</button>
@@ -343,7 +344,8 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <textarea id="markdownOutput" readonly></textarea>
 <div style="display: flex; gap: 8px; flex-direction: column;">
   <div style="display: flex; gap: 8px;">
-    <button class="primary" style="margin-top:0; background:#2481cc; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForTelegram()">✈️💬 Скопировать<br>для Telegram / MAX</button>
+    <button class="primary" style="margin-top:0; background:#2481cc; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForTelegram()">✈️ Скопировать<br>для Telegram</button>
+    <button class="primary" style="margin-top:0; background:#10b981; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForMax()">💬 Скопировать<br>для MAX</button>
   </div>
   <button class="danger" style="margin-top:0; padding: 10px; font-size: 14px;" onclick="document.getElementById('textModal').style.display='none'">Закрыть</button>
 </div>
