@@ -75,7 +75,6 @@ input[type="color"]::-webkit-color-swatch { border: none; }
   caret-color: #000000;
 }
 #editor, #editor * { caret-color: #000000 !important; }
-
 #editor[placeholder]:empty:before { content: attr(placeholder); opacity: 0.5; }
 #editor code { background: rgba(128,128,128,0.2); padding: 4px 8px; border-radius: 6px; font-family: monospace; }
 #editor a { color: #3d7eff; text-decoration: underline; cursor: pointer; }
@@ -306,10 +305,9 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 
 <button class="primary" id="exportBtn" onclick="processExport()">⬇️ Скачать текст (PNG)</button>
 
-<!-- КНОПКИ ДЛЯ КОПИРОВАНИЯ (ИДЕАЛЬНО РАЗДЕЛЕННЫЕ) -->
+<!-- ЕДИНАЯ КНОПКА КОПИРОВАНИЯ (работает и для Telegram, и для MAX) -->
 <div style="display: flex; gap: 8px; margin-top: 10px; flex-direction: column;">
-  <button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">✈️ Скопировать для Telegram</button>
-  <button class="primary" id="copyMaxBtn" onclick="copyForMax()" style="background:#10b981; margin-top: 0; padding: 12px; font-size: 14px;">💬 Скопировать для MAX</button>
+  <button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">✈️💬 Скопировать для Telegram / MAX</button>
 </div>
 
 <button class="danger" onclick="clearEditor()">🗑️ Очистить холст</button>
@@ -345,8 +343,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <textarea id="markdownOutput" readonly></textarea>
 <div style="display: flex; gap: 8px; flex-direction: column;">
   <div style="display: flex; gap: 8px;">
-    <button class="primary" style="margin-top:0; background:#2481cc; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForTelegram()">✈️ Скопировать<br>для Telegram</button>
-    <button class="primary" style="margin-top:0; background:#10b981; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForMax()">💬 Скопировать<br>для MAX</button>
+    <button class="primary" style="margin-top:0; background:#2481cc; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForTelegram()">✈️💬 Скопировать<br>для Telegram / MAX</button>
   </div>
   <button class="danger" style="margin-top:0; padding: 10px; font-size: 14px;" onclick="document.getElementById('textModal').style.display='none'">Закрыть</button>
 </div>
@@ -1190,6 +1187,8 @@ function getEditorLines() {
   while (walker.nextNode()) textNodes.push(walker.currentNode);
   textNodes.forEach(t => { t.textContent = t.textContent.replace(/\u200B/g, ''); });
 
+  // Превращаем DOM в единый HTML, где перенос = ОДИН \n
+  // <br> -> \n, конец каждого <div>/<p> -> \n, начало <div> НЕ добавляет \n
   let html = '';
   function walk(node) {
     node.childNodes.forEach(function(child) {
@@ -1200,18 +1199,12 @@ function getEditorLines() {
         if (tag === 'BR') {
           html += '\n';
         } else if (tag === 'DIV' || tag === 'P') {
+          // перед блоком гарантируем перенос, если текущая строка не пустая
           if (html.length && !html.endsWith('\n')) html += '\n';
-          const kids = Array.from(child.childNodes).filter(function(n) {
-            return !(n.nodeType === Node.TEXT_NODE && n.textContent === '');
-          });
-          const onlyBr = kids.length === 1 && kids[0].nodeType === Node.ELEMENT_NODE && kids[0].tagName === 'BR';
-          if (onlyBr) {
-            if (!html.endsWith('\n')) html += '\n';
-          } else {
-            walk(child);
-            if (!html.endsWith('\n')) html += '\n';
-          }
+          walk(child);
+          if (!html.endsWith('\n')) html += '\n';
         } else {
+          // b, i, u, s, a, code и т.д. — сохраняем тег вокруг содержимого
           html += '<' + tag.toLowerCase() + (tag === 'A' && child.getAttribute('href') ? ' href="' + child.getAttribute('href') + '"' : '') + '>';
           walk(child);
           html += '</' + tag.toLowerCase() + '>';
@@ -1221,17 +1214,20 @@ function getEditorLines() {
   }
   walk(src);
 
+  // Режем на строки по ОДИНОЧНОМУ переносу
   let lines = html.split('\n');
 
+  // Убираем пустые строки в начале и конце
   while (lines.length && lines[0].trim() === '') lines.shift();
   while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
 
+  // Схлопываем несколько подряд пустых строк в одну
   const cleaned = [];
   let prevEmpty = false;
   for (const line of lines) {
     const isEmpty = line.trim() === '';
     if (isEmpty && prevEmpty) continue;
-    cleaned.push(isEmpty ? '\u00A0' : line);
+    cleaned.push(line);
     prevEmpty = isEmpty;
   }
   return cleaned;
@@ -1282,166 +1278,31 @@ async function writeToClipboard(html, plain, btnId) {
   restoreSelection();
 }
 
-// 3. ДЛЯ TELEGRAM — ГИБРИД: живой HTML через ClipboardItem (телефон+ПК),
-//    с запасным execCommand через невидимый div (старый рабочий метод)
+// 3. ТОЛЬКО ДЛЯ TELEGRAM (Никаких DIV блоков, только сплошной текст и <br>)
 async function copyForTelegram() {
-  const btn = document.getElementById('copyTgBtn');
-  const original = btn ? btn.innerHTML : '';
-
   if (!editor.innerText.trim()) { alert('Сначала напиши текст. ✍️'); return; }
-
-  const tempWrap = document.createElement('div');
-  tempWrap.innerHTML = editor.innerHTML;
-  tempWrap.querySelectorAll('.img-box').forEach(el => el.remove());
-
-  tempWrap.querySelectorAll('strong').forEach(el => { const b=document.createElement('b'); b.innerHTML=el.innerHTML; el.replaceWith(b); });
-  tempWrap.querySelectorAll('em').forEach(el => { const i=document.createElement('i'); i.innerHTML=el.innerHTML; el.replaceWith(i); });
-
-  tempWrap.querySelectorAll('span, font').forEach(function(el) {
-    const st = el.style || {};
-    const fw = (st.fontWeight || '').toString();
-    const isBold = fw === 'bold' || parseInt(fw, 10) >= 600;
-    const isItalic = st.fontStyle === 'italic';
-    const deco = (st.textDecoration || st.textDecorationLine || '');
-    const isUnderline = deco.indexOf('underline') !== -1;
-    const isStrike = deco.indexOf('line-through') !== -1;
-
-    let inner = el.innerHTML;
-    if (isBold)      inner = '<b>' + inner + '</b>';
-    if (isItalic)    inner = '<i>' + inner + '</i>';
-    if (isUnderline) inner = '<u>' + inner + '</u>';
-    if (isStrike)    inner = '<s>' + inner + '</s>';
-
-    const holder = document.createElement('span');
-    holder.innerHTML = inner;
-    const parent = el.parentNode;
-    while (holder.firstChild) parent.insertBefore(holder.firstChild, el);
-    parent.removeChild(el);
-  });
-
-  tempWrap.querySelectorAll('b,strong,i,em,u,s,strike,del,a,code,div,p').forEach(function(el){
-    el.removeAttribute('style');
-    el.removeAttribute('class');
-    el.removeAttribute('data-custom-size');
-    if (el.tagName === 'A') {
-      Array.from(el.attributes).forEach(a => { if (a.name !== 'href') el.removeAttribute(a.name); });
-    }
-  });
-
-  tempWrap.innerHTML = tempWrap.innerHTML.replace(/\u200B/g, '');
-
-  const finalHtml = tempWrap.innerHTML;
-  const finalPlain = tempWrap.innerText.replace(/\u200B/g, '').trim();
-
-  let ok = false;
-
-  try {
-    if (navigator.clipboard && window.ClipboardItem) {
-      const item = new ClipboardItem({
-        'text/html': new Blob([finalHtml], { type: 'text/html' }),
-        'text/plain': new Blob([finalPlain], { type: 'text/plain' })
-      });
-      await navigator.clipboard.write([item]);
-      ok = true;
-    }
-  } catch (err) { ok = false; }
-
-  if (!ok) {
-    const temp = document.createElement('div');
-    temp.contentEditable = 'true';
-    temp.style.position = 'fixed';
-    temp.style.left = '-9999px';
-    temp.innerHTML = finalHtml;
-    document.body.appendChild(temp);
-    const range = document.createRange();
-    range.selectNodeContents(temp);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-    try { document.execCommand('copy'); ok = true; } catch (e) { ok = false; }
-    document.body.removeChild(temp);
-  }
-
-  if (ok) {
-    if (btn) {
-      btn.innerHTML = '✅ Скопировано!';
-      setTimeout(function() { btn.innerHTML = original; }, 2000);
-    } else {
-      alert('✅ Текст успешно скопирован!');
-    }
-  } else {
-    alert('Ошибка системного копирования 😢');
-  }
-
-  restoreSelection();
+  const lines = getEditorLines();
+  
+  // Telegram ненавидит блочные элементы. Мы отдаем ему сырую строку, где каждый перенос - это просто <br>.
+  const finalHtml = lines.join('<br>');
+  const finalPlain = lines.join('\n');
+  
+  await writeToClipboard(finalHtml, finalPlain, 'copyTgBtn');
 }
 
-// 4. ТОЛЬКО ДЛЯ MAX (ProseMirror-движок). 
-// Жёстко используем ClipboardItem (он НЕ портит <div>&nbsp;</div>, 
-// в отличие от execCommand, который съедает пустые строки на ПК).
+// 4. ТОЛЬКО ДЛЯ MAX (Строгие блоки DIV для каждой строки)
 async function copyForMax() {
-  const btn = document.getElementById('copyMaxBtn');
-  const original = btn ? btn.innerHTML : '';
-
   if (!editor.innerText.trim()) { alert('Сначала напиши текст. ✍️'); return; }
-
   const lines = getEditorLines();
-
-  // MAX (ProseMirror) требует оборачивать КАЖДУЮ строку в <div>.
-  // Пустые строки — это <div>&nbsp;</div> (иначе санитайзер MAX их выкинет).
+  
+  // MAX требует оборачивать каждую строку в <div>. Пустые строки - это <div>&nbsp;</div>.
   const finalHtml = lines.map(function(line) {
-    return '<div>' + (line === '\u00A0' || line === '' ? '&nbsp;' : line) + '</div>';
+    return '<div>' + (line.trim() === '' ? '&nbsp;' : line) + '</div>';
   }).join('');
-
-  // Plain-текст: пустые строки как реальные переносы (запасной вариант).
-  const finalPlain = lines.map(function(line) {
-    return (line === '\u00A0') ? '' : line;
-  }).join('\n');
-
-  let ok = false;
-
-  // === ГЛАВНЫЙ ПУТЬ: ClipboardItem (и ПК, и телефон) ===
-  // Кладём HTML "как есть" — браузер его НЕ нормализует, пустые строки доходят целыми.
-  try {
-    if (navigator.clipboard && window.ClipboardItem) {
-      const item = new ClipboardItem({
-        'text/html': new Blob([finalHtml], { type: 'text/html' }),
-        'text/plain': new Blob([finalPlain], { type: 'text/plain' })
-      });
-      await navigator.clipboard.write([item]);
-      ok = true;
-    }
-  } catch (err) { ok = false; }
-
-  // === ЗАПАСНОЙ ПУТЬ: только если ClipboardItem недоступен (очень старые браузеры) ===
-  if (!ok) {
-    const temp = document.createElement('div');
-    temp.contentEditable = 'true';
-    temp.style.position = 'fixed';
-    temp.style.left = '-9999px';
-    temp.innerHTML = finalHtml;
-    document.body.appendChild(temp);
-
-    const range = document.createRange();
-    range.selectNodeContents(temp);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-
-    try { document.execCommand('copy'); ok = true; } catch (e) { ok = false; }
-    document.body.removeChild(temp);
-  }
-
-  if (ok) {
-    if (btn) {
-      btn.innerHTML = '✅ Скопировано!';
-      setTimeout(function() { btn.innerHTML = original; }, 2000);
-    } else { alert('✅ Текст успешно скопирован!'); }
-  } else {
-    alert('Ошибка системного копирования 😢');
-  }
-
-  restoreSelection();
+  
+  const finalPlain = lines.join('\n');
+  
+  await writeToClipboard(finalHtml, finalPlain, 'copyMaxBtn');
 }
 
 editor.addEventListener('keydown', function(e) {
@@ -1546,23 +1407,9 @@ function positionQuickBar() {
 
 function qb(e, command) {
   e.preventDefault();
-  const sel = window.getSelection();
-  // Если ничего не выделено — не даём формату "залипнуть" вслепую
-  if (sel.isCollapsed) {
-    // применяем и тут же гасим, чтобы не переносилось на будущий ввод
-    document.execCommand(command, false, null);
-    setTimeout(function(){
-      const s = window.getSelection();
-      if (s.isCollapsed) {
-        try { if (document.queryCommandState(command)) document.execCommand(command, false, null); } catch(err){}
-      }
-    }, 0);
-  } else {
-    document.execCommand(command, false, null);
-  }
+  document.execCommand(command, false, null);
   saveHistory();
 }
-
 function qbText(e, text) {
   e.preventDefault();
   document.execCommand('insertText', false, text);
@@ -1591,23 +1438,6 @@ function togglePanel() {
   handle.classList.toggle('open');
   handle.textContent = panel.classList.contains('open') ? '‹' : '›';
 }
-
-// === Сброс "залипшего" форматирования при снятии выделения ===
-function resetStickyFormatsIfCollapsed() {
-  const sel = window.getSelection();
-  if (!sel.rangeCount) return;
-  if (!sel.isCollapsed) return;
-  ['bold','italic','underline','strikeThrough'].forEach(function(cmd){
-    try { if (document.queryCommandState(cmd)) document.execCommand(cmd, false, null); } catch(e){}
-  });
-}
-
-editor.addEventListener('mouseup', resetStickyFormatsIfCollapsed);
-editor.addEventListener('keyup', function(e){
-  if (['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key)) {
-    resetStickyFormatsIfCollapsed();
-  }
-});
 
 </script>
 </body>
