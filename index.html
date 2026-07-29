@@ -73,6 +73,8 @@ input[type="color"]::-webkit-color-swatch { border: none; }
   min-height: 100px; text-align: justify; transition: font-size 0.2s; display: flow-root; 
   cursor: text; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
   caret-color: #000000;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
 }
 #editor, #editor * { caret-color: #000000 !important; }
 #editor[placeholder]:empty:before { content: attr(placeholder); opacity: 0.5; }
@@ -1145,12 +1147,9 @@ function finish() {
   updateRatio();
 }
 
-// ГЕНЕРИРУЕМ УНИКАЛЬНОЕ ИМЯ ФАЙЛА, чтобы Андроид не спрашивал "Скачать еще раз?"
-const fileName = 'texter-post-' + new Date().getTime() + '.png';
-
 if (isIOS) {
   canvas.toBlob(function(blob) {
-    const file = new File([blob], fileName, { type: 'image/png' });
+    const file = new File([blob], 'texter-post.png', { type: 'image/png' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       navigator.share({ files: [file] }).then(finish).catch(finish);
     } else {
@@ -1159,7 +1158,7 @@ if (isIOS) {
   }, 'image/png');
 } else {
   const link = document.createElement('a');
-  link.download = fileName;
+  link.download = 'texter-post.png';
   link.href = dataUrl;
   link.click();
   finish();
