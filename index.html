@@ -1120,6 +1120,9 @@ editor.querySelectorAll('.img-box').forEach(function(i) { i.classList.remove('se
 currentImgBox = null;
 const savedTransform = zoomWrapper.style.transform;
 zoomWrapper.style.transform = 'scale(1)';
+
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
 setTimeout(function() {
 html2canvas(exportNode, { backgroundColor: null, scale: 2, useCORS: true }).then(function(canvas) {
 const dataUrl = canvas.toDataURL('image/png');
@@ -1134,19 +1137,32 @@ if (!imgPreview) {
 }
 imgPreview.src = dataUrl;
 
-if (!isMobile()) {
+function finish() {
+  document.getElementById('markdownOutput').value = generatePlainText();
+  document.getElementById('textModal').style.display = 'flex';
+  btn.innerHTML = originalText;
+  btn.disabled = false;
+  zoomWrapper.style.transform = savedTransform;
+  updateRatio();
+}
+
+if (isIOS) {
+  canvas.toBlob(function(blob) {
+    const file = new File([blob], 'texter-post.png', { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file] }).then(finish).catch(finish);
+    } else {
+      finish();
+    }
+  }, 'image/png');
+} else {
   const link = document.createElement('a');
   link.download = 'texter-post.png';
   link.href = dataUrl;
   link.click();
+  finish();
 }
 
-document.getElementById('markdownOutput').value = generatePlainText();
-document.getElementById('textModal').style.display = 'flex';
-btn.innerHTML = originalText;
-btn.disabled = false;
-zoomWrapper.style.transform = savedTransform;
-updateRatio();
 }).catch(function(err) {
 alert('Ошибка при создании картинки: ' + err);
 btn.innerHTML = originalText;
