@@ -1145,9 +1145,12 @@ function finish() {
   updateRatio();
 }
 
+// ГЕНЕРИРУЕМ УНИКАЛЬНОЕ ИМЯ ФАЙЛА, чтобы Андроид не спрашивал "Скачать еще раз?"
+const fileName = 'texter-post-' + new Date().getTime() + '.png';
+
 if (isIOS) {
   canvas.toBlob(function(blob) {
-    const file = new File([blob], 'texter-post.png', { type: 'image/png' });
+    const file = new File([blob], fileName, { type: 'image/png' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       navigator.share({ files: [file] }).then(finish).catch(finish);
     } else {
@@ -1156,7 +1159,7 @@ if (isIOS) {
   }, 'image/png');
 } else {
   const link = document.createElement('a');
-  link.download = 'texter-post.png';
+  link.download = fileName;
   link.href = dataUrl;
   link.click();
   finish();
