@@ -254,6 +254,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <button id="btnUndo" onclick="undoAction()" title="Шаг назад (Ctrl+Z)" disabled>↩️</button>
 <button id="btnRedo" onclick="redoAction()" title="Шаг вперед (Ctrl+Y)" disabled>↪️</button>
 <div class="toolbar-divider"></div>
+<!-- ОБНОВЛЕННЫЕ КНОПКИ Ж, К, Ч И S ОСТАВЛЕНА -->
 <button onclick="format('bold')" title="Жирный"><b>Ж</b></button>
 <button onclick="format('italic')" title="Курсив"><i>К</i></button>
 <button onclick="format('underline')" title="Подчеркнутый"><u>Ч</u></button>
@@ -353,16 +354,19 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 </div>
 </div>
 
+<!-- ИСПРАВЛЕННЫЙ QUICKBAR (со скроллом и добавленной кнопкой 🔥) -->
 <div id="quickBar">
   <button onmousedown="undoAction(event)">↩️</button>
   <button onmousedown="redoAction(event)">↪️</button>
   <button onmousedown="qb(event,'bold')"><b>Ж</b></button>
   <button onmousedown="qb(event,'italic')"><i>К</i></button>
   <button onmousedown="qb(event,'underline')"><u>Ч</u></button>
+  <button onmousedown="qb(event,'strikeThrough')"><s>S</s></button>
   <button onmousedown="qbSize(event,1.2)">A+</button>
   <button onmousedown="qbSize(event,0.85)">A-</button>
   <button onmousedown="qbLink(event)">🔗</button>
   <button onmousedown="qbHide(event)">✅</button>
+  <button onmousedown="qbText(event,'🔥 ')">🔥</button>
   <button onmousedown="qbText(event,'👍 ')">👍</button>
   <button class="qb-scroll" onmousedown="qbScroll(event)">▶️</button>
 </div>
