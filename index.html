@@ -354,17 +354,17 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 </div>
 
 <div id="quickBar">
-  <button onmousedown="undoAction(event)" ontouchstart="undoAction(event)">↩️</button>
-  <button onmousedown="redoAction(event)" ontouchstart="redoAction(event)">↪️</button>
-  <button onmousedown="qb(event,'bold')" ontouchstart="qb(event,'bold')"><b>Ж</b></button>
-  <button onmousedown="qb(event,'italic')" ontouchstart="qb(event,'italic')"><i>К</i></button>
-  <button onmousedown="qb(event,'underline')" ontouchstart="qb(event,'underline')"><u>Ч</u></button>
-  <button onmousedown="qbSize(event,1.2)" ontouchstart="qbSize(event,1.2)">A+</button>
-  <button onmousedown="qbSize(event,0.85)" ontouchstart="qbSize(event,0.85)">A-</button>
-  <button onmousedown="qbLink(event)" ontouchstart="qbLink(event)">🔗</button>
-  <button onmousedown="qbHide(event)" ontouchstart="qbHide(event)">✅</button>
-  <button onmousedown="qbText(event,'👍 ')" ontouchstart="qbText(event,'👍 ')">👍</button>
-  <button class="qb-scroll" onmousedown="qbScroll(event)" ontouchstart="qbScroll(event)">▶️</button>
+  <button onmousedown="undoAction(event)">↩️</button>
+  <button onmousedown="redoAction(event)">↪️</button>
+  <button onmousedown="qb(event,'bold')"><b>Ж</b></button>
+  <button onmousedown="qb(event,'italic')"><i>К</i></button>
+  <button onmousedown="qb(event,'underline')"><u>Ч</u></button>
+  <button onmousedown="qbSize(event,1.2)">A+</button>
+  <button onmousedown="qbSize(event,0.85)">A-</button>
+  <button onmousedown="qbLink(event)">🔗</button>
+  <button onmousedown="qbHide(event)">✅</button>
+  <button onmousedown="qbText(event,'👍 ')">👍</button>
+  <button class="qb-scroll" onmousedown="qbScroll(event)">▶️</button>
 </div>
 
 <script>
@@ -1428,28 +1428,28 @@ function positionQuickBar() {
 }
 
 function qb(e, command) {
-  e.preventDefault();
+  if(e) e.preventDefault();
   document.execCommand(command, false, null);
   saveHistory();
 }
 function qbText(e, text) {
-  e.preventDefault();
+  if(e) e.preventDefault();
   document.execCommand('insertText', false, text);
   updateRatio();
   saveHistory();
 }
 function qbHide(e) {
-  e.preventDefault();
+  if(e) e.preventDefault();
   editor.blur();
   quickBar.classList.remove('visible');
 }
 
 function qbSize(e, factor) {
-  e.preventDefault();
+  if(e) e.preventDefault();
   changeWordSize(factor);
 }
 function qbLink(e) {
-  e.preventDefault();
+  if(e) e.preventDefault();
   insertLink();
 }
 
