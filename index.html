@@ -148,11 +148,8 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   .emoji-bar span { font-size: 24px; padding: 5px; }
   #zoomControls { display: none !important; }
   .modal { width: 92%; max-width: 500px; }
+  /* Здесь убрано скрытие кнопок тулбара, теперь они видны на телефоне! */
   .emoji-wrap, label[style*="😀 Эмодзи"] { display: none !important; }
-  .toolbar button[title="Жирный"], .toolbar button[title="Курсив"], .toolbar button[title="Подчеркнутый"],
-  .toolbar button[title="Зачеркнутый"], .toolbar button[title="Код"], .toolbar button[title="Ссылка"],
-  .toolbar button[title="Увеличить выделенное"], .toolbar button[title="Уменьшить выделенное"],
-  .toolbar button[title="Удалить выделенное"], .toolbar .toolbar-divider { display: none !important; }
 }
 
 #quickBar {
@@ -251,10 +248,10 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 </div>
 
 <div class="toolbar">
-<button id="btnUndo" onclick="undoAction()" title="Шаг назад (Ctrl+Z)" disabled>↩️</button>
-<button id="btnRedo" onclick="redoAction()" title="Шаг вперед (Ctrl+Y)" disabled>↪️</button>
+<button id="btnUndo" onclick="undoAction(event)" title="Шаг назад (Ctrl+Z)" disabled>↩️</button>
+<button id="btnRedo" onclick="redoAction(event)" title="Шаг вперед (Ctrl+Y)" disabled>↪️</button>
 <div class="toolbar-divider"></div>
-<!-- ОБНОВЛЕННЫЕ КНОПКИ Ж, К, Ч И S ОСТАВЛЕНА -->
+<!-- КНОПКИ Ж, К, Ч И S ОСТАВЛЕНА -->
 <button onclick="format('bold')" title="Жирный"><b>Ж</b></button>
 <button onclick="format('italic')" title="Курсив"><i>К</i></button>
 <button onclick="format('underline')" title="Подчеркнутый"><u>Ч</u></button>
@@ -310,7 +307,6 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 
 <button class="primary" id="exportBtn" onclick="processExport()">⬇️ Скачать текст (PNG)</button>
 
-<!-- ЕДИНАЯ КНОПКА КОПИРОВАНИЯ (работает и для Telegram, и для MAX) -->
 <div style="display: flex; gap: 8px; margin-top: 10px; flex-direction: column;">
   <button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">✈️💬 Скопировать для Telegram / MAX</button>
 </div>
@@ -354,19 +350,17 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 </div>
 </div>
 
-<!-- ИСПРАВЛЕННЫЙ QUICKBAR (со скроллом и добавленной кнопкой 🔥) -->
+<!-- QUICKBAR: без огня и зачеркивания, со скроллом -->
 <div id="quickBar">
   <button onmousedown="undoAction(event)">↩️</button>
   <button onmousedown="redoAction(event)">↪️</button>
   <button onmousedown="qb(event,'bold')"><b>Ж</b></button>
   <button onmousedown="qb(event,'italic')"><i>К</i></button>
   <button onmousedown="qb(event,'underline')"><u>Ч</u></button>
-  <button onmousedown="qb(event,'strikeThrough')"><s>S</s></button>
   <button onmousedown="qbSize(event,1.2)">A+</button>
   <button onmousedown="qbSize(event,0.85)">A-</button>
   <button onmousedown="qbLink(event)">🔗</button>
   <button onmousedown="qbHide(event)">✅</button>
-  <button onmousedown="qbText(event,'🔥 ')">🔥</button>
   <button onmousedown="qbText(event,'👍 ')">👍</button>
   <button class="qb-scroll" onmousedown="qbScroll(event)">▶️</button>
 </div>
@@ -422,11 +416,11 @@ editor.style.fontFamily = snapshot.fontFamily;
 }
 
 function undoAction(e) {
-if(e) e.preventDefault();
+if(e && e.preventDefault) e.preventDefault();
 if (historyIndex > 0) { historyIndex--; applySnapshot(historyStack[historyIndex]); restoreAfterHistoryChange(); }
 }
 function redoAction(e) {
-if(e) e.preventDefault();
+if(e && e.preventDefault) e.preventDefault();
 if (historyIndex < historyStack.length - 1) { historyIndex++; applySnapshot(historyStack[historyIndex]); restoreAfterHistoryChange(); }
 }
 
@@ -1395,8 +1389,8 @@ sel.addRange(range);
 }
 
 if (e.ctrlKey || e.metaKey) {
-if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoAction(); }
-else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redoAction(); }
+if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoAction(e); }
+else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redoAction(e); }
 else if (e.key === 'b') { e.preventDefault(); format('bold'); }
 else if (e.key === 'i') { e.preventDefault(); format('italic'); }
 else if (e.key === 'u') { e.preventDefault(); format('underline'); }
@@ -1432,33 +1426,33 @@ function positionQuickBar() {
 }
 
 function qb(e, command) {
-  if(e) e.preventDefault();
+  if(e && e.preventDefault) e.preventDefault();
   document.execCommand(command, false, null);
   saveHistory();
 }
 function qbText(e, text) {
-  if(e) e.preventDefault();
+  if(e && e.preventDefault) e.preventDefault();
   document.execCommand('insertText', false, text);
   updateRatio();
   saveHistory();
 }
 function qbHide(e) {
-  if(e) e.preventDefault();
+  if(e && e.preventDefault) e.preventDefault();
   editor.blur();
   quickBar.classList.remove('visible');
 }
 
 function qbSize(e, factor) {
-  if(e) e.preventDefault();
+  if(e && e.preventDefault) e.preventDefault();
   changeWordSize(factor);
 }
 function qbLink(e) {
-  if(e) e.preventDefault();
+  if(e && e.preventDefault) e.preventDefault();
   insertLink();
 }
 
 function qbScroll(e){
-  if(e) e.preventDefault();
+  if(e && e.preventDefault) e.preventDefault();
   const bar = document.getElementById('quickBar');
   bar.scrollLeft += 150;
   if (bar.scrollLeft + bar.clientWidth >= bar.scrollWidth - 5) {
