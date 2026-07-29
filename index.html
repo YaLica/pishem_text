@@ -159,6 +159,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   display: none; position: fixed; left: 0; bottom: 0; width: 100%; z-index: 99999;
   background: #1c2129; border-top: 2px solid #3d7eff; padding: 6px; gap: 4px;
   overflow-x: auto; -webkit-overflow-scrolling: touch; box-sizing: border-box;
+  scroll-behavior: smooth;
 }
 #quickBar.visible { display: flex; }
 #quickBar button {
@@ -167,6 +168,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   border: 1px solid #3a4150; display: flex; align-items: center; justify-content: center;
 }
 #quickBar button:active { background: #3d7eff; }
+#quickBar button.qb-scroll { background: rgba(61, 126, 255, 0.15); border-color: #3d7eff; color: #3d7eff; }
 
 .stage.hand-mode #editor { cursor: grab; }
 .stage.hand-mode.panning #editor { cursor: grabbing; }
@@ -252,9 +254,9 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <button id="btnUndo" onclick="undoAction()" title="Шаг назад (Ctrl+Z)" disabled>↩️</button>
 <button id="btnRedo" onclick="redoAction()" title="Шаг вперед (Ctrl+Y)" disabled>↪️</button>
 <div class="toolbar-divider"></div>
-<button onclick="format('bold')" title="Жирный"><b>B</b></button>
-<button onclick="format('italic')" title="Курсив"><i>I</i></button>
-<button onclick="format('underline')" title="Подчеркнутый"><u>U</u></button>
+<button onclick="format('bold')" title="Жирный"><b>Ж</b></button>
+<button onclick="format('italic')" title="Курсив"><i>К</i></button>
+<button onclick="format('underline')" title="Подчеркнутый"><u>Ч</u></button>
 <button onclick="format('strikeThrough')" title="Зачеркнутый"><s>S</s></button>
 <button onclick="formatCode()" title="Код"><code>&lt;/&gt;</code></button>
 <div class="toolbar-divider"></div>
@@ -352,16 +354,17 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 </div>
 
 <div id="quickBar">
+  <button onmousedown="undoAction(event)" ontouchstart="undoAction(event)">↩️</button>
+  <button onmousedown="redoAction(event)" ontouchstart="redoAction(event)">↪️</button>
   <button onmousedown="qb(event,'bold')" ontouchstart="qb(event,'bold')"><b>Ж</b></button>
   <button onmousedown="qb(event,'italic')" ontouchstart="qb(event,'italic')"><i>К</i></button>
   <button onmousedown="qb(event,'underline')" ontouchstart="qb(event,'underline')"><u>Ч</u></button>
-  <button onmousedown="qb(event,'strikeThrough')" ontouchstart="qb(event,'strikeThrough')"><s>S</s></button>
   <button onmousedown="qbSize(event,1.2)" ontouchstart="qbSize(event,1.2)">A+</button>
   <button onmousedown="qbSize(event,0.85)" ontouchstart="qbSize(event,0.85)">A-</button>
   <button onmousedown="qbLink(event)" ontouchstart="qbLink(event)">🔗</button>
   <button onmousedown="qbHide(event)" ontouchstart="qbHide(event)">✅</button>
-  <button onmousedown="qbText(event,'🔥 ')" ontouchstart="qbText(event,'🔥 ')">🔥</button>
   <button onmousedown="qbText(event,'👍 ')" ontouchstart="qbText(event,'👍 ')">👍</button>
+  <button class="qb-scroll" onmousedown="qbScroll(event)" ontouchstart="qbScroll(event)">▶️</button>
 </div>
 
 <script>
@@ -414,10 +417,12 @@ fontFamilySelector.value = snapshot.fontFamily;
 editor.style.fontFamily = snapshot.fontFamily;
 }
 
-function undoAction() {
+function undoAction(e) {
+if(e) e.preventDefault();
 if (historyIndex > 0) { historyIndex--; applySnapshot(historyStack[historyIndex]); restoreAfterHistoryChange(); }
 }
-function redoAction() {
+function redoAction(e) {
+if(e) e.preventDefault();
 if (historyIndex < historyStack.length - 1) { historyIndex++; applySnapshot(historyStack[historyIndex]); restoreAfterHistoryChange(); }
 }
 
@@ -1446,6 +1451,15 @@ function qbSize(e, factor) {
 function qbLink(e) {
   e.preventDefault();
   insertLink();
+}
+
+function qbScroll(e) {
+  if (e) e.preventDefault();
+  const bar = document.getElementById('quickBar');
+  bar.scrollLeft += 150;
+  if (bar.scrollLeft + bar.clientWidth >= bar.scrollWidth - 5) {
+    setTimeout(() => { bar.scrollLeft = 0; }, 300);
+  }
 }
 
 function togglePanel() {
