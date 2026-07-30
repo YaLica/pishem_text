@@ -1343,20 +1343,17 @@ zoomWrapper.style.transform = savedTransform;
 }, 100);
 }
 
-/* ОБНОВЛЕННАЯ НОРМАЛИЗАЦИЯ И СБОРКА ТЕКСТА (АВТО-ОЧИСТКА ДЛЯ TELEGRAM И MAX) */
 function getEditorLines() {
   const src = document.createElement('div');
   src.innerHTML = editor.innerHTML;
   src.querySelectorAll('.img-box').forEach(el => el.remove());
 
-  // Удаляем стилистические спаны (размер, шрифт и т.д.), но оставляем форматирование
   src.querySelectorAll('span, font').forEach(function(el) {
     const parent = el.parentNode;
     while (el.firstChild) parent.insertBefore(el.firstChild, el);
     parent.removeChild(el);
   });
 
-  // Заменяем устаревшие теги strong/em на b/i для универсальности
   src.querySelectorAll('strong').forEach(el => {
     const b = document.createElement('b');
     b.innerHTML = el.innerHTML;
@@ -1426,36 +1423,53 @@ async function writeToClipboard(html, plain, btnId) {
   const btn = btnId ? document.getElementById(btnId) : null;
   const original = btn ? btn.innerHTML : '';
 
-  // Оборачиваем HTML в стандартный контейнер, чтобы MAX идеально считывал его как Rich Text
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const richHtml = '<div>' + html + '</div>';
 
   try {
     if (navigator.clipboard && window.ClipboardItem) {
-      const item = new ClipboardItem({
-        'text/html': new Blob([richHtml], { type: 'text/html' }),
-        'text/plain': new Blob([plain], { type: 'text/plain' })
-      });
+      let clipboardData = {};
+      if (isIOS) {
+        // НА IPHONE: КОПИРУЕМ ЧИСТЫЙ ТЕКСТ БЕЗ ЯБЛОЧНОГО ВЕБ-МУСОРА ДЛЯ MAX И TELEGRAM
+        clipboardData['text/plain'] = new Blob([plain], { type: 'text/plain' });
+      } else {
+        // НА ПК И ANDROID: КОПИРУЕМ И HTML (С ЖИРНЫМ И КУРСИВОМ), И ЧИСТЫЙ ТЕКСТ
+        clipboardData['text/html'] = new Blob([richHtml], { type: 'text/html' });
+        clipboardData['text/plain'] = new Blob([plain], { type: 'text/plain' });
+      }
+      const item = new ClipboardItem(clipboardData);
       await navigator.clipboard.write([item]);
       ok = true;
     }
   } catch (err) { ok = false; }
 
   if (!ok) {
-    const temp = document.createElement('div');
-    temp.contentEditable = 'true';
-    temp.style.position = 'fixed';
-    temp.style.left = '-9999px';
-    temp.innerHTML = richHtml;
-    document.body.appendChild(temp);
+    if (isIOS) {
+      const temp = document.createElement('textarea');
+      temp.value = plain;
+      temp.style.position = 'fixed';
+      temp.style.left = '-9999px';
+      document.body.appendChild(temp);
+      temp.select();
+      try { document.execCommand('copy'); ok = true; } catch (e) { ok = false; }
+      document.body.removeChild(temp);
+    } else {
+      const temp = document.createElement('div');
+      temp.contentEditable = 'true';
+      temp.style.position = 'fixed';
+      temp.style.left = '-9999px';
+      temp.innerHTML = richHtml;
+      document.body.appendChild(temp);
 
-    const range = document.createRange();
-    range.selectNodeContents(temp);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
+      const range = document.createRange();
+      range.selectNodeContents(temp);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
 
-    try { document.execCommand('copy'); ok = true; } catch (e) { ok = false; }
-    document.body.removeChild(temp);
+      try { document.execCommand('copy'); ok = true; } catch (e) { ok = false; }
+      document.body.removeChild(temp);
+    }
   }
 
   if (ok && btn) {
