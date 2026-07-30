@@ -34,10 +34,27 @@ input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
 input[type="color"]::-webkit-color-swatch { border: none; }
 
 .toolbar { display: flex; flex-wrap: wrap; gap: 6px; background: #0f1115; padding: 10px; border-radius: 8px; border: 1px solid #2a2f3a; align-items: center; }
-.toolbar button { flex: none; min-width: 32px; height: 32px; padding: 0 6px; background: #2a2f3a; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; border-radius: 6px; }
+.toolbar button { flex: none; min-width: 32px; height: 32px; padding: 0 6px; background: #2a2f3a; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; border-radius: 6px; position: relative; }
 .toolbar button:hover:not(:disabled) { background: #3d7eff; }
 .toolbar input[type=color] { width: 32px; height: 32px; padding: 0; border: none; border-radius: 6px; cursor: pointer; overflow: hidden; }
 .toolbar .toolbar-divider { width: 1px; height: 24px; background: #4a5568; margin: 0 2px; }
+
+/* Стиль мини-индикаторов в углу кнопок размерности */
+.badge-step {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  font-size: 8px;
+  line-height: 1;
+  font-weight: bold;
+  color: #3d7eff;
+  background: #0f1115;
+  padding: 1px 2px;
+  border-radius: 3px;
+  pointer-events: none;
+  border: 1px solid #3a4150;
+}
+
 .emoji-section-title { font-size: 11px; color: #9aa4b2; margin: 10px 0 4px; font-weight: bold; }
 .emoji-bar { display: flex; flex-wrap: wrap; gap: 2px; }
 .emoji-bar span { cursor: pointer; font-size: 20px; padding: 3px; border-radius: 6px; user-select: none; }
@@ -161,6 +178,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   flex: 0 0 auto; min-width: 42px; height: 42px; margin: 0; padding: 0;
   font-size: 18px; border-radius: 10px; background: #2a2f3a; color: #e6ebf2;
   border: 1px solid #3a4150; display: flex; align-items: center; justify-content: center;
+  position: relative;
 }
 #quickBar button:active { background: #3d7eff; }
 
@@ -268,8 +286,8 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <div class="toolbar-divider"></div>
 <button onclick="insertLink()" title="Ссылка">🔗</button>
 <input type="color" id="wordColor" value="#ff0000" oninput="applyTextColor(this.value)" title="Цвет выделенного текста">
-<button onclick="changeWordSize(1.2)" title="Увеличить выделенное">A+</button>
-<button onclick="changeWordSize(0.85)" title="Уменьшить выделенное">A-</button>
+<button onclick="changeWordSize(1)" title="Увеличить выделенное (до +5)">A+<span class="badge-step" id="badgePlusDesktop">+5</span></button>
+<button onclick="changeWordSize(-1)" title="Уменьшить выделенное (до -3)">A-<span class="badge-step" id="badgeMinusDesktop">-3</span></button>
 <button onclick="deleteSelection()" title="Удалить выделенное">❌</button>
 <button onclick="cleanFormat()" title="Сбросить стили выделенного (Метёлка)">🧹</button>
 </div>
@@ -360,8 +378,8 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   <button onmousedown="qb(event,'bold')"><b>Ж</b></button>
   <button onmousedown="qb(event,'italic')"><i>К</i></button>
   <button onmousedown="qb(event,'underline')"><u>Ч</u></button>
-  <button onmousedown="qbSize(event,1.2)">A+</button>
-  <button onmousedown="qbSize(event,0.85)">A-</button>
+  <button onmousedown="qbSize(event,1)">A+<span class="badge-step" id="badgePlusMobile">+5</span></button>
+  <button onmousedown="qbSize(event,-1)">A-<span class="badge-step" id="badgeMinusMobile">-3</span></button>
   <input type="color" id="qbWordColor" value="#ff0000" oninput="applyTextColor(this.value)" onchange="applyTextColor(this.value)" title="Цвет выделенного текста">
   <button onmousedown="qbLink(event)">🔗</button>
 </div>
@@ -741,8 +759,17 @@ updateRatio();
 }
 
 document.addEventListener('selectionchange', function() {
-const sel = window.getSelection();
-if (sel.rangeCount > 0 && editor.contains(sel.anchorNode)) savedSelection = sel.getRangeAt(0);
+  const sel = window.getSelection();
+  if (sel.rangeCount > 0 && editor.contains(sel.anchorNode)) {
+    savedSelection = sel.getRangeAt(0);
+    
+    // Обновляем плашки шагов при выделении разных слов
+    let node = sel.anchorNode;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentNode;
+    let wrapper = node.closest ? node.closest('span[data-size-step]') : null;
+    let step = wrapper ? parseInt(wrapper.getAttribute('data-size-step') || '0', 10) : 0;
+    updateSizeBadges(step);
+  }
 });
 
 function restoreSelection() {
@@ -817,6 +844,7 @@ restoreSelection();
 const sel = window.getSelection();
 if (!sel.rangeCount || sel.toString().length === 0) { alert('Сначала выдели текст для очистки стилей. 🧹'); return; }
 document.execCommand('removeFormat', false, null);
+updateSizeBadges(0);
 saveHistory();
 editor.focus();
 }
@@ -835,29 +863,72 @@ editor.focus();
 } else { alert('Сначала выдели текст для моноширинного кода. ✍️'); }
 }
 
-function changeWordSize(factor) {
-restoreSelection();
-const sel = window.getSelection();
-if (!sel.rangeCount || sel.toString().length === 0) { alert('Сначала выдели текст (слово, абзац или весь текст). ✍️'); return; }
-const range = sel.getRangeAt(0);
-const wrapper = document.createElement('span');
-try { range.surroundContents(wrapper); } catch (e) { wrapper.appendChild(range.extractContents()); range.insertNode(wrapper); }
-const baseSize = parseFloat(getComputedStyle(editor).fontSize) || 32;
-function scaleEl(el) {
-let current = parseFloat(el.style.fontSize);
-if (!current) current = parseFloat(getComputedStyle(el).fontSize) || baseSize;
-let next = Math.round(current * factor);
-if (next < 8) next = 8;
-if (next > 200) next = 200;
-el.style.fontSize = next + 'px';
-el.setAttribute('data-custom-size', 'true');
+// Функция управления размером слова с ограничением от -3 до +5 и индикаторами
+function changeWordSize(dir) {
+  restoreSelection();
+  const sel = window.getSelection();
+  if (!sel.rangeCount || sel.toString().length === 0) { alert('Сначала выдели текст (слово, абзац или весь текст). ✍️'); return; }
+  
+  const range = sel.getRangeAt(0);
+  let container = range.commonAncestorContainer;
+  if (container.nodeType === Node.TEXT_NODE) container = container.parentNode;
+  
+  let wrapper = container.closest('span[data-size-step]');
+  
+  if (!wrapper || wrapper === editor) {
+    wrapper = document.createElement('span');
+    try { range.surroundContents(wrapper); } 
+    catch (e) { wrapper.appendChild(range.extractContents()); range.insertNode(wrapper); }
+  }
+  
+  let currentStep = parseInt(wrapper.getAttribute('data-size-step') || '0', 10);
+  let newStep = currentStep + dir;
+  
+  // Ограничиваем от -3 до +5
+  if (newStep > 5) newStep = 5;
+  if (newStep < -3) newStep = -3;
+  
+  wrapper.setAttribute('data-size-step', newStep);
+  const baseSize = parseFloat(getComputedStyle(editor).fontSize) || 32;
+  
+  if (newStep === 0) {
+    wrapper.style.fontSize = '';
+    wrapper.removeAttribute('data-custom-size');
+    wrapper.removeAttribute('data-size-step');
+  } else if (newStep > 0) {
+    let scale = Math.pow(1.18, newStep);
+    wrapper.style.fontSize = Math.round(baseSize * scale) + 'px';
+    wrapper.setAttribute('data-custom-size', 'true');
+  } else {
+    let scale = Math.pow(0.88, Math.abs(newStep));
+    wrapper.style.fontSize = Math.round(baseSize * scale) + 'px';
+    wrapper.setAttribute('data-custom-size', 'true');
+  }
+  
+  updateSizeBadges(newStep);
+  updateRatio();
+  saveHistory();
+  editor.focus();
 }
-scaleEl(wrapper);
-wrapper.querySelectorAll('*').forEach(function(child) { if (child.style && child.style.fontSize) scaleEl(child); });
-exitSelectionFromFormatting();
-updateRatio();
-saveHistory();
-editor.focus();
+
+function updateSizeBadges(step) {
+  const badgePlusDesktop = document.getElementById('badgePlusDesktop');
+  const badgeMinusDesktop = document.getElementById('badgeMinusDesktop');
+  const badgePlusMobile = document.getElementById('badgePlusMobile');
+  const badgeMinusMobile = document.getElementById('badgeMinusMobile');
+
+  let plusText = '+5';
+  let minusText = '-3';
+
+  if (step !== undefined && step !== null && step !== 0) {
+    if (step > 0) plusText = '+' + step + '/5';
+    if (step < 0) minusText = step + '/-3';
+  }
+
+  if (badgePlusDesktop) badgePlusDesktop.textContent = plusText;
+  if (badgeMinusDesktop) badgeMinusDesktop.textContent = minusText;
+  if (badgePlusMobile) badgePlusMobile.textContent = plusText;
+  if (badgeMinusMobile) badgeMinusMobile.textContent = minusText;
 }
 
 function deleteSelection() {
@@ -1508,9 +1579,9 @@ function qb(e, command) {
   saveHistory();
 }
 
-function qbSize(e, factor) {
+function qbSize(e, dir) {
   if(e && e.preventDefault) e.preventDefault();
-  changeWordSize(factor);
+  changeWordSize(dir);
 }
 function qbLink(e) {
   if(e && e.preventDefault) e.preventDefault();
