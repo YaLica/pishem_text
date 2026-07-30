@@ -148,16 +148,15 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   .emoji-bar span { font-size: 24px; padding: 5px; }
   #zoomControls { display: none !important; }
   .modal { width: 92%; max-width: 500px; }
-  /* Здесь убрано скрытие кнопок тулбара, теперь они видны на телефоне! */
   .emoji-wrap, label[style*="😀 Эмодзи"] { display: none !important; }
 }
 
 #quickBar {
   display: none; position: fixed; left: 0; bottom: 0; width: 100%; z-index: 99999;
-  background: #1c2129; border-top: 2px solid #3d7eff; padding: 6px; gap: 4px;
+  background: #1c2129; border-top: 2px solid #3d7eff; padding: 6px; gap: 6px;
   overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; box-sizing: border-box;
 }
-#quickBar.visible { display: flex; flex-wrap: nowrap; }
+#quickBar.visible { display: flex; flex-wrap: nowrap; align-items: center; }
 #quickBar button {
   flex: 0 0 auto; min-width: 42px; height: 42px; margin: 0; padding: 0;
   font-size: 18px; border-radius: 10px; background: #2a2f3a; color: #e6ebf2;
@@ -165,7 +164,12 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 }
 #quickBar button:active { background: #3d7eff; }
 
-.qb-scroll { background: rgba(61, 126, 255, 0.15) !important; color: #3d7eff !important; border: 1px solid #3d7eff !important; }
+/* Стиль палитры в quickBar */
+#quickBar input[type=color] {
+  flex: 0 0 auto; width: 42px; height: 42px; margin: 0; padding: 2px;
+  border-radius: 10px; background: #2a2f3a; border: 1px solid #3a4150;
+  cursor: pointer; overflow: hidden;
+}
 
 .stage.hand-mode #editor { cursor: grab; }
 .stage.hand-mode.panning #editor { cursor: grabbing; }
@@ -251,7 +255,6 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <button id="btnUndo" onclick="undoAction()" title="Шаг назад (Ctrl+Z)" disabled>↩️</button>
 <button id="btnRedo" onclick="redoAction()" title="Шаг вперед (Ctrl+Y)" disabled>↪️</button>
 <div class="toolbar-divider"></div>
-<!-- КНОПКИ Ж, К, Ч И S ОСТАВЛЕНА -->
 <button onclick="format('bold')" title="Жирный"><b>Ж</b></button>
 <button onclick="format('italic')" title="Курсив"><i>К</i></button>
 <button onclick="format('underline')" title="Подчеркнутый"><u>Ч</u></button>
@@ -350,7 +353,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 </div>
 </div>
 
-<!-- QUICKBAR: без огня и зачеркивания, со скроллом -->
+<!-- QUICKBAR (Оновлён под требования мобильной версии) -->
 <div id="quickBar">
   <button onmousedown="undoAction(event)">↩️</button>
   <button onmousedown="redoAction(event)">↪️</button>
@@ -360,9 +363,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   <button onmousedown="qbSize(event,1.2)">A+</button>
   <button onmousedown="qbSize(event,0.85)">A-</button>
   <button onmousedown="qbLink(event)">🔗</button>
-  <button onmousedown="qbHide(event)">✅</button>
-  <button onmousedown="qbText(event,'👍 ')">👍</button>
-  <button class="qb-scroll" onmousedown="qbScroll(event)">▶️</button>
+  <input type="color" id="qbWordColor" value="#ff0000" oninput="applyTextColor(this.value)" title="Цвет выделенного текста">
 </div>
 
 <script>
@@ -1176,8 +1177,6 @@ zoomWrapper.style.transform = savedTransform;
 }, 100);
 }
 
-// === ИДЕАЛЬНАЯ ЛОГИКА КОПИРОВАНИЯ БЕЗ СЮРПРИЗОВ === //
-
 function getEditorLines() {
   const src = document.createElement('div');
   src.innerHTML = editor.innerHTML;
@@ -1414,17 +1413,6 @@ function qb(e, command) {
   document.execCommand(command, false, null);
   saveHistory();
 }
-function qbText(e, text) {
-  if(e && e.preventDefault) e.preventDefault();
-  document.execCommand('insertText', false, text);
-  updateRatio();
-  saveHistory();
-}
-function qbHide(e) {
-  if(e && e.preventDefault) e.preventDefault();
-  editor.blur();
-  quickBar.classList.remove('visible');
-}
 
 function qbSize(e, factor) {
   if(e && e.preventDefault) e.preventDefault();
@@ -1433,15 +1421,6 @@ function qbSize(e, factor) {
 function qbLink(e) {
   if(e && e.preventDefault) e.preventDefault();
   insertLink();
-}
-
-function qbScroll(e){
-  if(e && e.preventDefault) e.preventDefault();
-  const bar = document.getElementById('quickBar');
-  bar.scrollLeft += 150;
-  if (bar.scrollLeft + bar.clientWidth >= bar.scrollWidth - 5) {
-    setTimeout(() => { bar.scrollLeft = 0; }, 300);
-  }
 }
 
 function togglePanel() {
