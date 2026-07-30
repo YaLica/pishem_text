@@ -59,10 +59,10 @@ input[type="color"]::-webkit-color-swatch { border: none; }
 /* ===== ХОЛСТ ===== */
 .stage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 30px; overflow: hidden; background-color: #748eaa; transition: background 0.3s; cursor: grab; position: relative; }
 .stage.panning { cursor: grabbing; }
-#zoom-wrapper { transition: transform 0.15s ease; transform-origin: top center; }
+#zoom-wrapper { transition: transform 0.15s ease; transform-origin: top center; -webkit-user-select: text; user-select: text; }
 #zoom-wrapper.dragging { transition: none; }
 
-#export-node { --bg-color: #ffffff; --text-color: #000000; background: var(--bg-color); color: var(--text-color); padding: 32px 40px; border-radius: 24px 24px 24px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.15); width: 800px; position: relative; margin: auto; transition: width 0.3s, border-radius 0.3s, background 0.3s, color 0.3s; }
+#export-node { --bg-color: #ffffff; --text-color: #000000; background: var(--bg-color); color: var(--text-color); padding: 32px 40px; border-radius: 24px 24px 24px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.15); width: 800px; position: relative; margin: auto; transition: width 0.3s, border-radius 0.3s, background 0.3s, color 0.3s; -webkit-user-select: text; user-select: text; }
 #export-node::before { content: ''; position: absolute; bottom: 0; left: -16px; width: 16px; height: 32px; background: radial-gradient(circle at 0 0, transparent 16px, var(--bg-color) 16px); }
 #export-node.no-tail::before { display: none; }
 
@@ -79,7 +79,7 @@ input[type="color"]::-webkit-color-swatch { border: none; }
 #editor[placeholder]:empty:before { content: attr(placeholder); opacity: 0.5; }
 #editor code { background: rgba(128,128,128,0.2); padding: 4px 8px; border-radius: 6px; font-family: monospace; }
 #editor a { color: #3d7eff; text-decoration: underline; cursor: pointer; }
-.img-box { position: relative; float: left; margin: 8px 20px 8px 0; width: 50%; max-width: 95%; cursor: grab; user-select: none; border-radius: 12px; }
+.img-box { position: relative; float: left; margin: 8px 20px 8px 0; width: 50%; max-width: 95%; cursor: grab; user-select: none; -webkit-user-select: none; border-radius: 12px; }
 .img-box.align-right { float: right; margin: 8px 0 8px 20px; }
 .img-box.align-center { float: none; display: block; margin: 8px auto; }
 .img-box:active { cursor: grabbing; }
@@ -601,8 +601,8 @@ function canPan(target) {
 if (target.closest('#zoomControls')) return false;
 if (target.closest('.img-box')) return false;
 if (handMode) return true;
-if (isMobile()) return true; 
-return !target.closest('#editor');
+if (target.closest('#editor')) return false; // Отключаем панорамирование внутри редактора, чтобы iOS Safari идеально расширял выделение
+return true;
 }
 
 stageArea.addEventListener('wheel', function(e) {
