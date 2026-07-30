@@ -116,7 +116,6 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   body { display: block; height: 100vh; overflow: hidden; }
   .stage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; }
   
-  /* Кнопка "Инструменты" на холсте (только для телефонов) */
   #mobileToolsBtn {
     display: flex; align-items: center; justify-content: center;
     position: absolute; top: 15px; left: 15px; z-index: 1000;
@@ -164,7 +163,6 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 }
 #quickBar button:active { background: #3d7eff; }
 
-/* Стиль палитры в quickBar */
 #quickBar input[type=color] {
   flex: 0 0 auto; width: 42px; height: 42px; margin: 0; padding: 2px;
   border-radius: 10px; background: #2a2f3a; border: 1px solid #3a4150;
@@ -272,18 +270,38 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <button onclick="changeWordSize(0.85)" title="Уменьшить выделенное">A-</button>
 <select onchange="applyWordFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного слова" style="width:auto; min-width:60px; height:32px; padding:0 4px; font-size:12px; background:#2a2f3a; color:#e8e8e8; border:1px solid #2a2f3a; border-radius:6px; outline:none;">
 <option value="">🔤</option>
-<option value="'Times New Roman', Times, serif">Times</option>
-<option value="'Roboto', sans-serif">Roboto</option>
-<option value="'Montserrat', sans-serif">Montserrat</option>
-<option value="'Playfair Display', serif">Playfair</option>
-<option value="'Lora', serif">Lora</option>
-<option value="'Bebas Neue', sans-serif">Bebas</option>
-<option value="'Russo One', sans-serif">Russo</option>
-<option value="'Pacifico', cursive">Pacifico</option>
-<option value="'Caveat', cursive">Caveat</option>
-<option value="'Amatic SC', cursive">Amatic</option>
-<option value="'Yeseva One', serif">Yeseva</option>
-<option value="'Comfortaa', cursive">Comfortaa</option>
+<option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">Системный</option>
+<option value="'Times New Roman', Times, serif" style="font-family: 'Times New Roman', Times, serif">Times</option>
+<option value="'Roboto', sans-serif" style="font-family: 'Roboto', sans-serif">Roboto</option>
+<option value="'Open Sans', sans-serif" style="font-family: 'Open Sans', sans-serif">Open Sans</option>
+<option value="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif">Montserrat</option>
+<option value="'Inter', sans-serif" style="font-family: 'Inter', sans-serif">Inter</option>
+<option value="'Oswald', sans-serif" style="font-family: 'Oswald', sans-serif">Oswald</option>
+<option value="'Raleway', sans-serif" style="font-family: 'Raleway', sans-serif">Raleway</option>
+<option value="'Ubuntu', sans-serif" style="font-family: 'Ubuntu', sans-serif">Ubuntu</option>
+<option value="'Nunito', sans-serif" style="font-family: 'Nunito', sans-serif">Nunito</option>
+<option value="'Rubik', sans-serif" style="font-family: 'Rubik', sans-serif">Rubik</option>
+<option value="'Exo 2', sans-serif" style="font-family: 'Exo 2', sans-serif">Exo 2</option>
+<option value="'Merriweather', serif" style="font-family: 'Merriweather', serif">Merriweather</option>
+<option value="'Playfair Display', serif" style="font-family: 'Playfair Display', serif">Playfair</option>
+<option value="'Lora', serif" style="font-family: 'Lora', serif">Lora</option>
+<option value="'PT Serif', serif" style="font-family: 'PT Serif', serif">PT Serif</option>
+<option value="'Cormorant Garamond', serif" style="font-family: 'Cormorant Garamond', serif">Cormorant</option>
+<option value="'Tenor Sans', sans-serif" style="font-family: 'Tenor Sans', sans-serif">Tenor Sans</option>
+<option value="'Alice', serif" style="font-family: 'Alice', serif">Alice</option>
+<option value="'Comfortaa', cursive" style="font-family: 'Comfortaa', cursive">Comfortaa</option>
+<option value="'Caveat', cursive" style="font-family: 'Caveat', cursive">Caveat</option>
+<option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif">Bebas Neue</option>
+<option value="'Russo One', sans-serif" style="font-family: 'Russo One', sans-serif">Russo One</option>
+<option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">Pacifico</option>
+<option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">Kelly Slab</option>
+<option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">Neucha</option>
+<option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">Amatic SC</option>
+<option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">Marck Script</option>
+<option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">Bad Script</option>
+<option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">Yeseva One</option>
+<option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">Philosopher</option>
+<option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">Oranienbaum</option>
 </select>
 <button onclick="deleteSelection()" title="Удалить выделенное">❌</button>
 <button onclick="cleanFormat()" title="Сбросить стили выделенного (Метёлка)">🧹</button>
@@ -380,20 +398,40 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   <input type="color" id="qbWordColor" value="#ff0000" oninput="applyTextColor(this.value)" onchange="applyTextColor(this.value)" title="Цвет выделенного текста">
   <button onmousedown="qbLink(event)">🔗</button>
   <button onmousedown="qbClean(event)" title="Сбросить стили">🧹</button>
-  <select id="qbFontSelect" onmousedown="event.stopPropagation()" onchange="qbFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного" style="flex:0 0 auto; width:auto; min-width:70px; height:42px; padding:0 6px; border-radius:10px; background:#2a2f3a; color:#e6ebf2; border:1px solid #3a4150; font-size:14px;">
-    <option value="">🔤</option>
-    <option value="'Times New Roman', Times, serif">Times</option>
-    <option value="'Roboto', sans-serif">Roboto</option>
-    <option value="'Montserrat', sans-serif">Montserrat</option>
-    <option value="'Playfair Display', serif">Playfair</option>
-    <option value="'Lora', serif">Lora</option>
-    <option value="'Bebas Neue', sans-serif">Bebas</option>
-    <option value="'Russo One', sans-serif">Russo</option>
-    <option value="'Pacifico', cursive">Pacifico</option>
-    <option value="'Caveat', cursive">Caveat</option>
-    <option value="'Amatic SC', cursive">Amatic</option>
-    <option value="'Yeseva One', serif">Yeseva</option>
-    <option value="'Comfortaa', cursive">Comfortaa</option>
+  <select id="qbFontSelect" onmousedown="event.stopPropagation()" onchange="qbFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного" style="flex:0 0 auto; width:auto; min-width:80px; height:42px; padding:0 6px; border-radius:10px; background:#2a2f3a; color:#e6ebf2; border:1px solid #3a4150; font-size:14px;">
+    <option value="">🔤 Шрифт</option>
+    <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">Системный</option>
+    <option value="'Times New Roman', Times, serif" style="font-family: 'Times New Roman', Times, serif">Times New Roman</option>
+    <option value="'Roboto', sans-serif" style="font-family: 'Roboto', sans-serif">Roboto</option>
+    <option value="'Open Sans', sans-serif" style="font-family: 'Open Sans', sans-serif">Open Sans</option>
+    <option value="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif">Montserrat</option>
+    <option value="'Inter', sans-serif" style="font-family: 'Inter', sans-serif">Inter</option>
+    <option value="'Oswald', sans-serif" style="font-family: 'Oswald', sans-serif">Oswald</option>
+    <option value="'Raleway', sans-serif" style="font-family: 'Raleway', sans-serif">Raleway</option>
+    <option value="'Ubuntu', sans-serif" style="font-family: 'Ubuntu', sans-serif">Ubuntu</option>
+    <option value="'Nunito', sans-serif" style="font-family: 'Nunito', sans-serif">Nunito</option>
+    <option value="'Rubik', sans-serif" style="font-family: 'Rubik', sans-serif">Rubik</option>
+    <option value="'Exo 2', sans-serif" style="font-family: 'Exo 2', sans-serif">Exo 2</option>
+    <option value="'Merriweather', serif" style="font-family: 'Merriweather', serif">Merriweather</option>
+    <option value="'Playfair Display', serif" style="font-family: 'Playfair Display', serif">Playfair Display</option>
+    <option value="'Lora', serif" style="font-family: 'Lora', serif">Lora</option>
+    <option value="'PT Serif', serif" style="font-family: 'PT Serif', serif">PT Serif</option>
+    <option value="'Cormorant Garamond', serif" style="font-family: 'Cormorant Garamond', serif">Cormorant Garamond</option>
+    <option value="'Tenor Sans', sans-serif" style="font-family: 'Tenor Sans', sans-serif">Tenor Sans</option>
+    <option value="'Alice', serif" style="font-family: 'Alice', serif">Alice</option>
+    <option value="'Comfortaa', cursive" style="font-family: 'Comfortaa', cursive">Comfortaa</option>
+    <option value="'Caveat', cursive" style="font-family: 'Caveat', cursive">Caveat</option>
+    <option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif">BEBAS NEUE</option>
+    <option value="'Russo One', sans-serif" style="font-family: 'Russo One', sans-serif">Russo One</option>
+    <option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">Pacifico</option>
+    <option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">Kelly Slab</option>
+    <option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">Neucha</option>
+    <option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">Amatic SC</option>
+    <option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">Marck Script</option>
+    <option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">Bad Script</option>
+    <option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">Yeseva One</option>
+    <option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">Philosopher</option>
+    <option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">Oranienbaum</option>
   </select>
   <button onmousedown="qbImage(event)" title="Добавить картинку">🖼️</button>
   <input type="file" id="qbImageInput" accept="image/*" multiple style="display:none;" onchange="insertMultipleImages(event)">
@@ -733,8 +771,8 @@ updateRatio();
 saveHistory();
 });
 
+/* Очистка без надоедливого подтверждения */
 function clearEditor() {
-if (confirm('Удалить весь текст и картинки?')) {
 editor.innerHTML = '';
 updateImgCounter();
 document.getElementById('charCount').textContent = '0';
@@ -742,7 +780,6 @@ updateRatio();
 currentImgBox = null;
 saveHistory();
 editor.focus();
-}
 }
 
 function setPreset(mode, btn) {
@@ -787,7 +824,6 @@ sel.addRange(savedSelection);
 }
 }
 
-// Вспомогательные функции для предотвращения прилипания форматирования //
 function getStyledInlineParent(node) {
   let curr = (node.nodeType === Node.TEXT_NODE) ? node.parentNode : node;
   while (curr && curr !== editor) {
@@ -824,7 +860,7 @@ editor.focus();
 function cleanFormat() {
 restoreSelection();
 const sel = window.getSelection();
-if (!sel.rangeCount || sel.toString().length === 0) { alert('Сначала выдели текст для очистки стилей. 🧹'); return; }
+if (!sel.rangeCount || sel.toString().length === 0) return;
 document.execCommand('removeFormat', false, null);
 saveHistory();
 editor.focus();
@@ -840,13 +876,13 @@ range.deleteContents();
 range.insertNode(codeNode);
 saveHistory();
 editor.focus();
-} else { alert('Сначала выдели текст для моноширинного кода. ✍️'); }
+}
 }
 
 function changeWordSize(factor) {
 restoreSelection();
 const sel = window.getSelection();
-if (!sel.rangeCount || sel.toString().length === 0) { alert('Сначала выдели текст (слово, абзац или весь текст). ✍️'); return; }
+if (!sel.rangeCount || sel.toString().length === 0) return;
 const range = sel.getRangeAt(0);
 const wrapper = document.createElement('span');
 try { range.surroundContents(wrapper); } catch (e) { wrapper.appendChild(range.extractContents()); range.insertNode(wrapper); }
@@ -867,18 +903,18 @@ saveHistory();
 editor.focus();
 }
 
+/* Применение шрифта ТОЛЬКО к выделенному слову/тексту */
 function applyWordFont(font) {
   if (!font) return;
   restoreSelection();
   const sel = window.getSelection();
-  if (!sel.rangeCount || sel.toString().length === 0) { 
-    alert('Сначала выдели слово или текст для смены шрифта. 🔤'); 
-    return; 
-  }
+  if (!sel || !sel.rangeCount || sel.toString().length === 0) return;
+  
   const range = sel.getRangeAt(0);
   const wrapper = document.createElement('span');
   wrapper.style.fontFamily = font;
   wrapper.setAttribute('data-custom-font', 'true');
+  
   try { 
     range.surroundContents(wrapper); 
   } catch (e) { 
@@ -897,7 +933,7 @@ function applyWordFont(font) {
 function deleteSelection() {
 restoreSelection();
 const sel = window.getSelection();
-if (!sel.rangeCount || sel.toString().length === 0) { alert('Сначала выдели то, что нужно удалить. ❌'); return; }
+if (!sel.rangeCount || sel.toString().length === 0) return;
 sel.getRangeAt(0).deleteContents();
 updateImgCounter();
 document.getElementById('charCount').textContent = editor.innerText.trim().length;
@@ -909,7 +945,7 @@ editor.focus();
 function insertLink() {
 restoreSelection();
 const sel = window.getSelection();
-if (sel.toString().length === 0) { alert('Сначала выдели текст для ссылки. 🔗'); return; }
+if (sel.toString().length === 0) return;
 const url = prompt('Введи адрес ссылки:', 'https://');
 if (url && url !== 'https://') { document.execCommand('createLink', false, url); saveHistory(); }
 editor.focus();
@@ -929,7 +965,6 @@ async function insertMultipleImages(event) {
   const maxImages = 10; 
 
   if (currentCount >= maxImages) {
-    alert(`Максимум ${maxImages} картинок. 🖼️`);
     event.target.value = '';
     return;
   }
@@ -944,13 +979,9 @@ async function insertMultipleImages(event) {
   let added = 0;
   
   for (let i = 0; i < files.length; i++) {
-    if (currentCount + added >= maxImages) {
-      alert(`Достигнут лимит в ${maxImages} картинок. Остальные не добавлены.`);
-      break;
-    }
+    if (currentCount + added >= maxImages) break;
     
     const file = files[i];
-    
     const dataUrl = await new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => resolve(e.target.result);
@@ -974,7 +1005,6 @@ async function insertMultipleImages(event) {
       editor.appendChild(zwspAfter);
       ensureAnchorBeforeImages();
     }
-    
     added++;
   }
 
@@ -1056,7 +1086,7 @@ currentImgBox = box;
 }
 
 function deleteSelectedImage() {
-if (!currentImgBox) { return; }
+if (!currentImgBox) return;
 currentImgBox.remove();
 currentImgBox = null;
 updateImgCounter();
@@ -1248,7 +1278,6 @@ if (isIOS) {
 }
 
 }).catch(function(err) {
-alert('Ошибка при создании картинки: ' + err);
 btn.innerHTML = originalText;
 btn.disabled = false;
 zoomWrapper.style.transform = savedTransform;
@@ -1354,18 +1383,16 @@ async function writeToClipboard(html, plain, btnId) {
     document.body.removeChild(temp);
   }
 
-  if (ok) {
-    if (btn) {
-      btn.innerHTML = '✅ Скопировано!';
-      setTimeout(function() { btn.innerHTML = original; }, 2000);
-    } else { alert('✅ Текст успешно скопирован!'); }
-  } else { alert('Ошибка системного копирования 😢'); }
+  if (ok && btn) {
+    btn.innerHTML = '✅ Скопировано!';
+    setTimeout(function() { btn.innerHTML = original; }, 2000);
+  }
 
   restoreSelection();
 }
 
 async function copyForTelegram() {
-  if (!editor.innerText.trim()) { alert('Сначала напиши текст. ✍️'); return; }
+  if (!editor.innerText.trim()) return;
   const lines = getEditorLines();
   
   const finalHtml = lines.join('<br>');
@@ -1375,7 +1402,7 @@ async function copyForTelegram() {
 }
 
 async function copyForMax() {
-  if (!editor.innerText.trim()) { alert('Сначала напиши текст. ✍️'); return; }
+  if (!editor.innerText.trim()) return;
   const lines = getEditorLines();
   
   const finalHtml = lines.map(function(line) {
@@ -1390,7 +1417,6 @@ async function copyForMax() {
 editor.addEventListener('keydown', function(e) {
 const sel = window.getSelection();
 
-// Мгновенный сброс форматирования у нового слова при нажатии Пробела
 if (e.key === ' ' || e.code === 'Space') {
   if (sel.rangeCount > 0 && sel.isCollapsed) {
     const range = sel.getRangeAt(0);
