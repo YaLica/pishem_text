@@ -66,7 +66,6 @@ input[type="color"]::-webkit-color-swatch { border: none; }
 #export-node::before { content: ''; position: absolute; bottom: 0; left: -16px; width: 16px; height: 32px; background: radial-gradient(circle at 0 0, transparent 16px, var(--bg-color) 16px); }
 #export-node.no-tail::before { display: none; }
 
-/* Умный перенос слов */
 #editor { 
   outline: none; font-size: 32px; line-height: 1.2; white-space: pre-wrap; 
   word-break: normal; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; 
@@ -201,40 +200,40 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 </div>
 
 <div style="margin-bottom: 15px;">
-<label style="color: #fff; margin-top: 0;">🔤 Шрифт текста</label>
+<label style="color: #fff; margin-top: 0;">🔤 Основной шрифт всего поста</label>
 <select id="fontFamilySelector" onchange="updateFontFamily(this.value)">
-<option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">Стандартный (Системный)</option>
-<option value="'Times New Roman', Times, serif" style="font-family: 'Times New Roman', Times, serif">Times New Roman (Классика)</option>
-<option value="'Roboto', sans-serif" style="font-family: 'Roboto', sans-serif">Roboto (Классика)</option>
-<option value="'Open Sans', sans-serif" style="font-family: 'Open Sans', sans-serif">Open Sans (Открытый)</option>
-<option value="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif">Montserrat (Современный)</option>
-<option value="'Inter', sans-serif" style="font-family: 'Inter', sans-serif">Inter (Чистый)</option>
-<option value="'Oswald', sans-serif" style="font-family: 'Oswald', sans-serif">Oswald (Узкий)</option>
-<option value="'Raleway', sans-serif" style="font-family: 'Raleway', sans-serif">Raleway (Элегантный)</option>
-<option value="'Ubuntu', sans-serif" style="font-family: 'Ubuntu', sans-serif">Ubuntu (Округлый)</option>
-<option value="'Nunito', sans-serif" style="font-family: 'Nunito', sans-serif">Nunito (Мягкий)</option>
-<option value="'Rubik', sans-serif" style="font-family: 'Rubik', sans-serif">Rubik (Плотный)</option>
-<option value="'Exo 2', sans-serif" style="font-family: 'Exo 2', sans-serif">Exo 2 (Техно)</option>
-<option value="'Merriweather', serif" style="font-family: 'Merriweather', serif">Merriweather (Книжный)</option>
-<option value="'Playfair Display', serif" style="font-family: 'Playfair Display', serif">Playfair Display (Журнальный)</option>
-<option value="'Lora', serif" style="font-family: 'Lora', serif">Lora (Поэтичный)</option>
-<option value="'PT Serif', serif" style="font-family: 'PT Serif', serif">PT Serif (Официальный)</option>
-<option value="'Cormorant Garamond', serif" style="font-family: 'Cormorant Garamond', serif">Cormorant Garamond (Классика+)</option>
-<option value="'Tenor Sans', sans-serif" style="font-family: 'Tenor Sans', sans-serif">Tenor Sans (Гротеск)</option>
-<option value="'Alice', serif" style="font-family: 'Alice', serif">Alice (Винтаж)</option>
-<option value="'Comfortaa', cursive" style="font-family: 'Comfortaa', cursive">Comfortaa (Пузырьковый)</option>
-<option value="'Caveat', cursive" style="font-family: 'Caveat', cursive">Caveat (Рукописный)</option>
-<option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif">BEBAS NEUE (Заголовки)</option>
-<option value="'Russo One', sans-serif" style="font-family: 'Russo One', sans-serif">Russo One (Мощный)</option>
-<option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">Pacifico (Летний)</option>
-<option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">Kelly Slab (Киберпанк)</option>
-<option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">Neucha (Маркер)</option>
-<option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">Amatic SC (Кино)</option>
-<option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">Marck Script (Кофейня)</option>
-<option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">Bad Script (Рукописный)</option>
-<option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">Yeseva One (Салон красоты)</option>
-<option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">Philosopher (Изящный)</option>
-<option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">Oranienbaum (Антиква)</option>
+<option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">📱 Системный (Стандарт)</option>
+<option value="'Times New Roman', Times, serif" style="font-family: 'Times New Roman', Times, serif">🏛️ Классический: Times New Roman</option>
+<option value="'Roboto', sans-serif" style="font-family: 'Roboto', sans-serif">🤖 Современный: Roboto</option>
+<option value="'Open Sans', sans-serif" style="font-family: 'Open Sans', sans-serif">📖 Открытый: Open Sans</option>
+<option value="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif">💎 Стильный: Montserrat</option>
+<option value="'Inter', sans-serif" style="font-family: 'Inter', sans-serif">✨ Чистый: Inter</option>
+<option value="'Oswald', sans-serif" style="font-family: 'Oswald', sans-serif">📏 Узкий: Oswald</option>
+<option value="'Raleway', sans-serif" style="font-family: 'Raleway', sans-serif">⚜️ Элегантный: Raleway</option>
+<option value="'Ubuntu', sans-serif" style="font-family: 'Ubuntu', sans-serif">🟢 Округлый: Ubuntu</option>
+<option value="'Nunito', sans-serif" style="font-family: 'Nunito', sans-serif">☁️ Мягкий: Nunito</option>
+<option value="'Rubik', sans-serif" style="font-family: 'Rubik', sans-serif">🟥 Плотный: Rubik</option>
+<option value="'Exo 2', sans-serif" style="font-family: 'Exo 2', sans-serif">⚡ Техно: Exo 2</option>
+<option value="'Merriweather', serif" style="font-family: 'Merriweather', serif">📚 Книжный: Merriweather</option>
+<option value="'Playfair Display', serif" style="font-family: 'Playfair Display', serif">📰 Журнальный: Playfair Display</option>
+<option value="'Lora', serif" style="font-family: 'Lora', serif">🪶 Поэтичный: Lora</option>
+<option value="'PT Serif', serif" style="font-family: 'PT Serif', serif">🏢 Официальный: PT Serif</option>
+<option value="'Cormorant Garamond', serif" style="font-family: 'Cormorant Garamond', serif">👑 Премиум: Cormorant Garamond</option>
+<option value="'Tenor Sans', sans-serif" style="font-family: 'Tenor Sans', sans-serif">🎨 Гротеск: Tenor Sans</option>
+<option value="'Alice', serif" style="font-family: 'Alice', serif">📜 Винтаж: Alice</option>
+<option value="'Comfortaa', cursive" style="font-family: 'Comfortaa', cursive">🎈 Пузырьковый: Comfortaa</option>
+<option value="'Caveat', cursive" style="font-family: 'Caveat', cursive">🖋️ Рукописный: Caveat</option>
+<option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif">📢 ТИТУЛ: Bebas Neue</option>
+<option value="'Russo One', sans-serif" style="font-family: 'Russo One', sans-serif">🔥 Мощный: Russo One</option>
+<option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">🌊 Летний: Pacifico</option>
+<option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">💻 Киберпанк: Kelly Slab</option>
+<option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">✍️ Маркер: Neucha</option>
+<option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">🎬 Кино: Amatic SC</option>
+<option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">☕ Кофейня: Marck Script</option>
+<option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">📝 Записки: Bad Script</option>
+<option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">🌸 Салон: Yeseva One</option>
+<option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">🕊️ Изящный: Philosopher</option>
+<option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">🏛️ Антиква: Oranienbaum</option>
 </select>
 </div>
 
@@ -268,40 +267,40 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <input type="color" id="wordColor" value="#ff0000" oninput="applyTextColor(this.value)" title="Цвет выделенного текста">
 <button onclick="changeWordSize(1.2)" title="Увеличить выделенное">A+</button>
 <button onclick="changeWordSize(0.85)" title="Уменьшить выделенное">A-</button>
-<select onchange="applyWordFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного слова" style="width:auto; min-width:60px; height:32px; padding:0 4px; font-size:12px; background:#2a2f3a; color:#e8e8e8; border:1px solid #2a2f3a; border-radius:6px; outline:none;">
-<option value="">🔤</option>
-<option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">Системный</option>
-<option value="'Times New Roman', Times, serif" style="font-family: 'Times New Roman', Times, serif">Times</option>
-<option value="'Roboto', sans-serif" style="font-family: 'Roboto', sans-serif">Roboto</option>
-<option value="'Open Sans', sans-serif" style="font-family: 'Open Sans', sans-serif">Open Sans</option>
-<option value="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif">Montserrat</option>
-<option value="'Inter', sans-serif" style="font-family: 'Inter', sans-serif">Inter</option>
-<option value="'Oswald', sans-serif" style="font-family: 'Oswald', sans-serif">Oswald</option>
-<option value="'Raleway', sans-serif" style="font-family: 'Raleway', sans-serif">Raleway</option>
-<option value="'Ubuntu', sans-serif" style="font-family: 'Ubuntu', sans-serif">Ubuntu</option>
-<option value="'Nunito', sans-serif" style="font-family: 'Nunito', sans-serif">Nunito</option>
-<option value="'Rubik', sans-serif" style="font-family: 'Rubik', sans-serif">Rubik</option>
-<option value="'Exo 2', sans-serif" style="font-family: 'Exo 2', sans-serif">Exo 2</option>
-<option value="'Merriweather', serif" style="font-family: 'Merriweather', serif">Merriweather</option>
-<option value="'Playfair Display', serif" style="font-family: 'Playfair Display', serif">Playfair</option>
-<option value="'Lora', serif" style="font-family: 'Lora', serif">Lora</option>
-<option value="'PT Serif', serif" style="font-family: 'PT Serif', serif">PT Serif</option>
-<option value="'Cormorant Garamond', serif" style="font-family: 'Cormorant Garamond', serif">Cormorant</option>
-<option value="'Tenor Sans', sans-serif" style="font-family: 'Tenor Sans', sans-serif">Tenor Sans</option>
-<option value="'Alice', serif" style="font-family: 'Alice', serif">Alice</option>
-<option value="'Comfortaa', cursive" style="font-family: 'Comfortaa', cursive">Comfortaa</option>
-<option value="'Caveat', cursive" style="font-family: 'Caveat', cursive">Caveat</option>
-<option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif">Bebas Neue</option>
-<option value="'Russo One', sans-serif" style="font-family: 'Russo One', sans-serif">Russo One</option>
-<option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">Pacifico</option>
-<option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">Kelly Slab</option>
-<option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">Neucha</option>
-<option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">Amatic SC</option>
-<option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">Marck Script</option>
-<option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">Bad Script</option>
-<option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">Yeseva One</option>
-<option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">Philosopher</option>
-<option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">Oranienbaum</option>
+<select onmousedown="saveSelectionBeforeAction()" onchange="applyWordFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного слова" style="width:auto; min-width:65px; height:32px; padding:0 4px; font-size:12px; background:#2a2f3a; color:#e8e8e8; border:1px solid #2a2f3a; border-radius:6px; outline:none;">
+<option value="">🔤 Слово</option>
+<option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">📱 Системный</option>
+<option value="'Times New Roman', Times, serif" style="font-family: 'Times New Roman', Times, serif">🏛️ Times New Roman</option>
+<option value="'Roboto', sans-serif" style="font-family: 'Roboto', sans-serif">🤖 Roboto</option>
+<option value="'Open Sans', sans-serif" style="font-family: 'Open Sans', sans-serif">📖 Open Sans</option>
+<option value="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif">💎 Montserrat</option>
+<option value="'Inter', sans-serif" style="font-family: 'Inter', sans-serif">✨ Inter</option>
+<option value="'Oswald', sans-serif" style="font-family: 'Oswald', sans-serif">📏 Oswald</option>
+<option value="'Raleway', sans-serif" style="font-family: 'Raleway', sans-serif">⚜️ Raleway</option>
+<option value="'Ubuntu', sans-serif" style="font-family: 'Ubuntu', sans-serif">🟢 Ubuntu</option>
+<option value="'Nunito', sans-serif" style="font-family: 'Nunito', sans-serif">☁️ Nunito</option>
+<option value="'Rubik', sans-serif" style="font-family: 'Rubik', sans-serif">🟥 Rubik</option>
+<option value="'Exo 2', sans-serif" style="font-family: 'Exo 2', sans-serif">⚡ Exo 2</option>
+<option value="'Merriweather', serif" style="font-family: 'Merriweather', serif">📚 Merriweather</option>
+<option value="'Playfair Display', serif" style="font-family: 'Playfair Display', serif">📰 Playfair Display</option>
+<option value="'Lora', serif" style="font-family: 'Lora', serif">🪶 Lora</option>
+<option value="'PT Serif', serif" style="font-family: 'PT Serif', serif">🏢 PT Serif</option>
+<option value="'Cormorant Garamond', serif" style="font-family: 'Cormorant Garamond', serif">👑 Cormorant</option>
+<option value="'Tenor Sans', sans-serif" style="font-family: 'Tenor Sans', sans-serif">🎨 Tenor Sans</option>
+<option value="'Alice', serif" style="font-family: 'Alice', serif">📜 Alice</option>
+<option value="'Comfortaa', cursive" style="font-family: 'Comfortaa', cursive">🎈 Comfortaa</option>
+<option value="'Caveat', cursive" style="font-family: 'Caveat', cursive">🖋️ Caveat</option>
+<option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif">📢 Bebas Neue</option>
+<option value="'Russo One', sans-serif" style="font-family: 'Russo One', sans-serif">🔥 Russo One</option>
+<option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">🌊 Pacifico</option>
+<option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">💻 Kelly Slab</option>
+<option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">✍️ Neucha</option>
+<option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">🎬 Amatic SC</option>
+<option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">☕ Marck Script</option>
+<option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">📝 Bad Script</option>
+<option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">🌸 Yeseva One</option>
+<option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">🕊️ Philosopher</option>
+<option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">🏛️ Oranienbaum</option>
 </select>
 <button onclick="deleteSelection()" title="Удалить выделенное">❌</button>
 <button onclick="cleanFormat()" title="Сбросить стили выделенного (Метёлка)">🧹</button>
@@ -398,40 +397,40 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   <input type="color" id="qbWordColor" value="#ff0000" oninput="applyTextColor(this.value)" onchange="applyTextColor(this.value)" title="Цвет выделенного текста">
   <button onmousedown="qbLink(event)">🔗</button>
   <button onmousedown="qbClean(event)" title="Сбросить стили">🧹</button>
-  <select id="qbFontSelect" onmousedown="event.stopPropagation()" onchange="qbFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного" style="flex:0 0 auto; width:auto; min-width:80px; height:42px; padding:0 6px; border-radius:10px; background:#2a2f3a; color:#e6ebf2; border:1px solid #3a4150; font-size:14px;">
+  <select id="qbFontSelect" onmousedown="saveSelectionBeforeAction(); event.stopPropagation();" onchange="qbFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного слова" style="flex:0 0 auto; width:auto; min-width:90px; height:42px; padding:0 6px; border-radius:10px; background:#2a2f3a; color:#e6ebf2; border:1px solid #3a4150; font-size:13px;">
     <option value="">🔤 Шрифт</option>
-    <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">Системный</option>
-    <option value="'Times New Roman', Times, serif" style="font-family: 'Times New Roman', Times, serif">Times New Roman</option>
-    <option value="'Roboto', sans-serif" style="font-family: 'Roboto', sans-serif">Roboto</option>
-    <option value="'Open Sans', sans-serif" style="font-family: 'Open Sans', sans-serif">Open Sans</option>
-    <option value="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif">Montserrat</option>
-    <option value="'Inter', sans-serif" style="font-family: 'Inter', sans-serif">Inter</option>
-    <option value="'Oswald', sans-serif" style="font-family: 'Oswald', sans-serif">Oswald</option>
-    <option value="'Raleway', sans-serif" style="font-family: 'Raleway', sans-serif">Raleway</option>
-    <option value="'Ubuntu', sans-serif" style="font-family: 'Ubuntu', sans-serif">Ubuntu</option>
-    <option value="'Nunito', sans-serif" style="font-family: 'Nunito', sans-serif">Nunito</option>
-    <option value="'Rubik', sans-serif" style="font-family: 'Rubik', sans-serif">Rubik</option>
-    <option value="'Exo 2', sans-serif" style="font-family: 'Exo 2', sans-serif">Exo 2</option>
-    <option value="'Merriweather', serif" style="font-family: 'Merriweather', serif">Merriweather</option>
-    <option value="'Playfair Display', serif" style="font-family: 'Playfair Display', serif">Playfair Display</option>
-    <option value="'Lora', serif" style="font-family: 'Lora', serif">Lora</option>
-    <option value="'PT Serif', serif" style="font-family: 'PT Serif', serif">PT Serif</option>
-    <option value="'Cormorant Garamond', serif" style="font-family: 'Cormorant Garamond', serif">Cormorant Garamond</option>
-    <option value="'Tenor Sans', sans-serif" style="font-family: 'Tenor Sans', sans-serif">Tenor Sans</option>
-    <option value="'Alice', serif" style="font-family: 'Alice', serif">Alice</option>
-    <option value="'Comfortaa', cursive" style="font-family: 'Comfortaa', cursive">Comfortaa</option>
-    <option value="'Caveat', cursive" style="font-family: 'Caveat', cursive">Caveat</option>
-    <option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif">BEBAS NEUE</option>
-    <option value="'Russo One', sans-serif" style="font-family: 'Russo One', sans-serif">Russo One</option>
-    <option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">Pacifico</option>
-    <option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">Kelly Slab</option>
-    <option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">Neucha</option>
-    <option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">Amatic SC</option>
-    <option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">Marck Script</option>
-    <option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">Bad Script</option>
-    <option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">Yeseva One</option>
-    <option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">Philosopher</option>
-    <option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">Oranienbaum</option>
+    <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">📱 Системный</option>
+    <option value="'Times New Roman', Times, serif" style="font-family: 'Times New Roman', Times, serif">🏛️ Times New Roman</option>
+    <option value="'Roboto', sans-serif" style="font-family: 'Roboto', sans-serif">🤖 Roboto</option>
+    <option value="'Open Sans', sans-serif" style="font-family: 'Open Sans', sans-serif">📖 Open Sans</option>
+    <option value="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif">💎 Montserrat</option>
+    <option value="'Inter', sans-serif" style="font-family: 'Inter', sans-serif">✨ Inter</option>
+    <option value="'Oswald', sans-serif" style="font-family: 'Oswald', sans-serif">📏 Oswald</option>
+    <option value="'Raleway', sans-serif" style="font-family: 'Raleway', sans-serif">⚜️ Raleway</option>
+    <option value="'Ubuntu', sans-serif" style="font-family: 'Ubuntu', sans-serif">🟢 Ubuntu</option>
+    <option value="'Nunito', sans-serif" style="font-family: 'Nunito', sans-serif">☁️ Nunito</option>
+    <option value="'Rubik', sans-serif" style="font-family: 'Rubik', sans-serif">🟥 Rubik</option>
+    <option value="'Exo 2', sans-serif" style="font-family: 'Exo 2', sans-serif">⚡ Exo 2</option>
+    <option value="'Merriweather', serif" style="font-family: 'Merriweather', serif">📚 Merriweather</option>
+    <option value="'Playfair Display', serif" style="font-family: 'Playfair Display', serif">📰 Playfair Display</option>
+    <option value="'Lora', serif" style="font-family: 'Lora', serif">🪶 Lora</option>
+    <option value="'PT Serif', serif" style="font-family: 'PT Serif', serif">🏢 PT Serif</option>
+    <option value="'Cormorant Garamond', serif" style="font-family: 'Cormorant Garamond', serif">👑 Cormorant Garamond</option>
+    <option value="'Tenor Sans', sans-serif" style="font-family: 'Tenor Sans', sans-serif">🎨 Tenor Sans</option>
+    <option value="'Alice', serif" style="font-family: 'Alice', serif">📜 Alice</option>
+    <option value="'Comfortaa', cursive" style="font-family: 'Comfortaa', cursive">🎈 Comfortaa</option>
+    <option value="'Caveat', cursive" style="font-family: 'Caveat', cursive">🖋️ Caveat</option>
+    <option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif">📢 BEBAS NEUE</option>
+    <option value="'Russo One', sans-serif" style="font-family: 'Russo One', sans-serif">🔥 Russo One</option>
+    <option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">🌊 Pacifico</option>
+    <option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">💻 Kelly Slab</option>
+    <option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">✍️ Neucha</option>
+    <option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">🎬 Amatic SC</option>
+    <option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">☕ Marck Script</option>
+    <option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">📝 Bad Script</option>
+    <option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">🌸 Yeseva One</option>
+    <option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">🕊️ Philosopher</option>
+    <option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">🏛️ Oranienbaum</option>
   </select>
   <button onmousedown="qbImage(event)" title="Добавить картинку">🖼️</button>
   <input type="file" id="qbImageInput" accept="image/*" multiple style="display:none;" onchange="insertMultipleImages(event)">
@@ -771,7 +770,6 @@ updateRatio();
 saveHistory();
 });
 
-/* Очистка без надоедливого подтверждения */
 function clearEditor() {
 editor.innerHTML = '';
 updateImgCounter();
@@ -810,31 +808,26 @@ exportNode.style.width = w + 'px';
 updateRatio();
 }
 
-document.addEventListener('selectionchange', function() {
-const sel = window.getSelection();
-if (sel.rangeCount > 0 && editor.contains(sel.anchorNode)) savedSelection = sel.getRangeAt(0);
-});
+// Запоминание выделения
+function saveSelectionBeforeAction() {
+  const sel = window.getSelection();
+  if (sel.rangeCount > 0 && editor.contains(sel.anchorNode)) {
+    savedSelection = sel.getRangeAt(0).cloneRange();
+  }
+}
+
+document.addEventListener('selectionchange', saveSelectionBeforeAction);
+editor.addEventListener('keyup', saveSelectionBeforeAction);
+editor.addEventListener('mouseup', saveSelectionBeforeAction);
+editor.addEventListener('touchend', saveSelectionBeforeAction);
 
 function restoreSelection() {
-editor.focus();
-if (savedSelection && editor.contains(savedSelection.commonAncestorContainer)) {
-const sel = window.getSelection();
-sel.removeAllRanges();
-sel.addRange(savedSelection);
-}
-}
-
-function getStyledInlineParent(node) {
-  let curr = (node.nodeType === Node.TEXT_NODE) ? node.parentNode : node;
-  while (curr && curr !== editor) {
-    const tag = curr.tagName;
-    if (tag === 'SPAN' || tag === 'FONT' || tag === 'B' || tag === 'STRONG' || 
-        tag === 'I' || tag === 'EM' || tag === 'U' || tag === 'S' || tag === 'STRIKE' || tag === 'CODE') {
-      return curr;
-    }
-    curr = curr.parentNode;
+  editor.focus();
+  if (savedSelection && editor.contains(savedSelection.commonAncestorContainer)) {
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedSelection);
   }
-  return null;
 }
 
 function applyTextColor(color) { 
@@ -903,28 +896,25 @@ saveHistory();
 editor.focus();
 }
 
-/* Применение шрифта ТОЛЬКО к выделенному слову/тексту */
+/* Надежное применение шрифта к ОДНОМУ вылеленному слову */
 function applyWordFont(font) {
   if (!font) return;
   restoreSelection();
   const sel = window.getSelection();
-  if (!sel || !sel.rangeCount || sel.toString().length === 0) return;
+  if (!sel || !sel.rangeCount || sel.toString().trim().length === 0) return;
+
+  // Использование встроенной команды браузера, которая безопасно оборачивает фрагмент
+  document.execCommand('fontName', false, font);
   
-  const range = sel.getRangeAt(0);
-  const wrapper = document.createElement('span');
-  wrapper.style.fontFamily = font;
-  wrapper.setAttribute('data-custom-font', 'true');
-  
-  try { 
-    range.surroundContents(wrapper); 
-  } catch (e) { 
-    wrapper.appendChild(range.extractContents()); 
-    range.insertNode(wrapper); 
-  }
-  wrapper.querySelectorAll('[data-custom-font]').forEach(function(child) {
-    child.style.fontFamily = '';
-    child.removeAttribute('data-custom-font');
+  // Конвертируем временные теги font в чистые span
+  editor.querySelectorAll('font[face]').forEach(el => {
+    const span = document.createElement('span');
+    span.style.fontFamily = el.getAttribute('face');
+    span.setAttribute('data-custom-font', 'true');
+    while (el.firstChild) span.appendChild(el.firstChild);
+    el.parentNode.replaceChild(span, el);
   });
+
   updateRatio();
   saveHistory();
   editor.focus();
@@ -1414,39 +1404,54 @@ async function copyForMax() {
   await writeToClipboard(finalHtml, finalPlain, 'copyMaxBtn');
 }
 
+/* ОБРАБОТКА КЛАВИШ И АВТОМАТИЧЕСКИЙ СБРОС ФОРМАТИРОВАНИЯ ПОСЛЕ ПРОБЕЛА */
 editor.addEventListener('keydown', function(e) {
 const sel = window.getSelection();
 
+// Нажатие пробела: выходим из форматированного фрагмента, чтобы следующее слово печаталось стандартно
 if (e.key === ' ' || e.code === 'Space') {
   if (sel.rangeCount > 0 && sel.isCollapsed) {
     const range = sel.getRangeAt(0);
     let node = range.startContainer;
-    let offset = range.startOffset;
-    let styledParent = getStyledInlineParent(node);
     
-    if (styledParent) {
-      let isAtEnd = false;
-      if (node.nodeType === Node.TEXT_NODE && offset === node.textContent.length) {
-        let p = node;
-        while (p && p !== styledParent && !p.nextSibling) {
-          p = p.parentNode;
-        }
-        if (p === styledParent || !p.nextSibling) isAtEnd = true;
+    // Ищем стилизованные родительские теги над курсором
+    let styledParent = node.parentNode;
+    while (styledParent && styledParent !== editor) {
+      if (styledParent.tagName === 'SPAN' || styledParent.tagName === 'FONT' || 
+          styledParent.tagName === 'B' || styledParent.tagName === 'I' || 
+          styledParent.tagName === 'U' || styledParent.tagName === 'S') {
+        break;
       }
-      
-      if (isAtEnd) {
+      styledParent = styledParent.parentNode;
+    }
+
+    if (styledParent && styledParent !== editor) {
+      // Если курсор находится в самом конце текста внутри стилизованного блока
+      if (node.nodeType === Node.TEXT_NODE && range.startOffset === node.textContent.length) {
         e.preventDefault();
+        
+        // Вставляем пробел и нулевой символ вне стилизованного блока
         const spaceNode = document.createTextNode(' ');
+        const zeroWidthNode = document.createTextNode('\u200B');
+        
         if (styledParent.nextSibling) {
           styledParent.parentNode.insertBefore(spaceNode, styledParent.nextSibling);
+          styledParent.parentNode.insertBefore(zeroWidthNode, spaceNode.nextSibling);
         } else {
           styledParent.parentNode.appendChild(spaceNode);
+          styledParent.parentNode.appendChild(zeroWidthNode);
         }
+
+        // Перемещаем каретку ввода за пределы блока стилей
         const newRange = document.createRange();
-        newRange.setStart(spaceNode, 1);
+        newRange.setStart(zeroWidthNode, 1);
         newRange.collapse(true);
         sel.removeAllRanges();
         sel.addRange(newRange);
+        
+        // Сбрасываем активности встроенных стилей
+        document.execCommand('removeFormat', false, null);
+        
         updateRatio();
         saveHistory();
         return;
@@ -1591,8 +1596,7 @@ function qbFont(font) {
 
 function qbImage(e) {
   if(e && e.preventDefault) e.preventDefault();
-  savedSelection = (window.getSelection().rangeCount > 0 && editor.contains(window.getSelection().anchorNode)) 
-                   ? window.getSelection().getRangeAt(0) : savedSelection;
+  saveSelectionBeforeAction();
   document.getElementById('qbImageInput').click();
 }
 
