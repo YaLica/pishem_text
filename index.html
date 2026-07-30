@@ -1327,11 +1327,26 @@ if (isIOS) {
     }
   }, 'image/png');
 } else {
-  const link = document.createElement('a');
-  link.download = 'texter-post.png';
-  link.href = dataUrl;
-  link.click();
-  finish();
+  canvas.toBlob(function(blob) {
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.download = 'texter-post.png';
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
+    } else {
+      const link = document.createElement('a');
+      link.download = 'texter-post.png';
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+    finish();
+  }, 'image/png');
 }
 
 }).catch(function(err) {
@@ -1372,190 +1387,7 @@ function getEditorLines() {
     el.removeAttribute('class');
     el.removeAttribute('data-custom-size');
     if (el.tagName === 'A') {
-      Array.from(el.attributes).forEach(a => { if (a.name !== 'href') el.removeAttribute(a.name); });
-    }
-  });
-
-  const walker = document.createTreeWalker(src, NodeFilter.SHOW_TEXT, null);
-  const textNodes = [];
-  while (walker.nextNode()) textNodes.push(walker.currentNode);
-  textNodes.forEach(t => { t.textContent = t.textContent.replace(/\u200B/g, ''); });
-
-  let html = '';
-  function walk(node) {
-    node.childNodes.forEach(function(child) {
-      if (child.nodeType === Node.TEXT_NODE) {
-        html += child.textContent;
-      } else if (child.nodeType === Node.ELEMENT_NODE) {
-        const tag = child.tagName;
-        if (tag === 'BR') {
-          html += '\n';
-        } else if (tag === 'DIV' || tag === 'P') {
-          if (html.length && !html.endsWith('\n')) html += '\n';
-          walk(child);
-          if (!html.endsWith('\n')) html += '\n';
-        } else {
-          html += '<' + tag.toLowerCase() + (tag === 'A' && child.getAttribute('href') ? ' href="' + child.getAttribute('href') + '"' : '') + '>';
-          walk(child);
-          html += '</' + tag.toLowerCase() + '>';
-        }
-      }
-    });
-  }
-  walk(src);
-
-  let lines = html.split('\n');
-
-  while (lines.length && lines[0].trim() === '') lines.shift();
-  while (lines.length && lines[lines.length - 1].trim() === '') lines.pop();
-
-  const cleaned = [];
-  let prevEmpty = false;
-  for (const line of lines) {
-    const isEmpty = line.trim() === '';
-    if (isEmpty && prevEmpty) continue;
-    cleaned.push(line);
-    prevEmpty = isEmpty;
-  }
-  return cleaned;
-}
-
-async function writeToClipboard(html, plain, btnId) {
-  let ok = false;
-  const btn = btnId ? document.getElementById(btnId) : null;
-  const original = btn ? btn.innerHTML : '';
-
-  // Оборачиваем HTML в стандартный контейнер, чтобы MAX идеально считывал его как Rich Text
-  const richHtml = '<div>' + html + '</div>';
-
-  try {
-    if (navigator.clipboard && window.ClipboardItem) {
-      const item = new ClipboardItem({
-        'text/html': new Blob([richHtml], { type: 'text/html' }),
-        'text/plain': new Blob([plain], { type: 'text/plain' })
-      });
-      await navigator.clipboard.write([item]);
-      ok = true;
-    }
-  } catch (err) { ok = false; }
-
-  if (!ok) {
-    const temp = document.createElement('div');
-    temp.contentEditable = 'true';
-    temp.style.position = 'fixed';
-    temp.style.left = '-9999px';
-    temp.innerHTML = richHtml;
-    document.body.appendChild(temp);
-
-    const range = document.createRange();
-    range.selectNodeContents(temp);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-
-    try { document.execCommand('copy'); ok = true; } catch (e) { ok = false; }
-    document.body.removeChild(temp);
-  }
-
-  if (ok && btn) {
-    btn.innerHTML = '✅ Скопировано!';
-    setTimeout(function() { btn.innerHTML = original; }, 2000);
-  }
-
-  restoreSelection();
-}
-
-async function copyForTelegram() {
-  if (!editor.innerText.trim()) return;
-  const lines = getEditorLines();
-  
-  const finalHtml = lines.join('<br>');
-  
-  // Создаём чистый plain-текст без сырых тегов (<b>, <br>) для корректной вставки в MAX на iOS
-  const tempPlainDiv = document.createElement('div');
-  tempPlainDiv.innerHTML = finalHtml;
-  const finalPlain = tempPlainDiv.innerText || tempPlainDiv.textContent;
-  
-  await writeToClipboard(finalHtml, finalPlain, 'copyTgBtn');
-}
-
-function handleSpaceFormattingReset() {
-  const sel = window.getSelection();
-  if (sel.rangeCount > 0 && sel.isCollapsed) {
-    const range = sel.getRangeAt(0);
-    let node = range.startContainer;
-    let offset = range.startOffset;
-    let styledParent = getStyledInlineParent(node);
-    
-    if (styledParent) {
-      let isAtEnd = false;
-      if (node.nodeType === Node.TEXT_NODE && offset === node.textContent.length) {
-        let p = node;
-        while (p && p !== styledParent && !p.nextSibling) {
-          p = p.parentNode;
-        }
-        if (p === styledParent || !p.nextSibling) isAtEnd = true;
-      }
-      
-      if (isAtEnd) {
-        const spaceNode = document.createTextNode(' ');
-        if (styledParent.nextSibling) {
-          styledParent.parentNode.insertBefore(spaceNode, styledParent.nextSibling);
-        } else {
-          styledParent.parentNode.appendChild(spaceNode);
-        }
-        const newRange = document.createRange();
-        newRange.setStartAfter(spaceNode);
-        newRange.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(newRange);
-        updateRatio();
-        saveHistory();
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-editor.addEventListener('beforeinput', function(e) {
-  if (e.data === ' ' || e.inputType === 'insertText' && e.data === ' ') {
-    if (handleSpaceFormattingReset()) {
-      e.preventDefault();
-    }
-  }
-});
-
-editor.addEventListener('keydown', function(e) {
-const sel = window.getSelection();
-
-if (e.key === ' ' || e.code === 'Space') {
-  if (handleSpaceFormattingReset()) {
-    e.preventDefault();
-    return;
-  }
-}
-
-function imgNextTo(direction) {
-if (!sel.rangeCount) return null;
-const r = sel.getRangeAt(0);
-if (!r.collapsed) return null;
-let node = r.startContainer;
-let offset = r.startOffset;
-
-if (direction === 'back') {
-  if (node.nodeType === Node.TEXT_NODE) {
-    if (offset > 0) return null;
-    let prev = node.previousSibling;
-    while (prev && prev.nodeType === Node.TEXT_NODE && prev.textContent === '\u200B') prev = prev.previousSibling;
-    if (prev && prev.classList && prev.classList.contains('img-box')) return prev;
-  } else {
-    let child = node.childNodes[offset - 1];
-    while (child && child.nodeType === Node.TEXT_NODE && child.textContent === '\u200B') child = child.previousSibling;
-    if (child && child.classList && child.classList.contains('img-box')) return child;
-  }
-} else {
-  if (node.nodeType === Node.TEXT_NODE) {
+      Array.from(el.attributes).forEach(a => { if (a.name !== 'hrefNODE) {
     if (offset < node.textContent.length) return null;
     let next = node.nextSibling;
     while (next && next.nodeType === Node.TEXT_NODE && next.textContent === '\u200B') next = next.nextSibling;
