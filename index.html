@@ -801,32 +801,9 @@ function getStyledInlineParent(node) {
   return null;
 }
 
-function exitSelectionFromFormatting() {
-  const sel = window.getSelection();
-  if (!sel.rangeCount) return;
-  const range = sel.getRangeAt(0);
-  let endNode = range.endContainer;
-  let styledParent = getStyledInlineParent(endNode);
-  
-  if (styledParent) {
-    let next = styledParent.nextSibling;
-    if (!next || next.nodeType !== Node.TEXT_NODE) {
-      const zwsp = document.createTextNode('\u200B');
-      styledParent.parentNode.insertBefore(zwsp, styledParent.nextSibling);
-      next = zwsp;
-    }
-    const newRange = document.createRange();
-    newRange.setStartAfter(next);
-    newRange.collapse(true);
-    sel.removeAllRanges();
-    sel.addRange(newRange);
-  }
-}
-
 function applyTextColor(color) { 
   restoreSelection(); 
   document.execCommand('foreColor', false, color); 
-  exitSelectionFromFormatting();
   saveHistory(); 
   editor.focus(); 
 }
@@ -840,7 +817,6 @@ else if (command === 'justifyFull') { currentImgBox.classList.remove('align-righ
 }
 restoreSelection();
 document.execCommand(command, false, value || null);
-exitSelectionFromFormatting();
 saveHistory();
 editor.focus();
 }
@@ -862,7 +838,6 @@ const codeNode = document.createElement('code');
 codeNode.textContent = sel.toString();
 range.deleteContents();
 range.insertNode(codeNode);
-exitSelectionFromFormatting();
 saveHistory();
 editor.focus();
 } else { alert('Сначала выдели текст для моноширинного кода. ✍️'); }
@@ -887,7 +862,6 @@ el.setAttribute('data-custom-size', 'true');
 }
 scaleEl(wrapper);
 wrapper.querySelectorAll('*').forEach(function(child) { if (child.style && child.style.fontSize) scaleEl(child); });
-exitSelectionFromFormatting();
 updateRatio();
 saveHistory();
 editor.focus();
@@ -915,7 +889,6 @@ function applyWordFont(font) {
     child.style.fontFamily = '';
     child.removeAttribute('data-custom-font');
   });
-  exitSelectionFromFormatting();
   updateRatio();
   saveHistory();
   editor.focus();
@@ -1417,7 +1390,7 @@ async function copyForMax() {
 editor.addEventListener('keydown', function(e) {
 const sel = window.getSelection();
 
-// Обработка Пробела для мгновенного сброса форматирования у нового слова
+// Мгновенный сброс форматирования у нового слова при нажатии Пробела
 if (e.key === ' ' || e.code === 'Space') {
   if (sel.rangeCount > 0 && sel.isCollapsed) {
     const range = sel.getRangeAt(0);
@@ -1444,7 +1417,7 @@ if (e.key === ' ' || e.code === 'Space') {
           styledParent.parentNode.appendChild(spaceNode);
         }
         const newRange = document.createRange();
-        newRange.setStartAfter(spaceNode);
+        newRange.setStart(spaceNode, 1);
         newRange.collapse(true);
         sel.removeAllRanges();
         sel.addRange(newRange);
@@ -1569,7 +1542,6 @@ function positionQuickBar() {
 function qb(e, command) {
   if(e && e.preventDefault) e.preventDefault();
   document.execCommand(command, false, null);
-  exitSelectionFromFormatting();
   saveHistory();
 }
 
