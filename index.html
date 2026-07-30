@@ -425,8 +425,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
     <option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">🌊 Летний: Pacifico</option>
     <option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">💻 Киберпанк: Kelly Slab</option>
     <option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">✍️ Маркер: Neucha</option>
-    <option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">🎬 Кино: Amatic SC</option>
-    <option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">☕ Кофейня: Marck Script</option>
+    <option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">☕ Кофейня: Marck Script</option>
     <option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">📝 Записки: Bad Script</option>
     <option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">🌸 Салон: Yeseva One</option>
     <option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">🕊️ Изящный: Philosopher</option>
@@ -1343,18 +1342,20 @@ zoomWrapper.style.transform = savedTransform;
 }, 100);
 }
 
-/* ВОССТАНОВЛЕННАЯ РОДНАЯ СТРУКТУРА ДЛЯ ПК И ANDROID (С ТЕГАМИ <br>) */
+/* ОБНОВЛЕННАЯ НОРМАЛИЗАЦИЯ И СБОРКА ТЕКСТА (АВТО-ОЧИСТКА ДЛЯ TELEGRAM И MAX) */
 function getEditorLines() {
   const src = document.createElement('div');
   src.innerHTML = editor.innerHTML;
   src.querySelectorAll('.img-box').forEach(el => el.remove());
 
+  // Удаляем стилистические спаны (размер, шрифт и т.д.), но оставляем форматирование
   src.querySelectorAll('span, font').forEach(function(el) {
     const parent = el.parentNode;
     while (el.firstChild) parent.insertBefore(el.firstChild, el);
     parent.removeChild(el);
   });
 
+  // Заменяем устаревшие теги strong/em на b/i для универсальности
   src.querySelectorAll('strong').forEach(el => {
     const b = document.createElement('b');
     b.innerHTML = el.innerHTML;
@@ -1424,56 +1425,36 @@ async function writeToClipboard(html, plain, btnId) {
   const btn = btnId ? document.getElementById(btnId) : null;
   const original = btn ? btn.innerHTML : '';
 
-  // Проверка: это iPhone или iPad?
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  // Оборачиваем HTML в стандартный контейнер, чтобы MAX идеально считывал его как Rich Text
+  const richHtml = '<div>' + html + '</div>';
 
   try {
     if (navigator.clipboard && window.ClipboardItem) {
-      let clipboardData = {};
-      
-      if (isIOS) {
-        // ТОЛЬКО ДЛЯ IPHONE/IPAD: отдаем ИСКЛЮЧИТЕЛЬНО Plain Text. 
-        // Все переносы, эмодзи и отступы сохраняются, а яблочные мусорные теги НЕ попадают в MAX!
-        clipboardData['text/plain'] = new Blob([plain], { type: 'text/plain' });
-      } else {
-        // ДЛЯ ПК И ANDROID: НЕ ТРОГАЕМ ВООБЩЕ! Оставляем 100% родной рабочий формат
-        clipboardData['text/html'] = new Blob(['<div>' + html + '</div>'], { type: 'text/html' });
-        clipboardData['text/plain'] = new Blob([plain], { type: 'text/plain' });
-      }
-      
-      const item = new ClipboardItem(clipboardData);
+      const item = new ClipboardItem({
+        'text/html': new Blob([richHtml], { type: 'text/html' }),
+        'text/plain': new Blob([plain], { type: 'text/plain' })
+      });
       await navigator.clipboard.write([item]);
       ok = true;
     }
   } catch (err) { ok = false; }
 
   if (!ok) {
-    if (isIOS) {
-      const temp = document.createElement('textarea');
-      temp.value = plain;
-      temp.style.position = 'fixed';
-      temp.style.left = '-9999px';
-      document.body.appendChild(temp);
-      temp.select();
-      try { document.execCommand('copy'); ok = true; } catch (e) { ok = false; }
-      document.body.removeChild(temp);
-    } else {
-      const temp = document.createElement('div');
-      temp.contentEditable = 'true';
-      temp.style.position = 'fixed';
-      temp.style.left = '-9999px';
-      temp.innerHTML = '<div>' + html + '</div>';
-      document.body.appendChild(temp);
+    const temp = document.createElement('div');
+    temp.contentEditable = 'true';
+    temp.style.position = 'fixed';
+    temp.style.left = '-9999px';
+    temp.innerHTML = richHtml;
+    document.body.appendChild(temp);
 
-      const range = document.createRange();
-      range.selectNodeContents(temp);
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
+    const range = document.createRange();
+    range.selectNodeContents(temp);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
 
-      try { document.execCommand('copy'); ok = true; } catch (e) { ok = false; }
-      document.body.removeChild(temp);
-    }
+    try { document.execCommand('copy'); ok = true; } catch (e) { ok = false; }
+    document.body.removeChild(temp);
   }
 
   if (ok && btn) {
@@ -1489,7 +1470,11 @@ async function copyForTelegram() {
   const lines = getEditorLines();
   
   const finalHtml = lines.join('<br>');
-  const finalPlain = lines.join('\n');
+  
+  // Создаём чистый plain-текст без сырых тегов (<b>, <br>) для корректной вставки в MAX на iOS
+  const tempPlainDiv = document.createElement('div');
+  tempPlainDiv.innerHTML = finalHtml;
+  const finalPlain = tempPlainDiv.innerText || tempPlainDiv.textContent;
   
   await writeToClipboard(finalHtml, finalPlain, 'copyTgBtn');
 }
