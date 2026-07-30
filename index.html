@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Генератор постов (Кроссплатформа)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com">
 <link href="https://fonts.googleapis.com/css2?family=Alice&family=Amatic+SC:wght@700&family=Bad+Script&family=Bebas+Neue&family=Caveat&family=Comfortaa&family=Cormorant+Garamond&family=Exo+2&family=Inter&family=Kelly+Slab&family=Lora&family=Marck+Script&family=Merriweather&family=Montserrat&family=Neucha&family=Nunito&family=Open+Sans&family=Oranienbaum&family=Oswald&family=PT+Serif&family=Pacifico&family=Philosopher&family=Playfair+Display&family=Raleway&family=Roboto&family=Rubik&family=Russo+One&family=Tenor+Sans&family=Ubuntu&family=Yeseva+One&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
@@ -66,7 +66,6 @@ input[type="color"]::-webkit-color-swatch { border: none; }
 #export-node::before { content: ''; position: absolute; bottom: 0; left: -16px; width: 16px; height: 32px; background: radial-gradient(circle at 0 0, transparent 16px, var(--bg-color) 16px); }
 #export-node.no-tail::before { display: none; }
 
-/* Умный перенос слов */
 #editor { 
   outline: none; font-size: 32px; line-height: 1.2; white-space: pre-wrap; 
   word-break: normal; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; 
@@ -759,46 +758,25 @@ function restoreSelection() {
   }
 }
 
-function getStyledInlineParent(node) {
+// Находит самый внешний родительский тег оформления //
+function getOutermostInlineStyledParent(node) {
   let curr = (node && node.nodeType === Node.TEXT_NODE) ? node.parentNode : node;
+  let outermost = null;
   while (curr && curr !== editor) {
     const tag = curr.tagName;
-    if (tag === 'SPAN' || tag === 'FONT' || tag === 'B' || tag === 'STRONG' || 
-        tag === 'I' || tag === 'EM' || tag === 'U' || tag === 'S' || tag === 'STRIKE' || tag === 'CODE') {
-      return curr;
+    if (['SPAN', 'FONT', 'B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'CODE', 'A'].includes(tag)) {
+      outermost = curr;
+    } else if (['DIV', 'P'].includes(tag)) {
+      break;
     }
     curr = curr.parentNode;
   }
-  return null;
-}
-
-function exitSelectionFromFormatting() {
-  const sel = window.getSelection();
-  if (!sel.rangeCount) return;
-  const range = sel.getRangeAt(0);
-  let endNode = range.endContainer;
-  let styledParent = getStyledInlineParent(endNode);
-  
-  if (styledParent) {
-    let next = styledParent.nextSibling;
-    if (!next || next.nodeType !== Node.TEXT_NODE) {
-      const zwsp = document.createTextNode('\u200B');
-      styledParent.parentNode.insertBefore(zwsp, styledParent.nextSibling);
-      next = zwsp;
-    }
-    const newRange = document.createRange();
-    newRange.setStartAfter(next);
-    newRange.collapse(true);
-    sel.removeAllRanges();
-    sel.addRange(newRange);
-    saveCurrentSelection();
-  }
+  return outermost;
 }
 
 function applyTextColor(color) { 
   restoreSelection(); 
   document.execCommand('foreColor', false, color); 
-  exitSelectionFromFormatting();
   saveHistory(); 
   editor.focus(); 
 }
@@ -812,7 +790,6 @@ else if (command === 'justifyFull') { currentImgBox.classList.remove('align-righ
 }
 restoreSelection();
 document.execCommand(command, false, value || null);
-exitSelectionFromFormatting();
 saveHistory();
 editor.focus();
 }
@@ -834,35 +811,48 @@ const codeNode = document.createElement('code');
 codeNode.textContent = sel.toString();
 range.deleteContents();
 range.insertNode(codeNode);
-exitSelectionFromFormatting();
 saveHistory();
 editor.focus();
 } else { alert('Сначала выдели текст для моноширинного кода. ✍️'); }
 }
 
+// Умный выбор и прямое изменение размера без создания «Матрёшек» //
 function changeWordSize(factor) {
-restoreSelection();
-const sel = window.getSelection();
-if (!sel.rangeCount || sel.toString().length === 0) { alert('Сначала выдели текст (слово, абзац или весь текст). ✍️'); return; }
-const range = sel.getRangeAt(0);
-const wrapper = document.createElement('span');
-try { range.surroundContents(wrapper); } catch (e) { wrapper.appendChild(range.extractContents()); range.insertNode(wrapper); }
-const baseSize = parseFloat(getComputedStyle(editor).fontSize) || 32;
-function scaleEl(el) {
-let current = parseFloat(el.style.fontSize);
-if (!current) current = parseFloat(getComputedStyle(el).fontSize) || baseSize;
-let next = Math.round(current * factor);
-if (next < 8) next = 8;
-if (next > 200) next = 200;
-el.style.fontSize = next + 'px';
-el.setAttribute('data-custom-size', 'true');
-}
-scaleEl(wrapper);
-wrapper.querySelectorAll('*').forEach(function(child) { if (child.style && child.style.fontSize) scaleEl(child); });
-exitSelectionFromFormatting();
-updateRatio();
-saveHistory();
-editor.focus();
+  restoreSelection();
+  const sel = window.getSelection();
+  if (!sel.rangeCount || sel.toString().length === 0) { 
+    alert('Сначала выдели текст (слово, абзац или весь текст). ✍️'); 
+    return; 
+  }
+  
+  const range = sel.getRangeAt(0);
+  let parentSpan = getOutermostInlineStyledParent(range.startContainer);
+  
+  const baseSize = parseFloat(getComputedStyle(editor).fontSize) || 32;
+  
+  if (parentSpan && parentSpan.tagName === 'SPAN' && parentSpan.getAttribute('data-custom-size')) {
+    let current = parseFloat(parentSpan.style.fontSize) || baseSize;
+    let next = Math.round(current * factor);
+    if (next < 8) next = 8;
+    if (next > 200) next = 200;
+    parentSpan.style.fontSize = next + 'px';
+  } else {
+    const wrapper = document.createElement('span');
+    try { 
+      range.surroundContents(wrapper); 
+    } catch (e) { 
+      wrapper.appendChild(range.extractContents()); 
+      range.insertNode(wrapper); 
+    }
+    let current = parseFloat(getComputedStyle(wrapper).fontSize) || baseSize;
+    let next = Math.round(current * factor);
+    wrapper.style.fontSize = next + 'px';
+    wrapper.setAttribute('data-custom-size', 'true');
+  }
+  
+  updateRatio();
+  saveHistory();
+  editor.focus();
 }
 
 function deleteSelection() {
@@ -1358,44 +1348,32 @@ async function copyForMax() {
   await writeToClipboard(finalHtml, finalPlain, 'copyMaxBtn');
 }
 
+// Нажатие пробела мгновенно выводит курсор из ВСЕХ тегов оформления //
 editor.addEventListener('keydown', function(e) {
 const sel = window.getSelection();
 
 if (e.key === ' ' || e.code === 'Space') {
   if (sel.rangeCount > 0 && sel.isCollapsed) {
     const range = sel.getRangeAt(0);
-    let node = range.startContainer;
-    let offset = range.startOffset;
-    let styledParent = getStyledInlineParent(node);
+    let outermost = getOutermostInlineStyledParent(range.startContainer);
     
-    if (styledParent) {
-      let isAtEnd = false;
-      if (node.nodeType === Node.TEXT_NODE && offset === node.textContent.length) {
-        let p = node;
-        while (p && p !== styledParent && !p.nextSibling) {
-          p = p.parentNode;
-        }
-        if (p === styledParent || !p.nextSibling) isAtEnd = true;
+    if (outermost) {
+      e.preventDefault();
+      const spaceNode = document.createTextNode(' ');
+      if (outermost.nextSibling) {
+        outermost.parentNode.insertBefore(spaceNode, outermost.nextSibling);
+      } else {
+        outermost.parentNode.appendChild(spaceNode);
       }
-      
-      if (isAtEnd) {
-        e.preventDefault();
-        const spaceNode = document.createTextNode(' ');
-        if (styledParent.nextSibling) {
-          styledParent.parentNode.insertBefore(spaceNode, styledParent.nextSibling);
-        } else {
-          styledParent.parentNode.appendChild(spaceNode);
-        }
-        const newRange = document.createRange();
-        newRange.setStartAfter(spaceNode);
-        newRange.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(newRange);
-        saveCurrentSelection();
-        updateRatio();
-        saveHistory();
-        return;
-      }
+      const newRange = document.createRange();
+      newRange.setStartAfter(spaceNode);
+      newRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(newRange);
+      saveCurrentSelection();
+      updateRatio();
+      saveHistory();
+      return;
     }
   }
 }
