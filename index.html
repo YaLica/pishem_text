@@ -1343,6 +1343,7 @@ zoomWrapper.style.transform = savedTransform;
 }, 100);
 }
 
+/* ВОССТАНОВЛЕННАЯ РОДНАЯ СТРУКТУРА ДЛЯ ПК И ANDROID (С ТЕГАМИ <br>) */
 function getEditorLines() {
   const src = document.createElement('div');
   src.innerHTML = editor.innerHTML;
@@ -1423,20 +1424,23 @@ async function writeToClipboard(html, plain, btnId) {
   const btn = btnId ? document.getElementById(btnId) : null;
   const original = btn ? btn.innerHTML : '';
 
+  // Проверка: это iPhone или iPad?
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const richHtml = '<div>' + html + '</div>';
 
   try {
     if (navigator.clipboard && window.ClipboardItem) {
       let clipboardData = {};
+      
       if (isIOS) {
-        // НА IPHONE: КОПИРУЕМ ЧИСТЫЙ ТЕКСТ БЕЗ ЯБЛОЧНОГО ВЕБ-МУСОРА ДЛЯ MAX И TELEGRAM
+        // ТОЛЬКО ДЛЯ IPHONE/IPAD: отдаем ИСКЛЮЧИТЕЛЬНО Plain Text. 
+        // Все переносы, эмодзи и отступы сохраняются, а яблочные мусорные теги НЕ попадают в MAX!
         clipboardData['text/plain'] = new Blob([plain], { type: 'text/plain' });
       } else {
-        // НА ПК И ANDROID: КОПИРУЕМ И HTML (С ЖИРНЫМ И КУРСИВОМ), И ЧИСТЫЙ ТЕКСТ
-        clipboardData['text/html'] = new Blob([richHtml], { type: 'text/html' });
+        // ДЛЯ ПК И ANDROID: НЕ ТРОГАЕМ ВООБЩЕ! Оставляем 100% родной рабочий формат
+        clipboardData['text/html'] = new Blob(['<div>' + html + '</div>'], { type: 'text/html' });
         clipboardData['text/plain'] = new Blob([plain], { type: 'text/plain' });
       }
+      
       const item = new ClipboardItem(clipboardData);
       await navigator.clipboard.write([item]);
       ok = true;
@@ -1458,7 +1462,7 @@ async function writeToClipboard(html, plain, btnId) {
       temp.contentEditable = 'true';
       temp.style.position = 'fixed';
       temp.style.left = '-9999px';
-      temp.innerHTML = richHtml;
+      temp.innerHTML = '<div>' + html + '</div>';
       document.body.appendChild(temp);
 
       const range = document.createRange();
