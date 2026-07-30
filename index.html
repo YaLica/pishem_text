@@ -270,6 +270,21 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 <input type="color" id="wordColor" value="#ff0000" oninput="applyTextColor(this.value)" title="Цвет выделенного текста">
 <button onclick="changeWordSize(1.2)" title="Увеличить выделенное">A+</button>
 <button onclick="changeWordSize(0.85)" title="Уменьшить выделенное">A-</button>
+<select onchange="applyWordFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного слова" style="width:auto; min-width:60px; height:32px; padding:0 4px; font-size:12px; background:#2a2f3a; color:#e8e8e8; border:1px solid #2a2f3a; border-radius:6px; outline:none;">
+<option value="">🔤</option>
+<option value="'Times New Roman', Times, serif">Times</option>
+<option value="'Roboto', sans-serif">Roboto</option>
+<option value="'Montserrat', sans-serif">Montserrat</option>
+<option value="'Playfair Display', serif">Playfair</option>
+<option value="'Lora', serif">Lora</option>
+<option value="'Bebas Neue', sans-serif">Bebas</option>
+<option value="'Russo One', sans-serif">Russo</option>
+<option value="'Pacifico', cursive">Pacifico</option>
+<option value="'Caveat', cursive">Caveat</option>
+<option value="'Amatic SC', cursive">Amatic</option>
+<option value="'Yeseva One', serif">Yeseva</option>
+<option value="'Comfortaa', cursive">Comfortaa</option>
+</select>
 <button onclick="deleteSelection()" title="Удалить выделенное">❌</button>
 <button onclick="cleanFormat()" title="Сбросить стили выделенного (Метёлка)">🧹</button>
 </div>
@@ -364,6 +379,24 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   <button onmousedown="qbSize(event,0.85)">A-</button>
   <input type="color" id="qbWordColor" value="#ff0000" oninput="applyTextColor(this.value)" onchange="applyTextColor(this.value)" title="Цвет выделенного текста">
   <button onmousedown="qbLink(event)">🔗</button>
+  <button onmousedown="qbClean(event)" title="Сбросить стили">🧹</button>
+  <select id="qbFontSelect" onmousedown="event.stopPropagation()" onchange="qbFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного" style="flex:0 0 auto; width:auto; min-width:70px; height:42px; padding:0 6px; border-radius:10px; background:#2a2f3a; color:#e6ebf2; border:1px solid #3a4150; font-size:14px;">
+    <option value="">🔤</option>
+    <option value="'Times New Roman', Times, serif">Times</option>
+    <option value="'Roboto', sans-serif">Roboto</option>
+    <option value="'Montserrat', sans-serif">Montserrat</option>
+    <option value="'Playfair Display', serif">Playfair</option>
+    <option value="'Lora', serif">Lora</option>
+    <option value="'Bebas Neue', sans-serif">Bebas</option>
+    <option value="'Russo One', sans-serif">Russo</option>
+    <option value="'Pacifico', cursive">Pacifico</option>
+    <option value="'Caveat', cursive">Caveat</option>
+    <option value="'Amatic SC', cursive">Amatic</option>
+    <option value="'Yeseva One', serif">Yeseva</option>
+    <option value="'Comfortaa', cursive">Comfortaa</option>
+  </select>
+  <button onmousedown="qbImage(event)" title="Добавить картинку">🖼️</button>
+  <input type="file" id="qbImageInput" accept="image/*" multiple style="display:none;" onchange="insertMultipleImages(event)">
 </div>
 
 <script>
@@ -858,6 +891,34 @@ exitSelectionFromFormatting();
 updateRatio();
 saveHistory();
 editor.focus();
+}
+
+function applyWordFont(font) {
+  if (!font) return;
+  restoreSelection();
+  const sel = window.getSelection();
+  if (!sel.rangeCount || sel.toString().length === 0) { 
+    alert('Сначала выдели слово или текст для смены шрифта. 🔤'); 
+    return; 
+  }
+  const range = sel.getRangeAt(0);
+  const wrapper = document.createElement('span');
+  wrapper.style.fontFamily = font;
+  wrapper.setAttribute('data-custom-font', 'true');
+  try { 
+    range.surroundContents(wrapper); 
+  } catch (e) { 
+    wrapper.appendChild(range.extractContents()); 
+    range.insertNode(wrapper); 
+  }
+  wrapper.querySelectorAll('[data-custom-font]').forEach(function(child) {
+    child.style.fontFamily = '';
+    child.removeAttribute('data-custom-font');
+  });
+  exitSelectionFromFormatting();
+  updateRatio();
+  saveHistory();
+  editor.focus();
 }
 
 function deleteSelection() {
@@ -1480,7 +1541,11 @@ editor.addEventListener('focus', function() {
 
 editor.addEventListener('blur', function() {
   setTimeout(function() {
-    if (!editor.matches(':focus') && document.activeElement !== qbWordColor) {
+    const active = document.activeElement;
+    if (!editor.matches(':focus') 
+        && active !== qbWordColor 
+        && active !== document.getElementById('qbFontSelect')
+        && active !== document.getElementById('qbImageInput')) {
       quickBar.classList.remove('visible');
     }
   }, 300);
@@ -1515,6 +1580,22 @@ function qbSize(e, factor) {
 function qbLink(e) {
   if(e && e.preventDefault) e.preventDefault();
   insertLink();
+}
+
+function qbClean(e) {
+  if(e && e.preventDefault) e.preventDefault();
+  cleanFormat();
+}
+
+function qbFont(font) {
+  applyWordFont(font);
+}
+
+function qbImage(e) {
+  if(e && e.preventDefault) e.preventDefault();
+  savedSelection = (window.getSelection().rangeCount > 0 && editor.contains(window.getSelection().anchorNode)) 
+                   ? window.getSelection().getRangeAt(0) : savedSelection;
+  document.getElementById('qbImageInput').click();
 }
 
 function togglePanel() {
