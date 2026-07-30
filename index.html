@@ -601,7 +601,7 @@ function canPan(target) {
 if (target.closest('#zoomControls')) return false;
 if (target.closest('.img-box')) return false;
 if (handMode) return true;
-if (target.closest('#editor')) return false; // Отключаем панорамирование внутри редактора, чтобы iOS Safari идеально расширял выделение
+if (target.closest('#editor')) return false;
 return true;
 }
 
@@ -832,7 +832,6 @@ function restoreSelection() {
   }
 }
 
-/* ВПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ СБРОСА СТИЛЕЙ */
 function getStyledInlineParent(node) {
   let curr = (node.nodeType === Node.TEXT_NODE) ? node.parentNode : node;
   while (curr && curr !== editor) {
@@ -1344,18 +1343,32 @@ zoomWrapper.style.transform = savedTransform;
 }, 100);
 }
 
+/* ОБНОВЛЕННАЯ НОРМАЛИЗАЦИЯ И СБОРКА ТЕКСТА (АВТО-ОЧИСТКА ДЛЯ TELEGRAM И MAX) */
 function getEditorLines() {
   const src = document.createElement('div');
   src.innerHTML = editor.innerHTML;
   src.querySelectorAll('.img-box').forEach(el => el.remove());
 
+  // Удаляем стилистические спаны (размер, шрифт и т.д.), но оставляем форматирование
   src.querySelectorAll('span, font').forEach(function(el) {
     const parent = el.parentNode;
     while (el.firstChild) parent.insertBefore(el.firstChild, el);
     parent.removeChild(el);
   });
 
-  src.querySelectorAll('b,strong,i,em,u,s,strike,del,a,code,div,p').forEach(function(el) {
+  // Заменяем устаревшие теги strong/em на b/i для универсальности
+  src.querySelectorAll('strong').forEach(el => {
+    const b = document.createElement('b');
+    b.innerHTML = el.innerHTML;
+    el.parentNode.replaceChild(b, el);
+  });
+  src.querySelectorAll('em').forEach(el => {
+    const i = document.createElement('i');
+    i.innerHTML = el.innerHTML;
+    el.parentNode.replaceChild(i, el);
+  });
+
+  src.querySelectorAll('b,i,u,s,strike,del,a,code,div,p').forEach(function(el) {
     el.removeAttribute('style');
     el.removeAttribute('class');
     el.removeAttribute('data-custom-size');
@@ -1413,10 +1426,13 @@ async function writeToClipboard(html, plain, btnId) {
   const btn = btnId ? document.getElementById(btnId) : null;
   const original = btn ? btn.innerHTML : '';
 
+  // Оборачиваем HTML в стандартный контейнер, чтобы MAX идеально считывал его как Rich Text
+  const richHtml = '<div>' + html + '</div>';
+
   try {
     if (navigator.clipboard && window.ClipboardItem) {
       const item = new ClipboardItem({
-        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/html': new Blob([richHtml], { type: 'text/html' }),
         'text/plain': new Blob([plain], { type: 'text/plain' })
       });
       await navigator.clipboard.write([item]);
@@ -1429,7 +1445,7 @@ async function writeToClipboard(html, plain, btnId) {
     temp.contentEditable = 'true';
     temp.style.position = 'fixed';
     temp.style.left = '-9999px';
-    temp.innerHTML = html;
+    temp.innerHTML = richHtml;
     document.body.appendChild(temp);
 
     const range = document.createRange();
@@ -1460,7 +1476,6 @@ async function copyForTelegram() {
   await writeToClipboard(finalHtml, finalPlain, 'copyTgBtn');
 }
 
-/* ЕДИНЫЙ ОБРАБОТЧИК ДЛЯ МОБИЛЬНЫХ И ПК КЛАВИАТУР (BEFOREINPUT + KEYDOWN) */
 function handleSpaceFormattingReset() {
   const sel = window.getSelection();
   if (sel.rangeCount > 0 && sel.isCollapsed) {
@@ -1500,7 +1515,6 @@ function handleSpaceFormattingReset() {
   return false;
 }
 
-// Специально для мобильных экранных клавиатур (iOS Safari / Android Chrome)
 editor.addEventListener('beforeinput', function(e) {
   if (e.data === ' ' || e.inputType === 'insertText' && e.data === ' ') {
     if (handleSpaceFormattingReset()) {
@@ -1509,7 +1523,6 @@ editor.addEventListener('beforeinput', function(e) {
   }
 });
 
-// Для физических клавиатур на ПК
 editor.addEventListener('keydown', function(e) {
 const sel = window.getSelection();
 
