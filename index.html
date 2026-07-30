@@ -353,7 +353,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 </div>
 </div>
 
-<!-- QUICKBAR (Оновлён под требования мобильной версии) -->
+<!-- QUICKBAR -->
 <div id="quickBar">
   <button onmousedown="undoAction(event)">↩️</button>
   <button onmousedown="redoAction(event)">↪️</button>
@@ -362,8 +362,8 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
   <button onmousedown="qb(event,'underline')"><u>Ч</u></button>
   <button onmousedown="qbSize(event,1.2)">A+</button>
   <button onmousedown="qbSize(event,0.85)">A-</button>
+  <input type="color" id="qbWordColor" value="#ff0000" oninput="applyTextColor(this.value)" onchange="applyTextColor(this.value)" title="Цвет выделенного текста">
   <button onmousedown="qbLink(event)">🔗</button>
-  <input type="color" id="qbWordColor" value="#ff0000" oninput="applyTextColor(this.value)" title="Цвет выделенного текста">
 </div>
 
 <script>
@@ -754,7 +754,49 @@ sel.addRange(savedSelection);
 }
 }
 
-function applyTextColor(color) { restoreSelection(); document.execCommand('foreColor', false, color); saveHistory(); editor.focus(); }
+// Вспомогательные функции для предотвращения прилипания форматирования //
+function getStyledInlineParent(node) {
+  let curr = (node.nodeType === Node.TEXT_NODE) ? node.parentNode : node;
+  while (curr && curr !== editor) {
+    const tag = curr.tagName;
+    if (tag === 'SPAN' || tag === 'FONT' || tag === 'B' || tag === 'STRONG' || 
+        tag === 'I' || tag === 'EM' || tag === 'U' || tag === 'S' || tag === 'STRIKE' || tag === 'CODE') {
+      return curr;
+    }
+    curr = curr.parentNode;
+  }
+  return null;
+}
+
+function exitSelectionFromFormatting() {
+  const sel = window.getSelection();
+  if (!sel.rangeCount) return;
+  const range = sel.getRangeAt(0);
+  let endNode = range.endContainer;
+  let styledParent = getStyledInlineParent(endNode);
+  
+  if (styledParent) {
+    let next = styledParent.nextSibling;
+    if (!next || next.nodeType !== Node.TEXT_NODE) {
+      const zwsp = document.createTextNode('\u200B');
+      styledParent.parentNode.insertBefore(zwsp, styledParent.nextSibling);
+      next = zwsp;
+    }
+    const newRange = document.createRange();
+    newRange.setStartAfter(next);
+    newRange.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+  }
+}
+
+function applyTextColor(color) { 
+  restoreSelection(); 
+  document.execCommand('foreColor', false, color); 
+  exitSelectionFromFormatting();
+  saveHistory(); 
+  editor.focus(); 
+}
 
 function format(command, value) {
 if (currentImgBox) {
@@ -765,6 +807,7 @@ else if (command === 'justifyFull') { currentImgBox.classList.remove('align-righ
 }
 restoreSelection();
 document.execCommand(command, false, value || null);
+exitSelectionFromFormatting();
 saveHistory();
 editor.focus();
 }
@@ -786,6 +829,7 @@ const codeNode = document.createElement('code');
 codeNode.textContent = sel.toString();
 range.deleteContents();
 range.insertNode(codeNode);
+exitSelectionFromFormatting();
 saveHistory();
 editor.focus();
 } else { alert('Сначала выдели текст для моноширинного кода. ✍️'); }
@@ -810,6 +854,7 @@ el.setAttribute('data-custom-size', 'true');
 }
 scaleEl(wrapper);
 wrapper.querySelectorAll('*').forEach(function(child) { if (child.style && child.style.fontSize) scaleEl(child); });
+exitSelectionFromFormatting();
 updateRatio();
 saveHistory();
 editor.focus();
@@ -1311,6 +1356,45 @@ async function copyForMax() {
 editor.addEventListener('keydown', function(e) {
 const sel = window.getSelection();
 
+// Обработка Пробела для мгновенного сброса форматирования у нового слова
+if (e.key === ' ' || e.code === 'Space') {
+  if (sel.rangeCount > 0 && sel.isCollapsed) {
+    const range = sel.getRangeAt(0);
+    let node = range.startContainer;
+    let offset = range.startOffset;
+    let styledParent = getStyledInlineParent(node);
+    
+    if (styledParent) {
+      let isAtEnd = false;
+      if (node.nodeType === Node.TEXT_NODE && offset === node.textContent.length) {
+        let p = node;
+        while (p && p !== styledParent && !p.nextSibling) {
+          p = p.parentNode;
+        }
+        if (p === styledParent || !p.nextSibling) isAtEnd = true;
+      }
+      
+      if (isAtEnd) {
+        e.preventDefault();
+        const spaceNode = document.createTextNode(' ');
+        if (styledParent.nextSibling) {
+          styledParent.parentNode.insertBefore(spaceNode, styledParent.nextSibling);
+        } else {
+          styledParent.parentNode.appendChild(spaceNode);
+        }
+        const newRange = document.createRange();
+        newRange.setStartAfter(spaceNode);
+        newRange.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
+        updateRatio();
+        saveHistory();
+        return;
+      }
+    }
+  }
+}
+
 function imgNextTo(direction) {
 if (!sel.rangeCount) return null;
 const r = sel.getRangeAt(0);
@@ -1388,13 +1472,22 @@ e.preventDefault();
 });
 
 const quickBar = document.getElementById('quickBar');
+const qbWordColor = document.getElementById('qbWordColor');
+
 editor.addEventListener('focus', function() {
   if (isMobile()) quickBar.classList.add('visible');
 });
+
 editor.addEventListener('blur', function() {
   setTimeout(function() {
-    if (!editor.matches(':focus')) quickBar.classList.remove('visible');
-  }, 150);
+    if (!editor.matches(':focus') && document.activeElement !== qbWordColor) {
+      quickBar.classList.remove('visible');
+    }
+  }, 300);
+});
+
+qbWordColor.addEventListener('focus', function() {
+  if (isMobile()) quickBar.classList.add('visible');
 });
 
 if (window.visualViewport) {
@@ -1411,6 +1504,7 @@ function positionQuickBar() {
 function qb(e, command) {
   if(e && e.preventDefault) e.preventDefault();
   document.execCommand(command, false, null);
+  exitSelectionFromFormatting();
   saveHistory();
 }
 
