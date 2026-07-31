@@ -425,7 +425,8 @@ cursor: pointer; overflow: hidden;
 <option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">🌊 Летний: Pacifico</option>
 <option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">💻 Киберпанк: Kelly Slab</option>
 <option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">✍️ Маркер: Neucha</option>
-<option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">☕ Кофейня: Marck Script</option>
+<option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">🎬 Кино: Amatic SC</option>
+<option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">☕ Кофейня: Marck Script</option>
 <option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">📝 Записки: Bad Script</option>
 <option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">🌸 Салон: Yeseva One</option>
 <option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">🕊️ Изящный: Philosopher</option>
@@ -498,7 +499,7 @@ function restoreAfterHistoryChange() {
 rebindImages();
 ensureAnchorBeforeImages();
 updateImgCounter();
-document.getElementById('charCount').textContent = editor.innerText.trim().length;
+document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
 updateRatio();
 updateUndoRedoButtons();
 currentImgBox = null;
@@ -754,7 +755,7 @@ function updateBaseFontSize(size) { applyBase(size); updateRatio(); clearTimeout
 
 let typeTimer = null;
 editor.addEventListener('input', function() {
-document.getElementById('charCount').textContent = editor.innerText.trim().length;
+document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
 updateImgCounter();
 updateRatio();
 clearTimeout(typeTimer);
@@ -993,7 +994,7 @@ const sel = window.getSelection();
 if (!sel || !sel.rangeCount || sel.toString().length === 0) return;
 sel.getRangeAt(0).deleteContents();
 updateImgCounter();
-document.getElementById('charCount').textContent = editor.innerText.trim().length;
+document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
 updateRatio();
 saveHistory();
 editor.focus();
@@ -1202,7 +1203,7 @@ if (!currentImgBox) return;
 currentImgBox.remove();
 currentImgBox = null;
 updateImgCounter();
-document.getElementById('charCount').textContent = editor.innerText.trim().length;
+document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
 updateRatio();
 saveHistory();
 editor.focus();
