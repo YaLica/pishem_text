@@ -171,22 +171,6 @@ cursor: pointer; overflow: hidden;
 .stage.hand-mode #editor { cursor: grab; }
 .stage.hand-mode.panning #editor { cursor: grabbing; }
 #modeBtn.active { background: #10b981 !important; }
-
-/* Красивый скруглённый значок кнопки-ссылки */
-#editor a.link-chip {
-display: inline-flex;
-align-items: center;
-justify-content: center;
-padding: 2px 6px;
-background: rgba(61, 126, 255, 0.15);
-border: 1px solid rgba(61, 126, 255, 0.4);
-border-radius: 6px;
-text-decoration: none;
-font-size: 0.8em;
-vertical-align: middle;
-line-height: 1;
-margin: 0 2px;
-}
 </style>
 </head>
 <body>
@@ -1048,22 +1032,18 @@ url = url.replace(/\s+/g, '');
 return url;
 }
 
-/* ССЫЛКА: на ПК — оборачиваем слово. На телефоне — вставляем чистую кнопку-значок 🔗 */
+/* ССЫЛКА: и на ПК, и на телефоне — оборачиваем выделенное слово в ссылку */
 function insertLink() {
 restoreSelection();
 const sel = window.getSelection();
 
-// На ПК требуется выделенное слово
-if (!isMobile()) {
 if (!sel || sel.rangeCount === 0 || sel.toString().trim().length === 0) {
 alert('Сначала выдели слово или текст, который хочешь сделать ссылкой!');
 return;
 }
-}
 
-const rangeBackup = (sel && sel.rangeCount > 0) ? sel.getRangeAt(0).cloneRange() : null;
+const rangeBackup = sel.getRangeAt(0).cloneRange();
 
-// Окно ввода теперь открывается ПУСТЫМ (без https://), чтобы при вставке не было наслоений
 let input = prompt('Введи адрес ссылки или @username:', '');
 if (!input) return;
 
@@ -1072,36 +1052,11 @@ if (!url || url === 'https://') return;
 
 editor.focus();
 const currentSel = window.getSelection();
-if (rangeBackup) {
 currentSel.removeAllRanges();
 currentSel.addRange(rangeBackup);
-}
 
-if (isMobile()) {
-// ТЕЛЕФОН: вставляем стилизованный значок-ссылку 🔗
-const linkEl = document.createElement('a');
-linkEl.setAttribute('href', url);
-linkEl.className = 'link-chip';
-linkEl.textContent = '🔗';
-
-if (currentSel && currentSel.rangeCount > 0) {
-const range = currentSel.getRangeAt(0);
-range.collapse(false);
-range.insertNode(linkEl);
-const after = document.createTextNode('\u200B ');
-linkEl.parentNode.insertBefore(after, linkEl.nextSibling);
-range.setStartAfter(after);
-range.collapse(true);
-currentSel.removeAllRanges();
-currentSel.addRange(range);
-} else {
-editor.appendChild(linkEl);
-}
-} else {
-// ПК: оборачиваем слово в ссылку
 document.execCommand('createLink', false, url);
 exitSelectionFromFormatting();
-}
 
 saveHistory();
 editor.focus();
@@ -1590,7 +1545,7 @@ setTimeout(function() { btn.innerHTML = original; }, 2000);
 restoreSelection();
 }
 
-/* КОПИРОВАНИЕ: HTML для ПК не трогаем. В plain для телефона добавляем чистый адрес с пробелами */
+/* КОПИРОВАНИЕ: слово-ссылка. В plain (запасной) — слово + адрес с новой строки */
 async function copyForTelegram() {
 if (!editor.innerText.trim()) return;
 const lines = getEditorLines();
@@ -1603,12 +1558,7 @@ tempPlainDiv.innerHTML = finalHtml;
 tempPlainDiv.querySelectorAll('a[href]').forEach(function(a) {
 const href = sanitizeUrl(a.getAttribute('href'));
 const text = a.textContent.trim();
-// Если это значок-ссылка 🔗 (телефонный) — выводим значок + чистый валидный адрес
-if (text === '🔗' || a.classList.contains('link-chip')) {
-a.textContent = ' 🔗 ' + href + ' ';
-}
-// Если это слово-ссылка (с ПК) — выводим слово + чистый адрес с новой строки
-else if (href && text && text !== href) {
+if (href && text && text !== href) {
 a.textContent = text + '\n' + href;
 } else if (href) {
 a.textContent = href;
