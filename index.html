@@ -809,7 +809,7 @@ updateRatio();
 
 function saveSelectionBeforeAction() {
 const sel = window.getSelection();
-if (sel.rangeCount > 0 && editor.contains(sel.anchorNode)) {
+if (sel && sel.rangeCount > 0 && editor.contains(sel.anchorNode)) {
 const range = sel.getRangeAt(0);
 if (!range.collapsed || document.activeElement === editor) {
 savedSelection = range.cloneRange();
@@ -846,7 +846,7 @@ return null;
 
 function exitSelectionFromFormatting() {
 const sel = window.getSelection();
-if (!sel.rangeCount) return;
+if (!sel || !sel.rangeCount) return;
 const range = sel.getRangeAt(0);
 let endNode = range.endContainer;
 let styledParent = getStyledInlineParent(endNode);
@@ -891,7 +891,7 @@ editor.focus();
 function cleanFormat() {
 restoreSelection();
 const sel = window.getSelection();
-if (!sel.rangeCount || sel.toString().length === 0) return;
+if (!sel || !sel.rangeCount || sel.toString().length === 0) return;
 document.execCommand('removeFormat', false, null);
 saveHistory();
 editor.focus();
@@ -899,7 +899,7 @@ editor.focus();
 
 function formatCode() {
 const sel = window.getSelection();
-if (sel.rangeCount > 0 && sel.toString().length > 0) {
+if (sel && sel.rangeCount > 0 && sel.toString().length > 0) {
 const range = sel.getRangeAt(0);
 const codeNode = document.createElement('code');
 codeNode.textContent = sel.toString();
@@ -914,7 +914,7 @@ editor.focus();
 function changeWordSize(factor) {
 restoreSelection();
 const sel = window.getSelection();
-if (!sel.rangeCount || sel.toString().length === 0) return;
+if (!sel || !sel.rangeCount || sel.toString().length === 0) return;
 const range = sel.getRangeAt(0);
 const wrapper = document.createElement('span');
 try { range.surroundContents(wrapper); } catch (e) { wrapper.appendChild(range.extractContents()); range.insertNode(wrapper); }
@@ -938,7 +938,7 @@ editor.focus();
 
 function selectWordAtCaret() {
 const sel = window.getSelection();
-if (!sel.rangeCount) return;
+if (!sel || !sel.rangeCount) return;
 const range = sel.getRangeAt(0);
 if (!range.collapsed) return;
 
@@ -990,7 +990,7 @@ editor.focus();
 function deleteSelection() {
 restoreSelection();
 const sel = window.getSelection();
-if (!sel.rangeCount || sel.toString().length === 0) return;
+if (!sel || !sel.rangeCount || sel.toString().length === 0) return;
 sel.getRangeAt(0).deleteContents();
 updateImgCounter();
 document.getElementById('charCount').textContent = editor.innerText.trim().length;
@@ -999,12 +999,53 @@ saveHistory();
 editor.focus();
 }
 
+/* ИСПРАВЛЕННАЯ ФУНКЦИЯ ССЫЛКИ — СОХРАНЯЕТ И ВОССТАНАВЛИВАЕТ ВЫДЕЛЕНИЕ ПОСЛЕ PROMPT */
 function insertLink() {
 restoreSelection();
 const sel = window.getSelection();
-if (sel.toString().length === 0) return;
-const url = prompt('Введи адрес ссылки:', 'https://');
-if (url && url !== 'https://') { document.execCommand('createLink', false, url); saveHistory(); }
+if (!sel || sel.rangeCount === 0 || sel.toString().trim().length === 0) {
+alert('Сначала выдели слово или текст, который хочешь сделать ссылкой!');
+return;
+}
+
+// Запоминаем выделенный фрагмент текста
+const rangeBackup = sel.getRangeAt(0).cloneRange();
+
+let url = prompt('Введи адрес ссылки (или @username для Telegram):', 'https://');
+if (url && url !== 'https://') {
+url = url.trim();
+
+// 1. Если ввели @username — делаем ссылку на Telegram
+if (/^@[a-zA-Z0-9_]{3,}$/.test(url)) {
+url = 'https://t.me/' + url.slice(1);
+}
+// 2. Email → mailto:
+else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(url)) {
+url = 'mailto:' + url;
+}
+// 3. Телефон (+7... или 8...) → tel:
+else if (/^[\+]?[0-9\s\-\(\)]{7,}$/.test(url)) {
+url = 'tel:' + url.replace(/[\s\-\(\)]/g, '');
+}
+// 4. Указан протокол — не трогаем
+else if (/^(https?:\/\/|mailto:|tel:)/i.test(url)) {
+// оставляем как есть
+}
+// 5. Обычный сайт/ссылка — добавляем https://
+else {
+url = 'https://' + url.replace(/^\/+/, '');
+}
+
+// Принудительно возвращаем фокус и выделение после вызова prompt()
+editor.focus();
+const currentSel = window.getSelection();
+currentSel.removeAllRanges();
+currentSel.addRange(rangeBackup);
+
+document.execCommand('createLink', false, url);
+exitSelectionFromFormatting();
+saveHistory();
+}
 editor.focus();
 }
 
@@ -1029,7 +1070,7 @@ return;
 restoreSelection();
 const sel = window.getSelection();
 let range = null;
-if (sel.rangeCount > 0 && editor.contains(sel.anchorNode)) {
+if (sel && sel.rangeCount > 0 && editor.contains(sel.anchorNode)) {
 range = sel.getRangeAt(0);
 }
 
@@ -1066,7 +1107,7 @@ added++;
 
 }
 
-if (range) {
+if (range && sel) {
 sel.removeAllRanges();
 sel.addRange(range);
 }
@@ -1489,15 +1530,26 @@ setTimeout(function() { btn.innerHTML = original; }, 2000);
 restoreSelection();
 }
 
+/* КОПИРОВАНИЕ: ССОБИРАЕТ И HTML И АДАПТИВНЫЙ PLAIN ДЛЯ МОБИЛЬНЫХ ССЫЛОК */
 async function copyForTelegram() {
 if (!editor.innerText.trim()) return;
 const lines = getEditorLines();
 
 const finalHtml = lines.join('<br>');
 
-// Создаём чистый plain-текст без сырых тегов (<b>, <br>) для корректной вставки в MAX на iOS
 const tempPlainDiv = document.createElement('div');
 tempPlainDiv.innerHTML = finalHtml;
+
+tempPlainDiv.querySelectorAll('a[href]').forEach(function(a) {
+const href = a.getAttribute('href');
+const text = a.textContent.trim();
+if (href && text && text !== href) {
+a.textContent = text + ' (' + href + ')';
+} else if (href && !text) {
+a.textContent = href;
+}
+});
+
 const finalPlain = tempPlainDiv.innerText || tempPlainDiv.textContent;
 
 await writeToClipboard(finalHtml, finalPlain, 'copyTgBtn');
@@ -1505,7 +1557,7 @@ await writeToClipboard(finalHtml, finalPlain, 'copyTgBtn');
 
 function handleSpaceFormattingReset() {
 const sel = window.getSelection();
-if (sel.rangeCount > 0 && sel.isCollapsed) {
+if (sel && sel.rangeCount > 0 && sel.isCollapsed) {
 const range = sel.getRangeAt(0);
 let node = range.startContainer;
 let offset = range.startOffset;
@@ -1562,7 +1614,7 @@ return;
 }
 
 function imgNextTo(direction) {
-if (!sel.rangeCount) return null;
+if (!sel || !sel.rangeCount) return null;
 const r = sel.getRangeAt(0);
 if (!r.collapsed) return null;
 let node = r.startContainer;
