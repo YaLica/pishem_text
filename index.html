@@ -171,6 +171,22 @@ cursor: pointer; overflow: hidden;
 .stage.hand-mode #editor { cursor: grab; }
 .stage.hand-mode.panning #editor { cursor: grabbing; }
 #modeBtn.active { background: #10b981 !important; }
+
+/* Стилизация мобильного значка ссылки */
+#editor a.link-chip {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+padding: 2px 6px;
+background: rgba(61, 126, 255, 0.15);
+border: 1px solid rgba(61, 126, 255, 0.4);
+border-radius: 6px;
+text-decoration: none;
+font-size: 0.8em;
+vertical-align: middle;
+line-height: 1;
+margin: 0 2px;
+}
 </style>
 </head>
 <body>
@@ -999,12 +1015,12 @@ saveHistory();
 editor.focus();
 }
 
-/* ССЫЛКА: на ПК — оборачиваем слово (как было). На телефоне — вставляем значок 🔗 */
+/* ССЫЛКА: на ПК — оборачиваем слово. На телефоне — вставляем значок-кнопку 🔗 */
 function insertLink() {
 restoreSelection();
 const sel = window.getSelection();
 
-// На ПК требуется выделенное слово (как раньше)
+// На ПК требуется выделенное слово
 if (!isMobile()) {
 if (!sel || sel.rangeCount === 0 || sel.toString().trim().length === 0) {
 alert('Сначала выдели слово или текст, который хочешь сделать ссылкой!');
@@ -1042,16 +1058,17 @@ currentSel.addRange(rangeBackup);
 }
 
 if (isMobile()) {
-// ТЕЛЕФОН: вставляем значок-ссылку 🔗
+// ТЕЛЕФОН: вставляем стилизованный значок-ссылку 🔗
 const linkEl = document.createElement('a');
 linkEl.setAttribute('href', url);
+linkEl.className = 'link-chip';
 linkEl.textContent = '🔗';
 
 if (currentSel && currentSel.rangeCount > 0) {
 const range = currentSel.getRangeAt(0);
 range.collapse(false);
 range.insertNode(linkEl);
-const after = document.createTextNode('\u200B');
+const after = document.createTextNode('\u200B ');
 linkEl.parentNode.insertBefore(after, linkEl.nextSibling);
 range.setStartAfter(after);
 range.collapse(true);
@@ -1061,7 +1078,7 @@ currentSel.addRange(range);
 editor.appendChild(linkEl);
 }
 } else {
-// ПК: оборачиваем слово в ссылку (как было)
+// ПК: оборачиваем слово в ссылку
 document.execCommand('createLink', false, url);
 exitSelectionFromFormatting();
 }
@@ -1552,7 +1569,7 @@ setTimeout(function() { btn.innerHTML = original; }, 2000);
 restoreSelection();
 }
 
-/* КОПИРОВАНИЕ: HTML для ПК не трогаем. В plain для телефона добавляем чистый адрес */
+/* КОПИРОВАНИЕ: HTML для ПК не трогаем. В plain для телефона добавляем чистый адрес с пробелами */
 async function copyForTelegram() {
 if (!editor.innerText.trim()) return;
 const lines = getEditorLines();
@@ -1565,9 +1582,9 @@ tempPlainDiv.innerHTML = finalHtml;
 tempPlainDiv.querySelectorAll('a[href]').forEach(function(a) {
 const href = a.getAttribute('href');
 const text = a.textContent.trim();
-// Если это значок-ссылка 🔗 (телефонный) — выводим значок + чистый адрес
-if (text === '🔗') {
-a.textContent = '🔗 ' + href;
+// Если это значок-ссылка 🔗 (телефонный) — выводим значок + чистый адрес с четкими пробелами
+if (text === '🔗' || a.classList.contains('link-chip')) {
+a.textContent = ' 🔗 ' + href + ' ';
 }
 // Если это слово-ссылка (с ПК) — выводим слово + чистый адрес с новой строки
 else if (href && text && text !== href) {
