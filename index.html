@@ -172,7 +172,7 @@ cursor: pointer; overflow: hidden;
 .stage.hand-mode.panning #editor { cursor: grabbing; }
 #modeBtn.active { background: #10b981 !important; }
 
-/* Стилизация мобильного значка ссылки */
+/* Красивый скруглённый значок кнопки-ссылки */
 #editor a.link-chip {
 display: inline-flex;
 align-items: center;
@@ -1015,7 +1015,40 @@ saveHistory();
 editor.focus();
 }
 
-/* ССЫЛКА: на ПК — оборачиваем слово. На телефоне — вставляем значок-кнопку 🔗 */
+/* ФУНКЦИЯ ПОЛНОЙ ОЧИСТКИ И ВАЛИДАЦИИ ССЫЛОК */
+function sanitizeUrl(rawUrl) {
+if (!rawUrl) return '';
+let url = rawUrl.trim();
+
+// 1. Удаляем случайно продублированные протоколы (https://https:// или http://https://)
+url = url.replace(/^(https?:\/\/)+/gi, '');
+url = url.replace(/^(http:\/\/)+/gi, '');
+
+// 2. Ввод @username для Telegram
+if (/^@([a-zA-Z0-9_]{3,})$/.test(url)) {
+return 'https://t.me/' + url.slice(1);
+}
+
+// 3. Обработка e-mail и телефонов
+if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(url)) {
+return 'mailto:' + url;
+}
+if (/^[\+]?[0-9\s\-\(\)]{7,}$/.test(url) && !url.includes('.')) {
+return 'tel:' + url.replace(/[\s\-\(\)]/g, '');
+}
+
+// 4. Добавляем https:// к обычным доменам
+if (!/^(https?:\/\/|mailto:|tel:)/i.test(url)) {
+url = 'https://' + url.replace(/^\/+/, '');
+}
+
+// 5. Вычищаем пробелы внутри адреса
+url = url.replace(/\s+/g, '');
+
+return url;
+}
+
+/* ССЫЛКА: на ПК — оборачиваем слово. На телефоне — вставляем чистую кнопку-значок 🔗 */
 function insertLink() {
 restoreSelection();
 const sel = window.getSelection();
@@ -1030,25 +1063,12 @@ return;
 
 const rangeBackup = (sel && sel.rangeCount > 0) ? sel.getRangeAt(0).cloneRange() : null;
 
-let url = prompt('Введи адрес ссылки (или @username для Telegram):', 'https://');
-if (url && url !== 'https://') {
-url = url.trim();
+// Окно ввода теперь открывается ПУСТЫМ (без https://), чтобы при вставке не было наслоений
+let input = prompt('Введи адрес ссылки или @username:', '');
+if (!input) return;
 
-if (/^@[a-zA-Z0-9_]{3,}$/.test(url)) {
-url = 'https://t.me/' + url.slice(1);
-}
-else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(url)) {
-url = 'mailto:' + url;
-}
-else if (/^[\+]?[0-9\s\-\(\)]{7,}$/.test(url)) {
-url = 'tel:' + url.replace(/[\s\-\(\)]/g, '');
-}
-else if (/^(https?:\/\/|mailto:|tel:)/i.test(url)) {
-// оставляем как есть
-}
-else {
-url = 'https://' + url.replace(/^\/+/, '');
-}
+let url = sanitizeUrl(input);
+if (!url || url === 'https://') return;
 
 editor.focus();
 const currentSel = window.getSelection();
@@ -1084,7 +1104,6 @@ exitSelectionFromFormatting();
 }
 
 saveHistory();
-}
 editor.focus();
 }
 
@@ -1498,7 +1517,9 @@ if (html.length && !html.endsWith('\n')) html += '\n';
 walk(child);
 if (!html.endsWith('\n')) html += '\n';
 } else {
-html += '<' + tag.toLowerCase() + (tag === 'A' && child.getAttribute('href') ? ' href="' + child.getAttribute('href') + '"' : '') + '>';
+const rawHref = child.getAttribute('href');
+const cleanHref = rawHref ? sanitizeUrl(rawHref) : '';
+html += '<' + tag.toLowerCase() + (tag === 'A' && cleanHref ? ' href="' + cleanHref + '"' : '') + '>';
 walk(child);
 html += '</' + tag.toLowerCase() + '>';
 }
@@ -1580,9 +1601,9 @@ const tempPlainDiv = document.createElement('div');
 tempPlainDiv.innerHTML = finalHtml;
 
 tempPlainDiv.querySelectorAll('a[href]').forEach(function(a) {
-const href = a.getAttribute('href');
+const href = sanitizeUrl(a.getAttribute('href'));
 const text = a.textContent.trim();
-// Если это значок-ссылка 🔗 (телефонный) — выводим значок + чистый адрес с четкими пробелами
+// Если это значок-ссылка 🔗 (телефонный) — выводим значок + чистый валидный адрес
 if (text === '🔗' || a.classList.contains('link-chip')) {
 a.textContent = ' 🔗 ' + href + ' ';
 }
