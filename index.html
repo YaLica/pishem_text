@@ -999,51 +999,73 @@ saveHistory();
 editor.focus();
 }
 
-/* ИСПРАВЛЕННАЯ ФУНКЦИЯ ССЫЛКИ — СОХРАНЯЕТ И ВОССТАНАВЛИВАЕТ ВЫДЕЛЕНИЕ ПОСЛЕ PROMPT */
+/* ССЫЛКА: на ПК — оборачиваем слово (как было). На телефоне — вставляем значок 🔗 */
 function insertLink() {
 restoreSelection();
 const sel = window.getSelection();
+
+// На ПК требуется выделенное слово (как раньше)
+if (!isMobile()) {
 if (!sel || sel.rangeCount === 0 || sel.toString().trim().length === 0) {
 alert('Сначала выдели слово или текст, который хочешь сделать ссылкой!');
 return;
 }
+}
 
-// Запоминаем выделенный фрагмент текста
-const rangeBackup = sel.getRangeAt(0).cloneRange();
+const rangeBackup = (sel && sel.rangeCount > 0) ? sel.getRangeAt(0).cloneRange() : null;
 
 let url = prompt('Введи адрес ссылки (или @username для Telegram):', 'https://');
 if (url && url !== 'https://') {
 url = url.trim();
 
-// 1. Если ввели @username — делаем ссылку на Telegram
 if (/^@[a-zA-Z0-9_]{3,}$/.test(url)) {
 url = 'https://t.me/' + url.slice(1);
 }
-// 2. Email → mailto:
 else if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(url)) {
 url = 'mailto:' + url;
 }
-// 3. Телефон (+7... или 8...) → tel:
 else if (/^[\+]?[0-9\s\-\(\)]{7,}$/.test(url)) {
 url = 'tel:' + url.replace(/[\s\-\(\)]/g, '');
 }
-// 4. Указан протокол — не трогаем
 else if (/^(https?:\/\/|mailto:|tel:)/i.test(url)) {
 // оставляем как есть
 }
-// 5. Обычный сайт/ссылка — добавляем https://
 else {
 url = 'https://' + url.replace(/^\/+/, '');
 }
 
-// Принудительно возвращаем фокус и выделение после вызова prompt()
 editor.focus();
 const currentSel = window.getSelection();
+if (rangeBackup) {
 currentSel.removeAllRanges();
 currentSel.addRange(rangeBackup);
+}
 
+if (isMobile()) {
+// ТЕЛЕФОН: вставляем значок-ссылку 🔗
+const linkEl = document.createElement('a');
+linkEl.setAttribute('href', url);
+linkEl.textContent = '🔗';
+
+if (currentSel && currentSel.rangeCount > 0) {
+const range = currentSel.getRangeAt(0);
+range.collapse(false);
+range.insertNode(linkEl);
+const after = document.createTextNode('\u200B');
+linkEl.parentNode.insertBefore(after, linkEl.nextSibling);
+range.setStartAfter(after);
+range.collapse(true);
+currentSel.removeAllRanges();
+currentSel.addRange(range);
+} else {
+editor.appendChild(linkEl);
+}
+} else {
+// ПК: оборачиваем слово в ссылку (как было)
 document.execCommand('createLink', false, url);
 exitSelectionFromFormatting();
+}
+
 saveHistory();
 }
 editor.focus();
@@ -1530,7 +1552,7 @@ setTimeout(function() { btn.innerHTML = original; }, 2000);
 restoreSelection();
 }
 
-/* КОПИРОВАНИЕ: ССОБИРАЕТ И HTML И АДАПТИВНЫЙ PLAIN ДЛЯ МОБИЛЬНЫХ ССЫЛОК */
+/* КОПИРОВАНИЕ: HTML для ПК не трогаем. В plain для телефона добавляем чистый адрес */
 async function copyForTelegram() {
 if (!editor.innerText.trim()) return;
 const lines = getEditorLines();
@@ -1543,9 +1565,14 @@ tempPlainDiv.innerHTML = finalHtml;
 tempPlainDiv.querySelectorAll('a[href]').forEach(function(a) {
 const href = a.getAttribute('href');
 const text = a.textContent.trim();
-if (href && text && text !== href) {
-a.textContent = text + ' (' + href + ')';
-} else if (href && !text) {
+// Если это значок-ссылка 🔗 (телефонный) — выводим значок + чистый адрес
+if (text === '🔗') {
+a.textContent = '🔗 ' + href;
+}
+// Если это слово-ссылка (с ПК) — выводим слово + чистый адрес с новой строки
+else if (href && text && text !== href) {
+a.textContent = text + '\n' + href;
+} else if (href) {
 a.textContent = href;
 }
 });
