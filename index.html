@@ -1582,7 +1582,7 @@ const lines = getEditorLines();
 
 let finalHtml = lines.join('<br>');
 finalHtml = finalHtml
-.replace(/(<br>)?\[\[BQ_START\]\]/g, '<blockquote>')
+.replace(/(<br>)?\[\[BQ_START\]\]/g, '<blockquote expandable>')
 .replace(/\[\[BQ_END\]\](<br>)?/g, '</blockquote>');
 
 const tempPlainDiv = document.createElement('div');
