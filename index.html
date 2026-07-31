@@ -1575,15 +1575,15 @@ setTimeout(function() { btn.innerHTML = original; }, 2000);
 restoreSelection();
 }
 
-/* КОПИРОВАНИЕ: слово-ссылка. В plain (запасной) — слово + адрес с новой строки */
+/* КОПИРОВАНИЕ ДЛЯ TELEGRAM С ПОДДЕРЖКОЙ СВОРАЧИВАЕМЫХ ЦИТАТ (EXPANDABLE) */
 async function copyForTelegram() {
 if (!editor.innerText.trim()) return;
 const lines = getEditorLines();
 
 let finalHtml = lines.join('<br>');
 finalHtml = finalHtml
-.replace(/(<br>)?\[\[BQ_START\]\]/g, '<blockquote expandable>')
-.replace(/\[\[BQ_END\]\](<br>)?/g, '</blockquote>');
+.replace(/(<br>)?\[\[BQ_START\]\](<br>)?/g, '<blockquote expandable="expandable">')
+.replace(/(<br>)?\[\[BQ_END\]\](<br>)?/g, '</blockquote>');
 
 const tempPlainDiv = document.createElement('div');
 tempPlainDiv.innerHTML = finalHtml;
