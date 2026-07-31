@@ -79,6 +79,15 @@ font-weight: 400;
 #editor[placeholder]:empty:before { content: attr(placeholder); opacity: 0.5; }
 #editor code { background: rgba(128,128,128,0.2); padding: 4px 8px; border-radius: 6px; font-family: monospace; }
 #editor a { color: #3d7eff; text-decoration: underline; cursor: pointer; }
+#editor blockquote {
+margin: 12px 0;
+padding: 10px 20px;
+border-left: 4px solid #3d7eff;
+background: rgba(61, 126, 255, 0.08);
+border-radius: 0 8px 8px 0;
+font-style: italic;
+opacity: 0.95;
+}
 .img-box { position: relative; float: left; margin: 8px 20px 8px 0; width: 50%; max-width: 95%; cursor: grab; user-select: none; -webkit-user-select: none; border-radius: 12px; }
 .img-box.align-right { float: right; margin: 8px 0 8px 20px; }
 .img-box.align-center { float: none; display: block; margin: 8px auto; }
@@ -257,6 +266,7 @@ cursor: pointer; overflow: hidden;
 <button onclick="format('underline')" title="Подчеркнутый"><u>Ч</u></button>
 <button onclick="format('strikeThrough')" title="Зачеркнутый"><s>S</s></button>
 <button onclick="formatCode()" title="Код"><code>&lt;/&gt;</code></button>
+<button onclick="insertQuote()" title="Цитата" style="min-width:auto; padding:0 8px; font-size:12px;">Цитата</button>
 <div class="toolbar-divider"></div>
 <button onclick="format('justifyLeft')" title="По левому краю">|≡</button>
 <button onclick="format('justifyCenter')" title="По центру">≡</button>
@@ -397,6 +407,7 @@ cursor: pointer; overflow: hidden;
 <input type="color" id="qbWordColor" value="#ff0000" oninput="applyTextColor(this.value)" onchange="applyTextColor(this.value)" title="Цвет выделенного текста">
 <button onmousedown="qbLink(event)">🔗</button>
 <button onmousedown="qbClean(event)" title="Сбросить стили">🧹</button>
+<button onmousedown="qbQuote(event)" title="Цитата" style="min-width:auto; padding:0 10px; font-size:13px;">Цитата</button>
 <select id="qbFontSelect" ontouchstart="saveSelectionBeforeAction(); event.stopPropagation();" onmousedown="saveSelectionBeforeAction(); event.stopPropagation();" onchange="qbFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного слова" style="flex:0 0 auto; width:auto; min-width:90px; height:42px; padding:0 6px; border-radius:10px; background:#2a2f3a; color:#e6ebf2; border:1px solid #3a4150; font-size:13px;">
 <option value="">🔤 Шрифт</option>
 <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">📱 Системный (Стандарт)</option>
@@ -910,6 +921,18 @@ exitSelectionFromFormatting();
 saveHistory();
 editor.focus();
 }
+}
+
+function insertQuote() {
+restoreSelection();
+document.execCommand('formatBlock', false, 'blockquote');
+saveHistory();
+editor.focus();
+}
+
+function qbQuote(e) {
+if (e && e.preventDefault) e.preventDefault();
+insertQuote();
 }
 
 function changeWordSize(factor) {
@@ -1445,7 +1468,7 @@ i.innerHTML = el.innerHTML;
 el.parentNode.replaceChild(i, el);
 });
 
-src.querySelectorAll('b,i,u,s,strike,del,a,code,div,p').forEach(function(el) {
+src.querySelectorAll('b,i,u,s,strike,del,a,code,div,p,blockquote').forEach(function(el) {
 el.removeAttribute('style');
 el.removeAttribute('class');
 el.removeAttribute('data-custom-size');
@@ -1468,6 +1491,12 @@ html += child.textContent;
 const tag = child.tagName;
 if (tag === 'BR') {
 html += '\n';
+} else if (tag === 'BLOCKQUOTE') {
+if (html.length && !html.endsWith('\n')) html += '\n';
+html += '[[BQ_START]]';
+walk(child);
+html += '[[BQ_END]]';
+if (!html.endsWith('\n')) html += '\n';
 } else if (tag === 'DIV' || tag === 'P') {
 if (html.length && !html.endsWith('\n')) html += '\n';
 walk(child);
@@ -1551,7 +1580,10 @@ async function copyForTelegram() {
 if (!editor.innerText.trim()) return;
 const lines = getEditorLines();
 
-const finalHtml = lines.join('<br>');
+let finalHtml = lines.join('<br>');
+finalHtml = finalHtml
+.replace(/(<br>)?\[\[BQ_START\]\]/g, '<blockquote>')
+.replace(/\[\[BQ_END\]\](<br>)?/g, '</blockquote>');
 
 const tempPlainDiv = document.createElement('div');
 tempPlainDiv.innerHTML = finalHtml;
@@ -1621,6 +1653,30 @@ e.preventDefault();
 
 editor.addEventListener('keydown', function(e) {
 const sel = window.getSelection();
+
+if (e.key === 'Enter' && !e.shiftKey && sel && sel.rangeCount) {
+let node = sel.anchorNode;
+let bq = null;
+let cur = (node.nodeType === 3) ? node.parentNode : node;
+while (cur && cur !== editor) {
+if (cur.tagName === 'BLOCKQUOTE') { bq = cur; break; }
+cur = cur.parentNode;
+}
+if (bq) {
+e.preventDefault();
+const p = document.createElement('div');
+p.innerHTML = '<br>';
+if (bq.nextSibling) bq.parentNode.insertBefore(p, bq.nextSibling);
+else bq.parentNode.appendChild(p);
+const r = document.createRange();
+r.setStart(p, 0);
+r.collapse(true);
+sel.removeAllRanges();
+sel.addRange(r);
+saveHistory();
+return;
+}
+}
 
 if (e.key === ' ' || e.code === 'Space') {
 if (handleSpaceFormattingReset()) {
