@@ -81,7 +81,9 @@ font-weight: 400;
 #editor a { color: #3d7eff; text-decoration: underline; cursor: pointer; }
 .img-box { position: relative; float: left; margin: 8px 20px 8px 0; width: 50%; max-width: 95%; cursor: grab; user-select: none; -webkit-user-select: none; border-radius: 12px; }
 .img-box.align-right { float: right; margin: 8px 0 8px 20px; }
-.img-box.align-center { float: none; display: block; margin: 8px auto; }
+.img-box.align-center { float: none; display: block; margin: 10px auto; clear: both; }
+.img-spacer-left { float: left; height: 10px; width: var(--side-space, 0px); }
+.img-spacer-right { float: right; height: 10px; width: var(--side-space, 0px); }
 .img-box:active { cursor: grabbing; }
 .img-box img { display: block; width: 100%; border-radius: 12px; pointer-events: none; }
 .img-box.selected { outline: 3px solid #3d7eff; outline-offset: 3px; }
@@ -94,7 +96,7 @@ font-weight: 400;
 .img-box img { transition: border-radius .2s, box-shadow .2s; }
 .img-box { --img-radius: 12px; --img-border: 0px; --img-border-color: #000000; }
 .img-box img { border-radius: var(--img-radius); box-shadow: 0 0 0 var(--img-border) var(--img-border-color); }
-.img-box .img-rotor { display: block; transition: transform .3s ease; transform: rotate(var(--img-rot, 0deg)); transform-origin: center; }
+.img-box .img-rotor { display: block; transition: transform .12s linear; transform: rotate(var(--img-rot, 0deg)); transform-origin: center; }
 
 #imgMiniBar {
   position: fixed; z-index: 5000; display: none;
@@ -431,7 +433,7 @@ cursor: pointer; overflow: hidden;
 
 <!-- МИНИ-ПАНЕЛЬ КАРТИНКИ (Этап 1) -->
 <div id="imgMiniBar">
-  <button onmousedown="event.preventDefault()" onclick="miniDuplicate()" title="Дублировать">📋</button>
+  <button onmousedown="event.preventDefault()" onclick="miniDuplicate()" title="Дублировать">🗐</button>
   <div class="mb-div"></div>
   <button onmousedown="event.preventDefault()" onclick="miniAlign('left')" title="Слева">◀</button>
   <button onmousedown="event.preventDefault()" onclick="miniAlign('center')" title="По центру">▲</button>
@@ -1253,6 +1255,7 @@ let percent = (newW / parentW) * 100;
 if (percent < 15) percent = 15;
 if (percent > 100) percent = 100;
 box.style.width = percent + '%';
+applyImgStyles(box);
 updateRatio();
 }
 function stopDrag() {
@@ -1285,6 +1288,7 @@ positionMiniBar(); syncImgSettings();
 
 function deleteSelectedImage() {
 if (!currentImgBox) return;
+removeCenterSpacers(currentImgBox);
 currentImgBox.remove();
 currentImgBox = null;
 updateImgCounter();
@@ -1321,6 +1325,7 @@ range = document.createRange();
 range.setStart(pos.offsetNode, pos.offset);
 }
 if (range && editor.contains(range.startContainer)) {
+removeCenterSpacers(dragBox);
 dragBox.remove();
 const editorRect = editor.getBoundingClientRect();
 const dropX = e.clientX - editorRect.left;
@@ -1331,6 +1336,7 @@ snapImageToLineStart(dragBox);
 const zwsp = document.createTextNode('\u200B');
 dragBox.parentNode.insertBefore(zwsp, dragBox.nextSibling);
 ensureAnchorBeforeImages();
+applyImgStyles(dragBox);
 }
 dragBox = null;
 updateRatio();
@@ -1386,6 +1392,7 @@ range.setStart(pos.offsetNode, pos.offset);
 }
 }
 if (range && editor.contains(range.startContainer)) {
+removeCenterSpacers(dragBox);
 dragBox.remove();
 const editorRect = editor.getBoundingClientRect();
 const dropX = touch.clientX - editorRect.left;
@@ -1396,6 +1403,7 @@ snapImageToLineStart(dragBox);
 const zwsp = document.createTextNode('\u200B');
 dragBox.parentNode.insertBefore(zwsp, dragBox.nextSibling);
 ensureAnchorBeforeImages();
+applyImgStyles(dragBox);
 }
 imgGhost.remove();
 imgGhost = null;
@@ -1430,7 +1438,7 @@ emojiWrap.appendChild(bar);
 
 function generatePlainText() {
 const clone = editor.cloneNode(true);
-clone.querySelectorAll('.img-box').forEach(el => el.remove());
+clone.querySelectorAll('.img-box, .img-spacer-left, .img-spacer-right').forEach(el => el.remove());
 return clone.innerText.replace(/\u200B/g, '').trim();
 }
 
@@ -1520,7 +1528,7 @@ zoomWrapper.style.transform = savedTransform;
 function getEditorLines() {
 const src = document.createElement('div');
 src.innerHTML = editor.innerHTML;
-src.querySelectorAll('.img-box').forEach(el => el.remove());
+src.querySelectorAll('.img-box, .img-spacer-left, .img-spacer-right').forEach(el => el.remove());
 
 // Удаляем стилистические спаны (размер, шрифт и т.д.), но оставляем форматирование
 src.querySelectorAll('span, font').forEach(function(el) {
@@ -1949,9 +1957,46 @@ function applyImgStyles(box) {
   box.style.setProperty('--img-rot', rot + 'deg');
   const isRight = box.classList.contains('align-right');
   const isCenter = box.classList.contains('align-center');
-  if (isCenter) box.style.margin = '10px auto';
-  else if (isRight) box.style.margin = '8px 0 8px ' + gap + 'px';
-  else box.style.margin = '8px ' + gap + 'px 8px 0';
+
+  if (isCenter) {
+    box.style.margin = '10px auto';
+    updateCenterSpacers(box, gap);
+  } else {
+    removeCenterSpacers(box);
+    if (isRight) box.style.margin = '8px 0 8px ' + gap + 'px';
+    else box.style.margin = '8px ' + gap + 'px 8px 0';
+    box.style.removeProperty('--side-space');
+  }
+}
+
+function updateCenterSpacers(box, gap) {
+  const editorW = editor.clientWidth - (isMobile() ? 30 : 80);
+  const imgW = box.offsetWidth || (editorW * 0.5);
+  let side = (editorW - imgW) / 2 - gap;
+  if (side < 0) side = 0;
+  box.style.setProperty('--side-space', side + 'px');
+
+  let sp = box.previousElementSibling;
+  if (!sp || !sp.classList || !sp.classList.contains('img-spacer-left')) {
+    sp = document.createElement('span');
+    sp.className = 'img-spacer-left';
+    sp.contentEditable = 'false';
+    box.parentNode.insertBefore(sp, box);
+  }
+  let spR = box.nextElementSibling;
+  if (!spR || !spR.classList || !spR.classList.contains('img-spacer-right')) {
+    spR = document.createElement('span');
+    spR.className = 'img-spacer-right';
+    spR.contentEditable = 'false';
+    box.parentNode.insertBefore(spR, box.nextSibling);
+  }
+}
+
+function removeCenterSpacers(box) {
+  const prev = box.previousElementSibling;
+  if (prev && prev.classList && prev.classList.contains('img-spacer-left')) prev.remove();
+  const next = box.nextElementSibling;
+  if (next && next.classList && next.classList.contains('img-spacer-right')) next.remove();
 }
 
 function setImgGap(v) { if(!currentImgBox) return; currentImgBox.dataset.gap = v; document.getElementById('imgGapLabel').textContent = v; applyImgStyles(currentImgBox); updateRatio(); clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); }
@@ -1995,6 +2040,7 @@ function miniRotate(deg) {
 function miniToTop() {
   if (!currentImgBox) return;
   const box = currentImgBox;
+  removeCenterSpacers(box);
   editor.insertBefore(box, editor.firstChild);
   if (!box.nextSibling || (box.nextSibling.nodeType === Node.TEXT_NODE && box.nextSibling.textContent === '')) {
     const zwsp = document.createTextNode('\u200B');
@@ -2008,6 +2054,7 @@ function miniToTop() {
 function miniToBottom() {
   if (!currentImgBox) return;
   const box = currentImgBox;
+  removeCenterSpacers(box);
   editor.appendChild(box);
   const zwsp = document.createTextNode('\u200B');
   editor.appendChild(zwsp);
@@ -2018,6 +2065,7 @@ function miniToBottom() {
 
 function miniDelete() {
   if (!currentImgBox) return;
+  removeCenterSpacers(currentImgBox);
   currentImgBox.remove();
   currentImgBox = null;
   hideMiniBar();
