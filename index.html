@@ -94,7 +94,7 @@ font-weight: 400;
 .img-box img { transition: border-radius .2s, box-shadow .2s; }
 .img-box { --img-radius: 12px; --img-border: 0px; --img-border-color: #000000; }
 .img-box img { border-radius: var(--img-radius); box-shadow: 0 0 0 var(--img-border) var(--img-border-color); }
-.img-box .img-rotor { display: block; transition: transform .15s; transform: rotate(var(--img-rot, 0deg)); transform-origin: center; }
+.img-box .img-rotor { display: block; transition: transform .3s ease; transform: rotate(var(--img-rot, 0deg)); transform-origin: center; }
 
 #imgMiniBar {
   position: fixed; z-index: 5000; display: none;
@@ -387,7 +387,7 @@ cursor: pointer; overflow: hidden;
 <button class="primary" id="exportBtn" onclick="processExport()">⬇️ Скачать текст (PNG)</button>
 
 <div style="display: flex; gap: 8px; margin-top: 10px; flex-direction: column;">
-<button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">✈️💬 Скопировать для Telegram / MAX</button>
+<button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">⧉ Скопировать для Telegram / MAX</button>
 </div>
 
 <button class="danger" onclick="clearEditor()">🗑️ Очистить холст</button>
@@ -422,7 +422,7 @@ cursor: pointer; overflow: hidden;
 <textarea id="markdownOutput" readonly></textarea>
 <div style="display: flex; gap: 8px; flex-direction: column;">
 <div style="display: flex; gap: 8px;">
-<button class="primary" style="margin-top:0; background:#2481cc; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForTelegram()">✈️💬 Скопировать<br>для Telegram / MAX</button>
+<button class="primary" style="margin-top:0; background:#2481cc; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForTelegram()">⧉ Скопировать<br>для Telegram / MAX</button>
 </div>
 <button class="danger" style="margin-top:0; padding: 10px; font-size: 14px;" onclick="document.getElementById('textModal').style.display='none'">Закрыть</button>
 </div>
@@ -441,6 +441,7 @@ cursor: pointer; overflow: hidden;
   <button onmousedown="event.preventDefault()" onclick="miniRotate(90)" title="Повернуть вправо">↻</button>
   <div class="mb-div"></div>
   <button onmousedown="event.preventDefault()" onclick="miniToTop()" title="В начало поста">⬆️</button>
+  <button onmousedown="event.preventDefault()" onclick="miniToBottom()" title="В конец поста">⬇️</button>
   <div class="mb-div"></div>
   <button onmousedown="event.preventDefault()" onclick="miniDelete()" title="Удалить">🗑️</button>
 </div>
@@ -509,6 +510,9 @@ let currentImgBox = null;
 let historyStack = [];
 let historyIndex = -1;
 
+function isMobile() { return window.innerWidth <= 820; }
+function focusEditor() { if (!isMobile()) editor.focus(); }
+
 function setRealVH() {
 const vh = window.innerHeight * 0.01;
 document.documentElement.style.setProperty('--vh', vh + 'px');
@@ -563,7 +567,7 @@ document.getElementById('charCount').textContent = editor.innerText.replace(/\u2
 updateRatio();
 updateUndoRedoButtons();
 currentImgBox = null;
-editor.focus();
+focusEditor();
 }
 
 function rebindImages() {
@@ -578,6 +582,8 @@ resizer.className = 'img-resizer';
 resizer.contentEditable = 'false';
 box.appendChild(resizer);
 }
+ensureRotor(box);
+applyImgStyles(box);
 bindResizer(box);
 });
 }
@@ -610,8 +616,6 @@ function snapImageToLineStart(box) {
 
 const SAFE_RATIO = 1.25;
 const WARN_RATIO = 1.60;
-
-function isMobile() { return window.innerWidth <= 820; }
 
 let currentZoom = 1;
 let userZoomed = false;
@@ -771,7 +775,7 @@ zoomWrapper.classList.remove('dragging');
 }
 }, { passive: false });
 
-window.onload = () => { saveHistory(); editor.focus(); setRealVH(); updateRatio(); autoScreenFit(); };
+window.onload = () => { saveHistory(); focusEditor(); setRealVH(); updateRatio(); autoScreenFit(); };
 
 function updateBgColor(color) { exportNode.style.setProperty('--bg-color', color); }
 function updateMainTextColor(color) { exportNode.style.setProperty('--text-color', color); }
@@ -852,7 +856,7 @@ document.getElementById('charCount').textContent = '0';
 updateRatio();
 currentImgBox = null;
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 function setPreset(mode, btn) {
@@ -947,7 +951,7 @@ restoreSelection();
 document.execCommand('foreColor', false, color);
 exitSelectionFromFormatting();
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 function format(command, value) {
@@ -961,7 +965,7 @@ restoreSelection();
 document.execCommand(command, false, value || null);
 exitSelectionFromFormatting();
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 function cleanFormat() {
@@ -970,7 +974,7 @@ const sel = window.getSelection();
 if (!sel || !sel.rangeCount || sel.toString().length === 0) return;
 document.execCommand('removeFormat', false, null);
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 function formatCode() {
@@ -983,7 +987,7 @@ range.deleteContents();
 range.insertNode(codeNode);
 exitSelectionFromFormatting();
 saveHistory();
-editor.focus();
+focusEditor();
 }
 }
 
@@ -1009,7 +1013,7 @@ wrapper.querySelectorAll('*').forEach(function(child) { if (child.style && child
 exitSelectionFromFormatting();
 updateRatio();
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 function selectWordAtCaret() {
@@ -1059,7 +1063,7 @@ el.parentNode.replaceChild(span, el);
 exitSelectionFromFormatting();
 updateRatio();
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 function deleteSelection() {
@@ -1071,7 +1075,7 @@ updateImgCounter();
 document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
 updateRatio();
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 /* ФУНКЦИЯ ПОЛНОЙ ОЧИСТКИ И ВАЛИДАЦИИ ССЫЛОК */
@@ -1134,7 +1138,7 @@ document.execCommand('createLink', false, url);
 exitSelectionFromFormatting();
 
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 function updateImgCounter() {
@@ -1207,7 +1211,7 @@ updateRatio();
 saveHistory();
 
 event.target.value = '';
-setTimeout(() => editor.focus(), 50);
+setTimeout(() => focusEditor(), 50);
 }
 
 function createImageBox(url) {
@@ -1270,6 +1274,7 @@ newResizer.addEventListener('touchstart', startResize, {passive: false});
 }
 
 function selectImgBox(box) {
+if (isMobile()) { editor.blur(); if (document.activeElement) document.activeElement.blur(); }
 editor.querySelectorAll('.img-box').forEach(function(b) { b.classList.remove('selected'); });
 box.classList.add('selected');
 currentImgBox = box;
@@ -1286,7 +1291,7 @@ updateImgCounter();
 document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
 updateRatio();
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 document.addEventListener('click', function(e) {
@@ -1417,7 +1422,7 @@ const t = document.createElement('div'); t.className = 'emoji-section-title'; t.
 const bar = document.createElement('div'); bar.className = 'emoji-bar';
 emojiGroups[g].forEach(function(e) {
 const span = document.createElement('span'); span.textContent = e;
-span.onclick = function() { restoreSelection(); document.execCommand('insertText', false, e); updateRatio(); saveHistory(); editor.focus(); };
+span.onclick = function() { restoreSelection(); document.execCommand('insertText', false, e); updateRatio(); saveHistory(); focusEditor(); };
 bar.appendChild(span);
 });
 emojiWrap.appendChild(bar);
@@ -1882,7 +1887,9 @@ function ensureRotor(box) {
     rotor.contentEditable = 'false';
     const img = box.querySelector('img');
     if (img) rotor.appendChild(img);
+    const resizer = box.querySelector('.img-resizer');
     box.insertBefore(rotor, box.firstChild);
+    if (resizer) box.appendChild(resizer);
   }
 }
 
@@ -1930,6 +1937,7 @@ function syncImgSettings() {
 
 function applyImgStyles(box) {
   if (!box) return;
+  ensureRotor(box);
   const gap = parseInt(box.dataset.gap || '20', 10);
   const rad = parseInt(box.dataset.radius || '12', 10);
   const brd = parseInt(box.dataset.border || '0', 10);
@@ -1969,7 +1977,7 @@ function miniAlign(dir) {
   if (dir === 'right') currentImgBox.classList.add('align-right');
   else if (dir === 'center') currentImgBox.classList.add('align-center');
   applyImgStyles(currentImgBox);
-  updateRatio(); positionMiniBar(); saveHistory(); editor.focus();
+  updateRatio(); positionMiniBar(); saveHistory(); focusEditor();
 }
 
 function miniRotate(deg) {
@@ -1981,7 +1989,7 @@ function miniRotate(deg) {
   const lbl = document.getElementById('imgRotLabel'); if (lbl) lbl.textContent = rot;
   const rng = document.getElementById('imgRotRange'); if (rng) rng.value = rot;
   applyImgStyles(currentImgBox);
-  updateRatio(); positionMiniBar(); saveHistory();
+  updateRatio(); positionMiniBar(); saveHistory(); focusEditor();
 }
 
 function miniToTop() {
@@ -1994,7 +2002,18 @@ function miniToTop() {
   }
   ensureAnchorBeforeImages();
   applyImgStyles(box);
-  updateRatio(); positionMiniBar(); saveHistory(); editor.focus();
+  updateRatio(); positionMiniBar(); saveHistory(); focusEditor();
+}
+
+function miniToBottom() {
+  if (!currentImgBox) return;
+  const box = currentImgBox;
+  editor.appendChild(box);
+  const zwsp = document.createTextNode('\u200B');
+  editor.appendChild(zwsp);
+  ensureAnchorBeforeImages();
+  applyImgStyles(box);
+  updateRatio(); positionMiniBar(); saveHistory(); focusEditor();
 }
 
 function miniDelete() {
@@ -2005,7 +2024,7 @@ function miniDelete() {
   document.getElementById('imgSettings').classList.remove('visible');
   updateImgCounter();
   document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
-  updateRatio(); saveHistory(); editor.focus();
+  updateRatio(); saveHistory(); focusEditor();
 }
 
 function miniDuplicate() {
@@ -2020,7 +2039,7 @@ function miniDuplicate() {
   rebindImages();
   applyImgStyles(clone);
   selectImgBox(clone);
-  updateImgCounter(); updateRatio(); saveHistory(); editor.focus();
+  updateImgCounter(); updateRatio(); saveHistory(); focusEditor();
 }
 
 stageArea.addEventListener('scroll', () => currentImgBox && positionMiniBar());
