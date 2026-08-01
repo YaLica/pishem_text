@@ -177,6 +177,7 @@ transition: left 0.3s ease;
 #zoomControls { display: none !important; }
 .modal { width: 92%; max-width: 500px; }
 .emoji-wrap, label[style*="😀 Эмодзи"] { display: none !important; }
+#imgMiniBar { display: none !important; }
 }
 
 #quickBar {
@@ -660,9 +661,22 @@ function ensureAnchorBeforeImages() {
 editor.querySelectorAll('.img-box').forEach(function(box) {
 const prev = box.previousSibling;
 const needAnchor = !prev || (prev.nodeType === Node.ELEMENT_NODE && prev.tagName === 'BR');
+
+const isFloat = !box.classList.contains('align-center');
+const isFirstInEditor = !prev;
+
+if (isFirstInEditor && isFloat) {
+let p = box.previousSibling;
+if (p && p.nodeType === Node.TEXT_NODE && p.textContent === '\u200B') p.remove();
+const after = box.nextSibling;
+if (!after || after.nodeType !== Node.TEXT_NODE || after.textContent !== '\u200B') {
+box.parentNode.insertBefore(document.createTextNode('\u200B'), box.nextSibling);
+}
+return;
+}
+
 if (needAnchor) {
-const anchor = document.createTextNode('\u200B');
-box.parentNode.insertBefore(anchor, box);
+box.parentNode.insertBefore(document.createTextNode('\u200B'), box);
 }
 });
 }
