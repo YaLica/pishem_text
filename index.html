@@ -97,6 +97,7 @@ font-weight: 400;
 .img-box { --img-radius: 12px; --img-border: 0px; --img-border-color: #000000; }
 .img-box img { border-radius: var(--img-radius); box-shadow: 0 0 0 var(--img-border) var(--img-border-color); }
 .img-box .img-rotor { display: block; transition: transform .12s linear; transform: rotate(var(--img-rot, 0deg)); transform-origin: center; }
+.img-box .img-rotor img { border-radius: var(--img-radius); box-shadow: 0 0 0 var(--img-border) var(--img-border-color) !important; }
 
 #imgMiniBar {
   position: fixed; z-index: 5000; display: none;
@@ -200,6 +201,40 @@ cursor: pointer; overflow: hidden;
 .stage.hand-mode #editor { cursor: grab; }
 .stage.hand-mode.panning #editor { cursor: grabbing; }
 #modeBtn.active { background: #10b981 !important; }
+
+/* ===== ТЕЛЕФОННАЯ ПЛАВАЮЩАЯ МЕНЮ КАРТИНКИ ===== */
+#imgMobilePanel {
+  position: fixed; z-index: 6000; display: none;
+  width: 260px; max-width: 90vw;
+  background: rgba(23, 26, 33, 0.92); backdrop-filter: blur(6px);
+  border: 1px solid #3d7eff; border-radius: 14px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.6);
+  padding: 0 12px 12px; color: #e8e8e8;
+}
+#imgMobilePanel.visible { display: block; }
+#imgMobilePanel .imp-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0 8px; cursor: grab; user-select: none; touch-action: none;
+  border-bottom: 1px solid #2a2f3a; margin-bottom: 8px;
+}
+#imgMobilePanel .imp-head.grabbing { cursor: grabbing; }
+#imgMobilePanel .imp-title { font-size: 13px; font-weight: bold; color: #4ade80; }
+#imgMobilePanel .imp-close {
+  width: 26px; height: 26px; border-radius: 6px; background: #2a2f3a; color: #fff;
+  font-size: 15px; display: flex; align-items: center; justify-content: center; cursor: pointer;
+}
+#imgMobilePanel label { color: #cdd5df; font-size: 11px; margin: 8px 0 3px; display: block; font-weight: bold; }
+#imgMobilePanel input[type=range] { width: 100%; margin: 0; }
+#imgMobilePanel input[type=color] { width: 100%; height: 32px; }
+#imgMobilePanel .imp-btns { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+#imgMobilePanel .imp-btns button {
+  flex: 0 0 auto; min-width: 34px; height: 34px; padding: 0 6px; margin: 0;
+  background: #2a2f3a; color: #fff; border-radius: 7px; font-size: 15px;
+  display: flex; align-items: center; justify-content: center; border: none; cursor: pointer;
+}
+#imgMobilePanel .imp-btns button:active { background: #3d7eff; }
+#imgMobilePanel .imp-rot-row { display: flex; gap: 6px; align-items: center; }
+#imgMobilePanel .imp-rot-row button { flex: 0 0 auto; width: 34px; height: 32px; background:#2a2f3a; color:#fff; border: none; border-radius: 6px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -440,12 +475,44 @@ cursor: pointer; overflow: hidden;
   <button onmousedown="event.preventDefault()" onclick="miniAlign('right')" title="Справа">▶</button>
   <div class="mb-div"></div>
   <button onmousedown="event.preventDefault()" onclick="miniRotate(-90)" title="Повернуть влево">↺</button>
+  <input type="range" id="miniRotSlider" min="-180" max="180" value="0" step="1" oninput="setImgRot(this.value)" onmousedown="event.stopPropagation()" style="width:80px; height:20px; margin:0 2px;" title="Плавный поворот">
   <button onmousedown="event.preventDefault()" onclick="miniRotate(90)" title="Повернуть вправо">↻</button>
   <div class="mb-div"></div>
   <button onmousedown="event.preventDefault()" onclick="miniToTop()" title="В начало поста">⬆️</button>
   <button onmousedown="event.preventDefault()" onclick="miniToBottom()" title="В конец поста">⬇️</button>
   <div class="mb-div"></div>
   <button onmousedown="event.preventDefault()" onclick="miniDelete()" title="Удалить">🗑️</button>
+</div>
+
+<!-- ТЕЛЕФОННАЯ ПЛАВАЮЩАЯ МЕНЮ КАРТИНКИ -->
+<div id="imgMobilePanel">
+  <div class="imp-head" id="impHead">
+    <span class="imp-title">🎛️ Картинка</span>
+    <span class="imp-close" onclick="closeImgMobilePanel()">✕</span>
+  </div>
+  <label>↔️ Отступ текста: <span id="impGapLabel">20</span> px</label>
+  <input type="range" id="impGapRange" min="0" max="60" value="20" oninput="setImgGap(this.value)">
+  <label>⬜ Скругление: <span id="impRadiusLabel">12</span> px</label>
+  <input type="range" id="impRadiusRange" min="0" max="60" value="12" oninput="setImgRadius(this.value)">
+  <label>🖼️ Рамка: <span id="impBorderLabel">0</span> px</label>
+  <input type="range" id="impBorderRange" min="0" max="12" value="0" oninput="setImgBorder(this.value)">
+  <label>🎨 Цвет рамки</label>
+  <input type="color" id="impBorderColor" value="#000000" oninput="setImgBorderColor(this.value)">
+  <label>🔄 Поворот: <span id="impRotLabel">0</span>°</label>
+  <div class="imp-rot-row">
+    <button onclick="miniRotate(-90)">↺</button>
+    <input type="range" id="impRotRange" min="-180" max="180" value="0" step="1" oninput="setImgRot(this.value)" style="flex:1;">
+    <button onclick="miniRotate(90)">↻</button>
+  </div>
+  <div class="imp-btns">
+    <button onclick="miniDuplicate()" title="Дублировать">🗐</button>
+    <button onclick="miniAlign('left')" title="Слева">◀</button>
+    <button onclick="miniAlign('center')" title="Центр">▲</button>
+    <button onclick="miniAlign('right')" title="Справа">▶</button>
+    <button onclick="miniToTop()" title="В начало">⬆️</button>
+    <button onclick="miniToBottom()" title="В конец">⬇️</button>
+    <button onclick="miniDelete()" title="Удалить">🗑️</button>
+  </div>
 </div>
 
 <!-- QUICKBAR -->
@@ -702,390 +769,7 @@ panY -= e.deltaY;
 applyZoom();
 }, { passive: false });
 
-let isPanning = false, panStartX = 0, panStartY = 0, panOrigX = 0, panOrigY = 0;
-stageArea.addEventListener('mousedown', function(e) {
-if (!canPan(e.target)) return;
-isPanning = true;
-userZoomed = true;
-stageArea.classList.add('panning');
-zoomWrapper.classList.add('dragging');
-panStartX = e.clientX; panStartY = e.clientY;
-panOrigX = panX; panOrigY = panY;
-});
-document.addEventListener('mousemove', function(e) {
-if (!isPanning) return;
-panX = panOrigX + (e.clientX - panStartX);
-panY = panOrigY + (e.clientY - panStartY);
-applyZoom();
-});
-document.addEventListener('mouseup', function() {
-if (!isPanning) return;
-isPanning = false;
-stageArea.classList.remove('panning');
-zoomWrapper.classList.remove('dragging');
-});
-
-let pinchStartDist = 0, pinchStartZoom = 1;
-let touchPanStartX = 0, touchPanStartY = 0, touchPanOrigX = 0, touchPanOrigY = 0;
-let touchMode = null;
-
-stageArea.addEventListener('touchstart', function(e) {
-if (e.touches.length === 1) {
-if (!canPan(e.target)) { touchMode = null; return; }
-touchMode = 'pan';
-userZoomed = true;
-stageArea.classList.add('panning');
-zoomWrapper.classList.add('dragging');
-touchPanStartX = e.touches[0].clientX;
-touchPanStartY = e.touches[0].clientY;
-touchPanOrigX = panX;
-touchPanOrigY = panY;
-} else if (e.touches.length === 2) {
-touchMode = 'pinch';
-zoomWrapper.classList.add('dragging');
-pinchStartDist = Math.hypot(
-e.touches[0].clientX - e.touches[1].clientX,
-e.touches[0].clientY - e.touches[1].clientY
-);
-pinchStartZoom = currentZoom;
-}
-}, { passive: false });
-
-stageArea.addEventListener('touchmove', function(e) {
-if (touchMode === 'pan' && e.touches.length === 1) {
-e.preventDefault();
-panX = touchPanOrigX + (e.touches[0].clientX - touchPanStartX);
-panY = touchPanOrigY + (e.touches[0].clientY - touchPanStartY);
-applyZoom();
-} else if (touchMode === 'pinch' && e.touches.length === 2) {
-e.preventDefault();
-userZoomed = true;
-const dist = Math.hypot(
-e.touches[0].clientX - e.touches[1].clientX,
-e.touches[0].clientY - e.touches[1].clientY
-);
-currentZoom = pinchStartZoom * (dist / pinchStartDist);
-applyZoom();
-}
-}, { passive: false });
-
-stageArea.addEventListener('touchend', function(e) {
-if (e.touches.length === 0) {
-touchMode = null;
-stageArea.classList.remove('panning');
-zoomWrapper.classList.remove('dragging');
-}
-}, { passive: false });
-
-window.onload = () => { saveHistory(); focusEditor(); setRealVH(); updateRatio(); autoScreenFit(); };
-
-function updateBgColor(color) { exportNode.style.setProperty('--bg-color', color); }
-function updateMainTextColor(color) { exportNode.style.setProperty('--text-color', color); }
-function updateFontFamily(font) { editor.style.fontFamily = font; updateRatio(); saveHistory(); }
-
-function updateRatio() {
-const w = exportNode.offsetWidth;
-const h = exportNode.offsetHeight;
-const ratio = h / w;
-const box = document.getElementById('ratioBox');
-const title = document.getElementById('ratioTitle');
-const fill = document.getElementById('ratioFill');
-document.getElementById('ratioSize').textContent = w + ' × ' + h;
-document.getElementById('ratioValue').textContent = ratio.toFixed(2);
-let percent = Math.min((ratio / WARN_RATIO) * 100, 100);
-fill.style.width = percent + '%';
-box.classList.remove('warn', 'danger');
-if (ratio <= SAFE_RATIO) {
-title.className = 'ratio-title ok';
-title.textContent = '🟢 Идеальные пропорции для ленты (PNG)';
-fill.style.background = '#4ade80';
-} else if (ratio <= WARN_RATIO) {
-box.classList.add('warn');
-title.className = 'ratio-title warn';
-title.textContent = '🟡 PNG вытягивается (в чате будет казаться уже)';
-fill.style.background = '#fbbf24';
-} else {
-box.classList.add('danger');
-title.className = 'ratio-title danger';
-title.textContent = '🔴 Очень высокий PNG! В чате он станет совсем узким';
-fill.style.background = '#ff4d4d';
-}
-autoScreenFit();
-}
-
-function updateLineHeight(val) {
-document.getElementById('lineHeightLabel').textContent = val;
-editor.style.lineHeight = val;
-updateRatio();
-clearTimeout(typeTimer);
-typeTimer = setTimeout(saveHistory, 400);
-}
-
-function applyBase(base) {
-baseFontSlider.value = base;
-document.getElementById('baseFontSizeLabel').textContent = base;
-editor.style.fontSize = base + 'px';
-editor.querySelectorAll('*').forEach(el => {
-if (!el.getAttribute('data-custom-size') && el.tagName !== 'CODE' && !el.classList.contains('img-box') && !el.classList.contains('img-resizer')) {
-el.style.fontSize = '';
-}
-});
-}
-
-function updateBaseFontSize(size) { applyBase(size); updateRatio(); clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); }
-
-let typeTimer = null;
-editor.addEventListener('input', function() {
-document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
-updateImgCounter();
-updateRatio();
-clearTimeout(typeTimer);
-typeTimer = setTimeout(saveHistory, 400);
-});
-
-editor.addEventListener('paste', function(e) {
-e.preventDefault();
-const text = (e.clipboardData || window.clipboardData).getData('text/plain');
-document.execCommand('insertText', false, text);
-updateRatio();
-saveHistory();
-});
-
-function clearEditor() {
-editor.innerHTML = '';
-updateImgCounter();
-document.getElementById('charCount').textContent = '0';
-updateRatio();
-currentImgBox = null;
-saveHistory();
-focusEditor();
-}
-
-function setPreset(mode, btn) {
-document.querySelectorAll('.preset').forEach(function(b) { b.classList.remove('active'); });
-btn.classList.add('active');
-const widthControl = document.getElementById('widthControl');
-exportNode.classList.remove('no-tail');
-widthControl.style.display = 'none';
-if (mode === 'telegram') {
-exportNode.style.width = '800px';
-exportNode.classList.add('no-tail');
-exportNode.style.borderRadius = '16px';
-stageArea.style.backgroundColor = '#748eaa';
-} else if (mode === 'custom') {
-widthControl.style.display = 'block';
-exportNode.classList.add('no-tail');
-exportNode.style.borderRadius = '16px';
-stageArea.style.backgroundColor = '#2a2f3a';
-updateCustomWidth();
-}
-setTimeout(updateRatio, 100);
-}
-
-function updateCustomWidth() {
-const w = document.getElementById('width').value;
-document.getElementById('wLabel').textContent = w;
-exportNode.style.width = w + 'px';
-updateRatio();
-}
-
-function saveSelectionBeforeAction() {
-const sel = window.getSelection();
-if (sel && sel.rangeCount > 0 && editor.contains(sel.anchorNode)) {
-const range = sel.getRangeAt(0);
-if (!range.collapsed || document.activeElement === editor) {
-savedSelection = range.cloneRange();
-}
-}
-}
-
-document.addEventListener('selectionchange', saveSelectionBeforeAction);
-editor.addEventListener('keyup', saveSelectionBeforeAction);
-editor.addEventListener('mouseup', saveSelectionBeforeAction);
-editor.addEventListener('touchend', saveSelectionBeforeAction);
-
-function restoreSelection() {
-editor.focus();
-if (savedSelection && editor.contains(savedSelection.commonAncestorContainer)) {
-const sel = window.getSelection();
-sel.removeAllRanges();
-sel.addRange(savedSelection);
-}
-}
-
-function getStyledInlineParent(node) {
-let curr = (node.nodeType === Node.TEXT_NODE) ? node.parentNode : node;
-while (curr && curr !== editor) {
-const tag = curr.tagName;
-if (tag === 'SPAN' || tag === 'FONT' || tag === 'B' || tag === 'STRONG' ||
-tag === 'I' || tag === 'EM' || tag === 'U' || tag === 'S' || tag === 'STRIKE' || tag === 'CODE') {
-return curr;
-}
-curr = curr.parentNode;
-}
-return null;
-}
-
-function exitSelectionFromFormatting() {
-const sel = window.getSelection();
-if (!sel || !sel.rangeCount) return;
-const range = sel.getRangeAt(0);
-let endNode = range.endContainer;
-let styledParent = getStyledInlineParent(endNode);
-
-if (styledParent) {
-let next = styledParent.nextSibling;
-if (!next || next.nodeType !== Node.TEXT_NODE) {
-const zwsp = document.createTextNode('\u200B');
-styledParent.parentNode.insertBefore(zwsp, styledParent.nextSibling);
-next = zwsp;
-}
-const newRange = document.createRange();
-newRange.setStartAfter(next);
-newRange.collapse(true);
-sel.removeAllRanges();
-sel.addRange(newRange);
-}
-}
-
-function applyTextColor(color) {
-restoreSelection();
-document.execCommand('foreColor', false, color);
-exitSelectionFromFormatting();
-saveHistory();
-focusEditor();
-}
-
-function format(command, value) {
-if (currentImgBox) {
-if (command === 'justifyLeft') { currentImgBox.classList.remove('align-right', 'align-center'); saveHistory(); return; }
-else if (command === 'justifyCenter') { currentImgBox.classList.remove('align-right'); currentImgBox.classList.add('align-center'); saveHistory(); return; }
-else if (command === 'justifyRight') { currentImgBox.classList.remove('align-center'); currentImgBox.classList.add('align-right'); saveHistory(); return; }
-else if (command === 'justifyFull') { currentImgBox.classList.remove('align-right', 'align-center'); saveHistory(); return; }
-}
-restoreSelection();
-document.execCommand(command, false, value || null);
-exitSelectionFromFormatting();
-saveHistory();
-focusEditor();
-}
-
-function cleanFormat() {
-restoreSelection();
-const sel = window.getSelection();
-if (!sel || !sel.rangeCount || sel.toString().length === 0) return;
-document.execCommand('removeFormat', false, null);
-saveHistory();
-focusEditor();
-}
-
-function formatCode() {
-const sel = window.getSelection();
-if (sel && sel.rangeCount > 0 && sel.toString().length > 0) {
-const range = sel.getRangeAt(0);
-const codeNode = document.createElement('code');
-codeNode.textContent = sel.toString();
-range.deleteContents();
-range.insertNode(codeNode);
-exitSelectionFromFormatting();
-saveHistory();
-focusEditor();
-}
-}
-
-function changeWordSize(factor) {
-restoreSelection();
-const sel = window.getSelection();
-if (!sel || !sel.rangeCount || sel.toString().length === 0) return;
-const range = sel.getRangeAt(0);
-const wrapper = document.createElement('span');
-try { range.surroundContents(wrapper); } catch (e) { wrapper.appendChild(range.extractContents()); range.insertNode(wrapper); }
-const baseSize = parseFloat(getComputedStyle(editor).fontSize) || 32;
-function scaleEl(el) {
-let current = parseFloat(el.style.fontSize);
-if (!current) current = parseFloat(getComputedStyle(el).fontSize) || baseSize;
-let next = Math.round(current * factor);
-if (next < 8) next = 8;
-if (next > 200) next = 200;
-el.style.fontSize = next + 'px';
-el.setAttribute('data-custom-size', 'true');
-}
-scaleEl(wrapper);
-wrapper.querySelectorAll('*').forEach(function(child) { if (child.style && child.style.fontSize) scaleEl(child); });
-exitSelectionFromFormatting();
-updateRatio();
-saveHistory();
-focusEditor();
-}
-
-function selectWordAtCaret() {
-const sel = window.getSelection();
-if (!sel || !sel.rangeCount) return;
-const range = sel.getRangeAt(0);
-if (!range.collapsed) return;
-
-if (node.nodeType === Node.TEXT_NODE) {
-  const text = node.textContent;
-let start = range.startOffset;
-let end = range.startOffset;
-while (start > 0 && !/\s/.test(text[start - 1])) start--;
-while (end < text.length && !/\s/.test(text[end])) end++;
-if (start < end) {
-range.setStart(node, start);
-range.setEnd(node, end);
-sel.removeAllRanges();
-sel.addRange(range);
-savedSelection = range.cloneRange();
-}
-}
-}
-
-function applyWordFont(font) {
-if (!font) return;
-restoreSelection();
-let sel = window.getSelection();
-
-if (sel && sel.rangeCount > 0 && sel.isCollapsed) {
-selectWordAtCaret();
-sel = window.getSelection();
-}
-
-if (!sel || !sel.rangeCount || sel.toString().trim().length === 0) return;
-
-document.execCommand('fontName', false, font);
-
-editor.querySelectorAll('font[face]').forEach(el => {
-const span = document.createElement('span');
-span.style.fontFamily = el.getAttribute('face');
-span.setAttribute('data-custom-font', 'true');
-while (el.firstChild) span.appendChild(el.firstChild);
-el.parentNode.replaceChild(span, el);
-});
-
-exitSelectionFromFormatting();
-updateRatio();
-saveHistory();
-focusEditor();
-}
-
-function deleteSelection() {
-restoreSelection();
-const sel = window.getSelection();
-if (!sel || !sel.rangeCount || sel.toString().length === 0) return;
-sel.getRangeAt(0).deleteContents();
-updateImgCounter();
-document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
-updateRatio();
-saveHistory();
-focusEditor();
-}
-
-/* ФУНКЦИЯ ПОЛНОЙ ОЧИСТКИ И ВАЛИДАЦИИ ССЫЛОК */
-function sanitizeUrl(rawUrl) {
-if (!rawUrl) return '';
-let url = rawUrl.trim();
-
-// 1. Удаляем случайно продублированные протоколы (https://https:// или http://https://)
+let isPanning = false, panStartX = 0, panStartY = лы (https://https:// или http://https://)
 url = url.replace(/^(https?:\/\/)+/gi, '');
 url = url.replace(/^(http:\/\/)+/gi, '');
 
@@ -1284,6 +968,7 @@ currentImgBox = box;
 ensureRotor(box);
 applyImgStyles(box);
 positionMiniBar(); syncImgSettings();
+if (isMobile()) openImgMobilePanel();
 }
 
 function deleteSelectedImage() {
@@ -1291,6 +976,8 @@ if (!currentImgBox) return;
 removeCenterSpacers(currentImgBox);
 currentImgBox.remove();
 currentImgBox = null;
+hideMiniBar();
+closeImgMobilePanel();
 updateImgCounter();
 document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
 updateRatio();
@@ -1300,11 +987,13 @@ focusEditor();
 
 document.addEventListener('click', function(e) {
 if (e.target.closest('#btnDeleteImg')) return;
+if (e.target.closest('#imgSettings')) return;
+if (e.target.closest('#imgMobilePanel')) return;
 if (!e.target.closest('.img-box') && !e.target.closest('#imgMiniBar')) {
 editor.querySelectorAll('.img-box').forEach(function(b) { b.classList.remove('selected'); });
 currentImgBox = null;
 hideMiniBar();
-document.getElementById('imgSettings').classList.remove('visible');
+closeImgMobilePanel();
 }
 });
 
@@ -1941,6 +1630,9 @@ function syncImgSettings() {
   const rotLabel = document.getElementById('imgRotLabel');
   if (rotRange) rotRange.value = rot;
   if (rotLabel) rotLabel.textContent = rot;
+  const miniRot = document.getElementById('miniRotSlider');
+  if (miniRot) miniRot.value = rot;
+  syncImgMobilePanel();
 }
 
 function applyImgStyles(box) {
@@ -1999,18 +1691,52 @@ function removeCenterSpacers(box) {
   if (next && next.classList && next.classList.contains('img-spacer-right')) next.remove();
 }
 
-function setImgGap(v) { if(!currentImgBox) return; currentImgBox.dataset.gap = v; document.getElementById('imgGapLabel').textContent = v; applyImgStyles(currentImgBox); updateRatio(); clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); }
-function setImgRadius(v) { if(!currentImgBox) return; currentImgBox.dataset.radius = v; document.getElementById('imgRadiusLabel').textContent = v; applyImgStyles(currentImgBox); clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); }
-function setImgBorder(v) { if(!currentImgBox) return; currentImgBox.dataset.border = v; document.getElementById('imgBorderLabel').textContent = v; applyImgStyles(currentImgBox); clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); }
-function setImgBorderColor(v) { if(!currentImgBox) return; currentImgBox.dataset.borderColor = v; applyImgStyles(currentImgBox); clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); }
+function setImgGap(v) {
+  if(!currentImgBox) return;
+  currentImgBox.dataset.gap = v;
+  const l1 = document.getElementById('imgGapLabel'); if (l1) l1.textContent = v;
+  const r1 = document.getElementById('imgGapRange'); if (r1) r1.value = v;
+  const l2 = document.getElementById('impGapLabel'); if (l2) l2.textContent = v;
+  const r2 = document.getElementById('impGapRange'); if (r2) r2.value = v;
+  applyImgStyles(currentImgBox); updateRatio(); clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
+
+function setImgRadius(v) {
+  if(!currentImgBox) return;
+  currentImgBox.dataset.radius = v;
+  const l1 = document.getElementById('imgRadiusLabel'); if (l1) l1.textContent = v;
+  const r1 = document.getElementById('imgRadiusRange'); if (r1) r1.value = v;
+  const l2 = document.getElementById('impRadiusLabel'); if (l2) l2.textContent = v;
+  const r2 = document.getElementById('impRadiusRange'); if (r2) r2.value = v;
+  applyImgStyles(currentImgBox); clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
+
+function setImgBorder(v) {
+  if(!currentImgBox) return;
+  currentImgBox.dataset.border = v;
+  const l1 = document.getElementById('imgBorderLabel'); if (l1) l1.textContent = v;
+  const r1 = document.getElementById('imgBorderRange'); if (r1) r1.value = v;
+  const l2 = document.getElementById('impBorderLabel'); if (l2) l2.textContent = v;
+  const r2 = document.getElementById('impBorderRange'); if (r2) r2.value = v;
+  applyImgStyles(currentImgBox); clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
+
+function setImgBorderColor(v) {
+  if(!currentImgBox) return;
+  currentImgBox.dataset.borderColor = v;
+  const c1 = document.getElementById('imgBorderColor'); if (c1) c1.value = v;
+  const c2 = document.getElementById('impBorderColor'); if (c2) c2.value = v;
+  applyImgStyles(currentImgBox); clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
 
 function setImgRot(v) {
   if(!currentImgBox) return;
   currentImgBox.dataset.rot = v;
-  const lbl = document.getElementById('imgRotLabel');
-  if (lbl) lbl.textContent = v;
-  const rng = document.getElementById('imgRotRange');
-  if (rng) rng.value = v;
+  const lbl = document.getElementById('imgRotLabel'); if (lbl) lbl.textContent = v;
+  const rng = document.getElementById('imgRotRange'); if (rng) rng.value = v;
+  const mrng = document.getElementById('miniRotSlider'); if (mrng) mrng.value = v;
+  const irng = document.getElementById('impRotRange'); if (irng) irng.value = v;
+  const ilbl = document.getElementById('impRotLabel'); if (ilbl) ilbl.textContent = v;
   applyImgStyles(currentImgBox);
   updateRatio(); positionMiniBar();
   clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
@@ -2030,11 +1756,8 @@ function miniRotate(deg) {
   let rot = parseInt(currentImgBox.dataset.rot || '0', 10) + deg;
   while (rot > 180) rot -= 360;
   while (rot < -180) rot += 360;
-  currentImgBox.dataset.rot = rot;
-  const lbl = document.getElementById('imgRotLabel'); if (lbl) lbl.textContent = rot;
-  const rng = document.getElementById('imgRotRange'); if (rng) rng.value = rot;
-  applyImgStyles(currentImgBox);
-  updateRatio(); positionMiniBar(); saveHistory(); focusEditor();
+  setImgRot(rot);
+  saveHistory(); focusEditor();
 }
 
 function miniToTop() {
@@ -2069,7 +1792,7 @@ function miniDelete() {
   currentImgBox.remove();
   currentImgBox = null;
   hideMiniBar();
-  document.getElementById('imgSettings').classList.remove('visible');
+  closeImgMobilePanel();
   updateImgCounter();
   document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
   updateRatio(); saveHistory(); focusEditor();
@@ -2092,6 +1815,74 @@ function miniDuplicate() {
 
 stageArea.addEventListener('scroll', () => currentImgBox && positionMiniBar());
 window.addEventListener('scroll', () => currentImgBox && positionMiniBar());
+
+/* ===== ТЕЛЕФОННАЯ ПЛАВАЮЩАЯ МЕНЮ КАРТИНКИ ===== */
+let impPos = null;
+
+function openImgMobilePanel() {
+  const p = document.getElementById('imgMobilePanel');
+  if (!p || !currentImgBox) return;
+  syncImgMobilePanel();
+  p.classList.add('visible');
+  if (impPos) {
+    p.style.left = impPos.left + 'px';
+    p.style.top = impPos.top + 'px';
+  } else {
+    p.style.left = Math.max(10, Math.floor(window.innerWidth / 2 - p.offsetWidth / 2)) + 'px';
+    p.style.top = '80px';
+  }
+}
+
+function closeImgMobilePanel() {
+  const p = document.getElementById('imgMobilePanel');
+  if (p) p.classList.remove('visible');
+}
+
+function syncImgMobilePanel() {
+  if (!currentImgBox) return;
+  const gap = parseInt(currentImgBox.dataset.gap || '20', 10);
+  const rad = parseInt(currentImgBox.dataset.radius || '12', 10);
+  const brd = parseInt(currentImgBox.dataset.border || '0', 10);
+  const col = currentImgBox.dataset.borderColor || '#000000';
+  const rot = parseInt(currentImgBox.dataset.rot || '0', 10);
+  const gR = document.getElementById('impGapRange'); if (gR) gR.value = gap;
+  const gL = document.getElementById('impGapLabel'); if (gL) gL.textContent = gap;
+  const rR = document.getElementById('impRadiusRange'); if (rR) rR.value = rad;
+  const rL = document.getElementById('impRadiusLabel'); if (rL) rL.textContent = rad;
+  const bR = document.getElementById('impBorderRange'); if (bR) bR.value = brd;
+  const bL = document.getElementById('impBorderLabel'); if (bL) bL.textContent = brd;
+  const bC = document.getElementById('impBorderColor'); if (bC) bC.value = col;
+  const oR = document.getElementById('impRotRange'); if (oR) oR.value = rot;
+  const oL = document.getElementById('impRotLabel'); if (oL) oL.textContent = rot;
+}
+
+(function(){
+  const head = document.getElementById('impHead');
+  const panel = document.getElementById('imgMobilePanel');
+  if (!head || !panel) return;
+  let dragging = false, sx = 0, sy = 0, ox = 0, oy = 0;
+  function start(x, y) {
+    dragging = true; head.classList.add('grabbing');
+    sx = x; sy = y;
+    ox = panel.offsetLeft; oy = panel.offsetTop;
+  }
+  function move(x, y) {
+    if (!dragging) return;
+    let nl = ox + (x - sx), nt = oy + (y - sy);
+    nl = Math.max(0, Math.min(nl, window.innerWidth - panel.offsetWidth));
+    nt = Math.max(0, Math.min(nt, window.innerHeight - panel.offsetHeight));
+    panel.style.left = nl + 'px';
+    panel.style.top = nt + 'px';
+    impPos = { left: nl, top: nt };
+  }
+  function end() { dragging = false; head.classList.remove('grabbing'); }
+  head.addEventListener('touchstart', e => { const t = e.touches[0]; start(t.clientX, t.clientY); }, {passive:true});
+  head.addEventListener('touchmove', e => { e.preventDefault(); const t = e.touches[0]; move(t.clientX, t.clientY); }, {passive:false});
+  head.addEventListener('touchend', end);
+  head.addEventListener('mousedown', e => start(e.clientX, e.clientY));
+  document.addEventListener('mousemove', e => move(e.clientX, e.clientY));
+  document.addEventListener('mouseup', end);
+})();
 
 </script>
 </body>
