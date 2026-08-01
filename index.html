@@ -94,7 +94,7 @@ font-weight: 400;
 .img-box img { transition: border-radius .2s, box-shadow .2s; }
 .img-box { --img-radius: 12px; --img-border: 0px; --img-border-color: #000000; }
 .img-box img { border-radius: var(--img-radius); box-shadow: 0 0 0 var(--img-border) var(--img-border-color); }
-.img-box .img-rotor { display: block; transition: transform .15s; transform: rotate(var(--img-rot, 0deg)); transform-origin: center; }
+.img-box .img-rotor { display: block; transition: transform .3s ease; transform: rotate(var(--img-rot, 0deg)); transform-origin: center; }
 
 #imgMiniBar {
   position: fixed; z-index: 5000; display: none;
@@ -115,7 +115,6 @@ font-weight: 400;
 #imgSettings.visible { display: block; }
 #imgSettings label { color: #cdd5df; }
 #imgSettings .is-row { display: flex; align-items: center; gap: 8px; }
-
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; }
 .modal { background: #171a21; width: 500px; padding: 20px; border-radius: 12px; border: 1px solid #2a2f3a; max-height: 90vh; overflow-y: auto; }
 .modal h2 { margin: 0 0 10px 0; font-size: 18px; color: #fff; }
@@ -358,6 +357,13 @@ cursor: pointer; overflow: hidden;
   <input type="range" id="imgBorderRange" min="0" max="12" value="0" oninput="setImgBorder(this.value)">
   <label>🎨 Цвет рамки</label>
   <input type="color" id="imgBorderColor" value="#000000" oninput="setImgBorderColor(this.value)">
+  <label>🔄 Поворот: <span id="imgRotLabel">0</span>°</label>
+  <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
+    <button type="button" onclick="miniRotate(-90)" style="flex:0 0 auto; width:38px; height:34px; background:#2a2f3a; color:#fff;">↺</button>
+    <input type="range" id="imgRotRange" min="-180" max="180" value="0" step="1" oninput="setImgRot(this.value)" style="flex:1;">
+    <button type="button" onclick="miniRotate(90)" style="flex:0 0 auto; width:38px; height:34px; background:#2a2f3a; color:#fff;">↻</button>
+  </div>
+  <button type="button" onclick="setImgRot(0)" style="width:100%; margin-top:6px; background:#2a2f3a; color:#fff; padding:6px;">⟲ Сбросить поворот</button>
 </div></div>
 
 <div class="ratio-box" id="ratioBox">
@@ -381,7 +387,7 @@ cursor: pointer; overflow: hidden;
 <button class="primary" id="exportBtn" onclick="processExport()">⬇️ Скачать текст (PNG)</button>
 
 <div style="display: flex; gap: 8px; margin-top: 10px; flex-direction: column;">
-<button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">✈️💬 Скопировать для Telegram / MAX</button>
+<button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">⧉ Скопировать для Telegram / MAX</button>
 </div>
 
 <button class="danger" onclick="clearEditor()">🗑️ Очистить холст</button>
@@ -416,7 +422,7 @@ cursor: pointer; overflow: hidden;
 <textarea id="markdownOutput" readonly></textarea>
 <div style="display: flex; gap: 8px; flex-direction: column;">
 <div style="display: flex; gap: 8px;">
-<button class="primary" style="margin-top:0; background:#2481cc; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForTelegram()">✈️💬 Скопировать<br>для Telegram / MAX</button>
+<button class="primary" style="margin-top:0; background:#2481cc; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForTelegram()">⧉ Скопировать<br>для Telegram / MAX</button>
 </div>
 <button class="danger" style="margin-top:0; padding: 10px; font-size: 14px;" onclick="document.getElementById('textModal').style.display='none'">Закрыть</button>
 </div>
@@ -433,6 +439,9 @@ cursor: pointer; overflow: hidden;
   <div class="mb-div"></div>
   <button onmousedown="event.preventDefault()" onclick="miniRotate(-90)" title="Повернуть влево">↺</button>
   <button onmousedown="event.preventDefault()" onclick="miniRotate(90)" title="Повернуть вправо">↻</button>
+  <div class="mb-div"></div>
+  <button onmousedown="event.preventDefault()" onclick="miniToTop()" title="В начало поста">⬆️</button>
+  <button onmousedown="event.preventDefault()" onclick="miniToBottom()" title="В конец поста">⬇️</button>
   <div class="mb-div"></div>
   <button onmousedown="event.preventDefault()" onclick="miniDelete()" title="Удалить">🗑️</button>
 </div>
@@ -501,6 +510,9 @@ let currentImgBox = null;
 let historyStack = [];
 let historyIndex = -1;
 
+function isMobile() { return window.innerWidth <= 820; }
+function focusEditor() { if (!isMobile()) editor.focus(); }
+
 function setRealVH() {
 const vh = window.innerHeight * 0.01;
 document.documentElement.style.setProperty('--vh', vh + 'px');
@@ -555,7 +567,7 @@ document.getElementById('charCount').textContent = editor.innerText.replace(/\u2
 updateRatio();
 updateUndoRedoButtons();
 currentImgBox = null;
-editor.focus();
+focusEditor();
 }
 
 function rebindImages() {
@@ -570,6 +582,8 @@ resizer.className = 'img-resizer';
 resizer.contentEditable = 'false';
 box.appendChild(resizer);
 }
+ensureRotor(box);
+applyImgStyles(box);
 bindResizer(box);
 });
 }
@@ -585,10 +599,23 @@ box.parentNode.insertBefore(anchor, box);
 });
 }
 
+function snapImageToLineStart(box) {
+  if (!box) return;
+  let prev = box.previousSibling;
+  while (prev) {
+    if (prev.nodeType === Node.ELEMENT_NODE && prev.tagName === 'BR') break;
+    if (prev.nodeType === Node.TEXT_NODE && prev.textContent === '\u200B') { prev = prev.previousSibling; continue; }
+    if (prev.nodeType === Node.TEXT_NODE) {
+      box.parentNode.insertBefore(box, prev);
+      prev = box.previousSibling;
+      continue;
+    }
+    break;
+  }
+}
+
 const SAFE_RATIO = 1.25;
 const WARN_RATIO = 1.60;
-
-function isMobile() { return window.innerWidth <= 820; }
 
 let currentZoom = 1;
 let userZoomed = false;
@@ -748,7 +775,7 @@ zoomWrapper.classList.remove('dragging');
 }
 }, { passive: false });
 
-window.onload = () => { saveHistory(); editor.focus(); setRealVH(); updateRatio(); autoScreenFit(); };
+window.onload = () => { saveHistory(); focusEditor(); setRealVH(); updateRatio(); autoScreenFit(); };
 
 function updateBgColor(color) { exportNode.style.setProperty('--bg-color', color); }
 function updateMainTextColor(color) { exportNode.style.setProperty('--text-color', color); }
@@ -829,7 +856,7 @@ document.getElementById('charCount').textContent = '0';
 updateRatio();
 currentImgBox = null;
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 function setPreset(mode, btn) {
@@ -924,7 +951,7 @@ restoreSelection();
 document.execCommand('foreColor', false, color);
 exitSelectionFromFormatting();
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 function format(command, value) {
@@ -938,7 +965,7 @@ restoreSelection();
 document.execCommand(command, false, value || null);
 exitSelectionFromFormatting();
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 function cleanFormat() {
@@ -947,7 +974,7 @@ const sel = window.getSelection();
 if (!sel || !sel.rangeCount || sel.toString().length === 0) return;
 document.execCommand('removeFormat', false, null);
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 function formatCode() {
@@ -960,7 +987,7 @@ range.deleteContents();
 range.insertNode(codeNode);
 exitSelectionFromFormatting();
 saveHistory();
-editor.focus();
+focusEditor();
 }
 }
 
@@ -983,10 +1010,10 @@ el.setAttribute('data-custom-size', 'true');
 }
 scaleEl(wrapper);
 wrapper.querySelectorAll('*').forEach(function(child) { if (child.style && child.style.fontSize) scaleEl(child); });
-  exitSelectionFromFormatting();
+exitSelectionFromFormatting();
 updateRatio();
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 function selectWordAtCaret() {
@@ -995,9 +1022,8 @@ if (!sel || !sel.rangeCount) return;
 const range = sel.getRangeAt(0);
 if (!range.collapsed) return;
 
-const node = range.startContainer;
 if (node.nodeType === Node.TEXT_NODE) {
-const text = node.textContent;
+  const text = node.textContent;
 let start = range.startOffset;
 let end = range.startOffset;
 while (start > 0 && !/\s/.test(text[start - 1])) start--;
@@ -1037,7 +1063,7 @@ el.parentNode.replaceChild(span, el);
 exitSelectionFromFormatting();
 updateRatio();
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 function deleteSelection() {
@@ -1049,7 +1075,7 @@ updateImgCounter();
 document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
 updateRatio();
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 /* ФУНКЦИЯ ПОЛНОЙ ОЧИСТКИ И ВАЛИДАЦИИ ССЫЛОК */
@@ -1112,7 +1138,7 @@ document.execCommand('createLink', false, url);
 exitSelectionFromFormatting();
 
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 function updateImgCounter() {
@@ -1157,6 +1183,7 @@ box.querySelector('img').onload = updateRatio;
 
 if (range) {
   range.insertNode(box);
+  snapImageToLineStart(box);
   const zwspAfter = document.createTextNode('\u200B');
   box.parentNode.insertBefore(zwspAfter, box.nextSibling);
   ensureAnchorBeforeImages();
@@ -1165,6 +1192,7 @@ if (range) {
   range.collapse(true);
 } else {
   editor.appendChild(box);
+  snapImageToLineStart(box);
   const zwspAfter = document.createTextNode('\u200B');
   editor.appendChild(zwspAfter);
   ensureAnchorBeforeImages();
@@ -1183,7 +1211,7 @@ updateRatio();
 saveHistory();
 
 event.target.value = '';
-setTimeout(() => editor.focus(), 50);
+setTimeout(() => focusEditor(), 50);
 }
 
 function createImageBox(url) {
@@ -1246,6 +1274,7 @@ newResizer.addEventListener('touchstart', startResize, {passive: false});
 }
 
 function selectImgBox(box) {
+if (isMobile()) { editor.blur(); if (document.activeElement) document.activeElement.blur(); }
 editor.querySelectorAll('.img-box').forEach(function(b) { b.classList.remove('selected'); });
 box.classList.add('selected');
 currentImgBox = box;
@@ -1262,7 +1291,7 @@ updateImgCounter();
 document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
 updateRatio();
 saveHistory();
-editor.focus();
+focusEditor();
 }
 
 document.addEventListener('click', function(e) {
@@ -1298,6 +1327,7 @@ const dropX = e.clientX - editorRect.left;
 dragBox.classList.remove('align-right', 'align-center');
 if (dropX > editorRect.width / 2) dragBox.classList.add('align-right');
 range.insertNode(dragBox);
+snapImageToLineStart(dragBox);
 const zwsp = document.createTextNode('\u200B');
 dragBox.parentNode.insertBefore(zwsp, dragBox.nextSibling);
 ensureAnchorBeforeImages();
@@ -1320,17 +1350,24 @@ if (dragBox && !isTouchDraggingImg) {
 isTouchDraggingImg = true;
 imgGhost = dragBox.cloneNode(true);
 imgGhost.style.position = 'fixed';
-imgGhost.style.opacity = '0.6';
+imgGhost.style.opacity = '0.75';
 imgGhost.style.pointerEvents = 'none';
 imgGhost.style.zIndex = '99999';
-imgGhost.style.width = dragBox.offsetWidth + 'px';
+imgGhost.style.width = '90px';
+imgGhost.style.maxWidth = '90px';
+imgGhost.style.margin = '0';
+imgGhost.style.borderRadius = '10px';
+imgGhost.style.boxShadow = '0 4px 14px rgba(0,0,0,.5)';
+const gImg = imgGhost.querySelector('img');
+if (gImg) { gImg.style.width = '90px'; gImg.style.height = 'auto'; }
+const gRes = imgGhost.querySelector('.img-resizer'); if (gRes) gRes.remove();
 document.body.appendChild(imgGhost);
 }
 if (isTouchDraggingImg) {
 e.preventDefault();
 const touch = e.touches[0];
-imgGhost.style.left = (touch.clientX - imgGhost.offsetWidth/2) + 'px';
-imgGhost.style.top = (touch.clientY - imgGhost.offsetHeight/2) + 'px';
+imgGhost.style.left = (touch.clientX - 45) + 'px';
+imgGhost.style.top = (touch.clientY - 45) + 'px';
 }
 }, {passive: false});
 
@@ -1355,6 +1392,7 @@ const dropX = touch.clientX - editorRect.left;
 dragBox.classList.remove('align-right', 'align-center');
 if (dropX > editorRect.width / 2) dragBox.classList.add('align-right');
 range.insertNode(dragBox);
+snapImageToLineStart(dragBox);
 const zwsp = document.createTextNode('\u200B');
 dragBox.parentNode.insertBefore(zwsp, dragBox.nextSibling);
 ensureAnchorBeforeImages();
@@ -1384,7 +1422,7 @@ const t = document.createElement('div'); t.className = 'emoji-section-title'; t.
 const bar = document.createElement('div'); bar.className = 'emoji-bar';
 emojiGroups[g].forEach(function(e) {
 const span = document.createElement('span'); span.textContent = e;
-span.onclick = function() { restoreSelection(); document.execCommand('insertText', false, e); updateRatio(); saveHistory(); editor.focus(); };
+span.onclick = function() { restoreSelection(); document.execCommand('insertText', false, e); updateRatio(); saveHistory(); focusEditor(); };
 bar.appendChild(span);
 });
 emojiWrap.appendChild(bar);
@@ -1849,7 +1887,9 @@ function ensureRotor(box) {
     rotor.contentEditable = 'false';
     const img = box.querySelector('img');
     if (img) rotor.appendChild(img);
+    const resizer = box.querySelector('.img-resizer');
     box.insertBefore(rotor, box.firstChild);
+    if (resizer) box.appendChild(resizer);
   }
 }
 
@@ -1881,6 +1921,7 @@ function syncImgSettings() {
   const rad = parseInt(currentImgBox.dataset.radius || '12', 10);
   const brd = parseInt(currentImgBox.dataset.border || '0', 10);
   const col = currentImgBox.dataset.borderColor || '#000000';
+  const rot = parseInt(currentImgBox.dataset.rot || '0', 10);
   document.getElementById('imgGapRange').value = gap;
   document.getElementById('imgGapLabel').textContent = gap;
   document.getElementById('imgRadiusRange').value = rad;
@@ -1888,10 +1929,15 @@ function syncImgSettings() {
   document.getElementById('imgBorderRange').value = brd;
   document.getElementById('imgBorderLabel').textContent = brd;
   document.getElementById('imgBorderColor').value = col;
+  const rotRange = document.getElementById('imgRotRange');
+  const rotLabel = document.getElementById('imgRotLabel');
+  if (rotRange) rotRange.value = rot;
+  if (rotLabel) rotLabel.textContent = rot;
 }
 
 function applyImgStyles(box) {
   if (!box) return;
+  ensureRotor(box);
   const gap = parseInt(box.dataset.gap || '20', 10);
   const rad = parseInt(box.dataset.radius || '12', 10);
   const brd = parseInt(box.dataset.border || '0', 10);
@@ -1913,21 +1959,61 @@ function setImgRadius(v) { if(!currentImgBox) return; currentImgBox.dataset.radi
 function setImgBorder(v) { if(!currentImgBox) return; currentImgBox.dataset.border = v; document.getElementById('imgBorderLabel').textContent = v; applyImgStyles(currentImgBox); clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); }
 function setImgBorderColor(v) { if(!currentImgBox) return; currentImgBox.dataset.borderColor = v; applyImgStyles(currentImgBox); clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); }
 
+function setImgRot(v) {
+  if(!currentImgBox) return;
+  currentImgBox.dataset.rot = v;
+  const lbl = document.getElementById('imgRotLabel');
+  if (lbl) lbl.textContent = v;
+  const rng = document.getElementById('imgRotRange');
+  if (rng) rng.value = v;
+  applyImgStyles(currentImgBox);
+  updateRatio(); positionMiniBar();
+  clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
+
 function miniAlign(dir) {
   if (!currentImgBox) return;
   currentImgBox.classList.remove('align-right', 'align-center');
   if (dir === 'right') currentImgBox.classList.add('align-right');
   else if (dir === 'center') currentImgBox.classList.add('align-center');
   applyImgStyles(currentImgBox);
-  updateRatio(); positionMiniBar(); saveHistory(); editor.focus();
+  updateRatio(); positionMiniBar(); saveHistory(); focusEditor();
 }
 
 function miniRotate(deg) {
   if (!currentImgBox) return;
   let rot = parseInt(currentImgBox.dataset.rot || '0', 10) + deg;
+  while (rot > 180) rot -= 360;
+  while (rot < -180) rot += 360;
   currentImgBox.dataset.rot = rot;
+  const lbl = document.getElementById('imgRotLabel'); if (lbl) lbl.textContent = rot;
+  const rng = document.getElementById('imgRotRange'); if (rng) rng.value = rot;
   applyImgStyles(currentImgBox);
-  updateRatio(); positionMiniBar(); saveHistory();
+  updateRatio(); positionMiniBar(); saveHistory(); focusEditor();
+}
+
+function miniToTop() {
+  if (!currentImgBox) return;
+  const box = currentImgBox;
+  editor.insertBefore(box, editor.firstChild);
+  if (!box.nextSibling || (box.nextSibling.nodeType === Node.TEXT_NODE && box.nextSibling.textContent === '')) {
+    const zwsp = document.createTextNode('\u200B');
+    editor.insertBefore(zwsp, box.nextSibling);
+  }
+  ensureAnchorBeforeImages();
+  applyImgStyles(box);
+  updateRatio(); positionMiniBar(); saveHistory(); focusEditor();
+}
+
+function miniToBottom() {
+  if (!currentImgBox) return;
+  const box = currentImgBox;
+  editor.appendChild(box);
+  const zwsp = document.createTextNode('\u200B');
+  editor.appendChild(zwsp);
+  ensureAnchorBeforeImages();
+  applyImgStyles(box);
+  updateRatio(); positionMiniBar(); saveHistory(); focusEditor();
 }
 
 function miniDelete() {
@@ -1938,7 +2024,7 @@ function miniDelete() {
   document.getElementById('imgSettings').classList.remove('visible');
   updateImgCounter();
   document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
-  updateRatio(); saveHistory(); editor.focus();
+  updateRatio(); saveHistory(); focusEditor();
 }
 
 function miniDuplicate() {
@@ -1953,7 +2039,7 @@ function miniDuplicate() {
   rebindImages();
   applyImgStyles(clone);
   selectImgBox(clone);
-  updateImgCounter(); updateRatio(); saveHistory(); editor.focus();
+  updateImgCounter(); updateRatio(); saveHistory(); focusEditor();
 }
 
 stageArea.addEventListener('scroll', () => currentImgBox && positionMiniBar());
