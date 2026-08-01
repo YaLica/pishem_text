@@ -79,8 +79,8 @@ font-weight: 400;
 #editor[placeholder]:empty:before { content: attr(placeholder); opacity: 0.5; }
 #editor code { background: rgba(128,128,128,0.2); padding: 4px 8px; border-radius: 6px; font-family: monospace; }
 #editor a { color: #3d7eff; text-decoration: underline; cursor: pointer; }
-.img-box { position: relative; float: left; margin: 8px 20px 8px 0; width: 50%; max-width: 95%; cursor: grab; user-select: none; -webkit-user-select: none; border-radius: 12px; }
-.img-box.align-right { float: right; margin: 8px 0 8px 20px; }
+.img-box { position: relative; float: left; margin: 0 20px 8px 0; width: 50%; max-width: 95%; cursor: grab; user-select: none; -webkit-user-select: none; border-radius: 12px; }
+.img-box.align-right { float: right; margin: 0 0 8px 20px; }
 .img-box.align-center { float: none; display: block; margin: 10px auto; clear: both; }
 .img-spacer-left { float: left; height: 10px; width: var(--side-space, 0px); }
 .img-spacer-right { float: right; height: 10px; width: var(--side-space, 0px); }
@@ -1554,6 +1554,7 @@ const modalTextarea = document.getElementById('markdownOutput');
 modalTextarea.parentNode.insertBefore(imgPreview, modalTextarea);
 }
 imgPreview.src = dataUrl;
+imgPreview.style.display = 'block';
 
 function finish() {
 document.getElementById('markdownOutput').value = generatePlainText();
@@ -2044,10 +2045,20 @@ function applyImgStyles(box) {
   const brd = parseInt(box.dataset.border || '0', 10);
   const col = box.dataset.borderColor || '#000000';
   const rot = parseInt(box.dataset.rot || '0', 10);
+
   box.style.setProperty('--img-radius', rad + 'px');
   box.style.setProperty('--img-border', brd + 'px');
   box.style.setProperty('--img-border-color', col);
   box.style.setProperty('--img-rot', rot + 'deg');
+
+  const rotor = box.querySelector('.img-rotor');
+  const img = box.querySelector('img');
+  if (rotor) rotor.style.transform = 'rotate(' + rot + 'deg)';
+  if (img) {
+    img.style.borderRadius = rad + 'px';
+    img.style.boxShadow = brd > 0 ? '0 0 0 ' + brd + 'px ' + col : 'none';
+  }
+
   const isRight = box.classList.contains('align-right');
   const isCenter = box.classList.contains('align-center');
 
@@ -2056,8 +2067,8 @@ function applyImgStyles(box) {
     updateCenterSpacers(box, gap);
   } else {
     removeCenterSpacers(box);
-    if (isRight) box.style.margin = '8px 0 8px ' + gap + 'px';
-    else box.style.margin = '8px ' + gap + 'px 8px 0';
+    if (isRight) box.style.margin = '0 0 8px ' + gap + 'px';
+    else box.style.margin = '0 ' + gap + 'px 8px 0';
     box.style.removeProperty('--side-space');
   }
 }
