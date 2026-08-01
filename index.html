@@ -83,7 +83,7 @@ font-weight: 400;
 .img-box.align-right { float: right; margin: 8px 0 8px 20px; }
 .img-box.align-center { float: none; display: block; margin: 8px auto; }
 .img-box:active { cursor: grabbing; }
-.img-box img { display: block; width: 100%; border-radius: 12px; pointer-events: none; }
+.img-box img { display: block; width: 100%; border-radius: 12px; pointer-events: none; transition: transform 0.3s ease, border-radius .2s, box-shadow .2s; }
 .img-box.selected { outline: 3px solid #3d7eff; outline-offset: 3px; }
 .img-resizer { position: absolute; right: 0; bottom: 0; width: 28px; height: 28px; cursor: nwse-resize; z-index: 10; display: none; }
 .img-resizer::after { content: ''; position: absolute; right: 4px; bottom: 4px; width: 14px; height: 14px; border-right: 3px solid #fff; border-bottom: 3px solid #fff; border-radius: 2px; filter: drop-shadow(0 0 3px rgba(0,0,0,0.8)); }
@@ -91,7 +91,6 @@ font-weight: 400;
 
 /* ===== ЭТАП 1: улучшенные картинки ===== */
 .img-box { transition: box-shadow .2s, border-radius .2s; }
-.img-box img { transition: border-radius .2s, box-shadow .2s; }
 .img-box { --img-radius: 12px; --img-border: 0px; --img-border-color: #000000; }
 .img-box img { border-radius: var(--img-radius); box-shadow: 0 0 0 var(--img-border) var(--img-border-color); }
 .img-box .img-rotor { display: block; width: 100%; transition: transform 0.3s ease; transform-origin: center; }
@@ -387,10 +386,7 @@ cursor: pointer; overflow: hidden;
 <button class="primary" id="exportBtn" onclick="processExport()">⬇️ Скачать текст (PNG)</button>
 
 <div style="display: flex; gap: 8px; margin-top: 10px; flex-direction: column;">
-<button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-  Скопировать для Telegram / MAX
-</button>
+<button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">❐ Скопировать для Telegram / MAX</button>
 </div>
 
 <button class="danger" onclick="clearEditor()">🗑️ Очистить холст</button>
@@ -425,10 +421,7 @@ cursor: pointer; overflow: hidden;
 <textarea id="markdownOutput" readonly></textarea>
 <div style="display: flex; gap: 8px; flex-direction: column;">
 <div style="display: flex; gap: 8px;">
-<button class="primary" style="margin-top:0; background:#2481cc; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForTelegram()">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-  Скопировать<br>для Telegram / MAX
-</button>
+<button class="primary" style="margin-top:0; background:#2481cc; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForTelegram()">❐ Скопировать<br>для Telegram / MAX</button>
 </div>
 <button class="danger" style="margin-top:0; padding: 10px; font-size: 14px;" onclick="document.getElementById('textModal').style.display='none'">Закрыть</button>
 </div>
@@ -442,12 +435,11 @@ cursor: pointer; overflow: hidden;
   <button onmousedown="event.preventDefault()" onclick="miniAlign('left')" title="Слева">◀</button>
   <button onmousedown="event.preventDefault()" onclick="miniAlign('center')" title="По центру">▲</button>
   <button onmousedown="event.preventDefault()" onclick="miniAlign('right')" title="Справа">▶</button>
+  <button onmousedown="event.preventDefault()" onclick="miniToTop()" title="В начало поста">⬆️</button>
+  <button onmousedown="event.preventDefault()" onclick="miniToBottom()" title="В конец поста">⬇️</button>
   <div class="mb-div"></div>
   <button onmousedown="event.preventDefault()" onclick="miniRotate(-90)" title="Повернуть влево">↺</button>
   <button onmousedown="event.preventDefault()" onclick="miniRotate(90)" title="Повернуть вправо">↻</button>
-  <div class="mb-div"></div>
-  <button onmousedown="event.preventDefault()" onclick="miniToTop()" title="В начало поста">⬆️</button>
-  <button onmousedown="event.preventDefault()" onclick="miniToBottom()" title="В конец поста">⬇️</button>
   <div class="mb-div"></div>
   <button onmousedown="event.preventDefault()" onclick="miniDelete()" title="Удалить">🗑️</button>
 </div>
@@ -1957,6 +1949,10 @@ function applyImgStyles(box) {
   if (rotor) {
     rotor.style.transform = 'rotate(' + rot + 'deg)';
   }
+  const img = box.querySelector('img');
+  if (img) {
+    img.style.transform = 'rotate(' + rot + 'deg)';
+  }
 
   const isRight = box.classList.contains('align-right');
   const isCenter = box.classList.contains('align-center');
@@ -2042,7 +2038,8 @@ function miniDuplicate() {
   if (!currentImgBox) return;
   if (updateImgCounter() >= 10) { alert('Максимум 10 картинок'); return; }
   const clone = currentImgBox.cloneNode(true);
-  clone.classList.remove('selected');
+  clone.classList.remove('selected', 'align-center');
+  clone.classList.add('align-right');
   currentImgBox.parentNode.insertBefore(clone, currentImgBox.nextSibling);
   const zwsp = document.createTextNode('\u200B');
   clone.parentNode.insertBefore(zwsp, clone.nextSibling);
