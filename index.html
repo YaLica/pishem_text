@@ -69,7 +69,7 @@ input[type="color"]::-webkit-color-swatch { border: none; }
 #editor {
 outline: none; font-size: 32px; line-height: 1.2; white-space: pre-wrap;
 word-break: normal; overflow-wrap: break-word; -webkit-hyphens: none; hyphens: none;
-min-height: 100px; text-align: justify; transition: font-size 0.2s; display: flow-root;
+min-height: 100px; text-align: justify; text-align-last: left; transition: font-size 0.2s; display: flow-root;
 cursor: text; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
 caret-color: #000000;
 font-weight: 400;
@@ -1547,9 +1547,7 @@ html2canvas(exportNode, {
   scale: 2,
   useCORS: true,
   width: exportNode.offsetWidth,
-  height: exportNode.offsetHeight,
   windowWidth: exportNode.offsetWidth,
-  windowHeight: exportNode.offsetHeight,
   scrollX: 0,
   scrollY: 0,
   x: 0,
@@ -1840,6 +1838,14 @@ e.preventDefault();
 
 editor.addEventListener('keydown', function(e) {
 const sel = window.getSelection();
+
+if (e.key === 'Enter') {
+e.preventDefault();
+document.execCommand('insertLineBreak');
+updateRatio();
+saveHistory();
+return;
+}
 
 if (e.key === ' ' || e.code === 'Space') {
 if (handleSpaceFormattingReset()) {
