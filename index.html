@@ -178,6 +178,9 @@ transition: left 0.3s ease;
 .modal { width: 92%; max-width: 500px; }
 .emoji-wrap, label[style*="😀 Эмодзи"] { display: none !important; }
 #imgMiniBar { display: none !important; }
+
+/* iPhone: разрешить курсор внутрь слова */
+#editor { word-break: break-word; }
 }
 
 #quickBar {
@@ -503,7 +506,8 @@ cursor: pointer; overflow: hidden;
   <label>🔄 Поворот: <span id="impRotLabel">0</span>°</label>
   <div class="imp-rot-row">
     <button onclick="miniRotate(-90)">↺</button>
-    <input type="range" id="impRotRange" min="-180" max="180" value="0" step="1" oninput="setImgRot(this.value)" style="flex:1;">
+    <button id="impRotLock" onclick="toggleRotLock()" title="Включить/выключить плавный поворот" style="flex:0 0 auto; width:34px; height:32px; background:#2a2f3a; color:#fff;">🔒</button>
+    <input type="range" id="impRotRange" min="-180" max="180" value="0" step="1" oninput="setImgRot(this.value)" style="flex:1; opacity:0.4; pointer-events:none;">
     <button onclick="miniRotate(90)">↻</button>
   </div>
   <div class="imp-btns">
@@ -2260,11 +2264,33 @@ function miniDuplicate() {
 
 /* ===== ТЕЛЕФОННАЯ ПЛАВАЮЩАЯ МЕНЮ КАРТИНКИ ===== */
 let impPos = null;
+let rotUnlocked = false;
+
+function setRotLock(unlocked) {
+  rotUnlocked = unlocked;
+  const btn = document.getElementById('impRotLock');
+  const slider = document.getElementById('impRotRange');
+  if (!btn || !slider) return;
+  if (unlocked) {
+    btn.textContent = '🔓';
+    slider.style.opacity = '1';
+    slider.style.pointerEvents = 'auto';
+  } else {
+    btn.textContent = '🔒';
+    slider.style.opacity = '0.4';
+    slider.style.pointerEvents = 'none';
+  }
+}
+
+function toggleRotLock() {
+  setRotLock(!rotUnlocked);
+}
 
 function openImgMobilePanel() {
   const p = document.getElementById('imgMobilePanel');
   if (!p || !currentImgBox) return;
   syncImgMobilePanel();
+  setRotLock(false);
   p.classList.add('visible');
   requestAnimationFrame(function(){
     const pw = p.offsetWidth || 270;
