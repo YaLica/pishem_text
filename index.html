@@ -80,6 +80,7 @@ font-weight: 400;
 #editor code { background: rgba(128,128,128,0.2); padding: 4px 8px; border-radius: 6px; font-family: monospace; }
 #editor a { color: #3d7eff; text-decoration: underline; cursor: pointer; }
 .img-box { position: relative; float: left; margin: 0 20px 8px 0; width: 50%; max-width: 95%; cursor: grab; user-select: none; -webkit-user-select: none; border-radius: 12px; }
+.img-box.clear-line { clear: both !important; }
 .img-box.align-right { float: right; margin: 0 0 8px 20px; }
 .img-box.align-center { float: none; display: block; margin: 10px auto; clear: both; }
 .img-spacer-left { float: left; height: 10px; width: var(--side-space, 0px); }
@@ -112,6 +113,7 @@ font-weight: 400;
   display: flex; align-items: center; justify-content: center;
 }
 #imgMiniBar button:hover { background: #3d7eff; }
+#imgMiniBar button.active { background: #3d7eff !important; }
 #imgMiniBar .mb-div { width: 1px; height: 22px; background: #4a5568; margin: 0 2px; }
 
 #imgSettings { display: none; background: #2a2f3a50; padding: 12px; border-radius: 8px; margin-top: 12px; }
@@ -237,7 +239,7 @@ cursor: pointer; overflow: hidden;
   background: #2a2f3a; color: #fff; border-radius: 7px; font-size: 15px;
   display: flex; align-items: center; justify-content: center;
 }
-#imgMobilePanel .imp-btns button:active { background: #3d7eff; }
+#imgMobilePanel .imp-btns button:active, #imgMobilePanel .imp-btns button.active { background: #3d7eff !important; }
 #imgMobilePanel .imp-rot-row { display: flex; gap: 6px; align-items: center; }
 #imgMobilePanel .imp-rot-row button { flex: 0 0 auto; width: 34px; height: 32px; background:#2a2f3a; color:#fff; }
 </style>
@@ -391,6 +393,7 @@ cursor: pointer; overflow: hidden;
 <button id="btnDeleteImg" class="danger" onclick="deleteSelectedImage()" style="margin-top: 12px; padding: 8px; display: block;">🗑️ Удалить выбранную картинку</button>
 <div id="imgSettings">
   <label style="color:#4ade80; margin-top:0;">🎛️ Настройки выбранной картинки</label>
+  <button type="button" id="btnClearLine" onclick="toggleClearLine()" style="width:100%; margin:8px 0 4px; background:#2a2f3a; color:#fff; padding:8px;">➡️ В строку с картинкой/текстом</button>
   <label>↔️ Отступ текста: <span id="imgGapLabel">20</span> px</label>
   <input type="range" id="imgGapRange" min="0" max="60" value="20" oninput="setImgGap(this.value)">
   <label>⬜ Скругление углов: <span id="imgRadiusLabel">12</span> px</label>
@@ -478,6 +481,7 @@ cursor: pointer; overflow: hidden;
   <button onmousedown="event.preventDefault()" onclick="miniAlign('left')" title="Слева">◀</button>
   <button onmousedown="event.preventDefault()" onclick="miniAlign('center')" title="По центру">▲</button>
   <button onmousedown="event.preventDefault()" onclick="miniAlign('right')" title="Справа">▶</button>
+  <button id="miniClearBtn" onmousedown="event.preventDefault()" onclick="toggleClearLine()" title="С новой строки (под картинками сверху)">⬇️</button>
   <div class="mb-div"></div>
   <button onmousedown="event.preventDefault()" onclick="miniRotate(-90)" title="Повернуть влево">↺</button>
   <input type="range" id="miniRotSlider" min="-180" max="180" value="0" step="1" oninput="setImgRot(this.value)" onmousedown="event.stopPropagation()" style="width:70px; height:20px; margin:0 2px;" title="Плавный поворот">
@@ -515,6 +519,7 @@ cursor: pointer; overflow: hidden;
     <button onclick="miniAlign('left')" title="Слева">◀</button>
     <button onclick="miniAlign('center')" title="Центр">▲</button>
     <button onclick="miniAlign('right')" title="Справа">▶</button>
+    <button id="impClearBtn" onclick="toggleClearLine()" title="С новой строки (под другими картинками)">⬇️ С новой строки</button>
     <button onclick="miniToTop()" title="В начало">⬆️</button>
     <button onclick="miniToBottom()" title="В конец">⬇️</button>
     <button onclick="miniDelete()" title="Удалить">🗑️</button>
@@ -2046,6 +2051,14 @@ function hideMiniBar() {
   if (bar) bar.classList.remove('visible');
 }
 
+function toggleClearLine() {
+  if (!currentImgBox) return;
+  currentImgBox.classList.toggle('clear-line');
+  syncImgSettings();
+  updateRatio();
+  saveHistory();
+}
+
 function syncImgSettings() {
   const box = document.getElementById('imgSettings');
   if (!currentImgBox) { box.classList.remove('visible'); return; }
@@ -2055,6 +2068,7 @@ function syncImgSettings() {
   const brd = parseInt(currentImgBox.dataset.border || '0', 10);
   const col = currentImgBox.dataset.borderColor || '#000000';
   const rot = parseInt(currentImgBox.dataset.rot || '0', 10);
+  const isClear = currentImgBox.classList.contains('clear-line');
   
   document.getElementById('imgGapRange').value = gap;
   document.getElementById('imgGapLabel').textContent = gap;
@@ -2071,6 +2085,16 @@ function syncImgSettings() {
 
   const miniSlider = document.getElementById('miniRotSlider');
   if (miniSlider) miniSlider.value = rot;
+
+  const btn1 = document.getElementById('btnClearLine');
+  if (btn1) {
+    if (isClear) { btn1.classList.add('active'); btn1.textContent = '⬇️ С новой строки (Включено)'; }
+    else { btn1.classList.remove('active'); btn1.textContent = '➡️ В строку с картинкой/текстом'; }
+  }
+  const btn2 = document.getElementById('miniClearBtn');
+  if (btn2) { if (isClear) btn2.classList.add('active'); else btn2.classList.remove('active'); }
+  const btn3 = document.getElementById('impClearBtn');
+  if (btn3) { if (isClear) btn3.classList.add('active'); else btn3.classList.remove('active'); }
 
   syncImgMobilePanel();
 }
@@ -2105,8 +2129,8 @@ function applyImgStyles(box) {
     updateCenterSpacers(box, gap);
   } else {
     removeCenterSpacers(box);
-    if (isRight) box.style.margin = '0 0 8px ' + gap + 'px';
-    else box.style.margin = '0 ' + gap + 'px 8px 0';
+    if (isRight) box.style.margin = '0 0 ' + gap + 'px ' + gap + 'px';
+    else box.style.margin = '0 ' + gap + 'px ' + gap + 'px 0';
     box.style.removeProperty('--side-space');
   }
 }
@@ -2324,7 +2348,8 @@ function syncImgMobilePanel() {
   const brd = parseInt(currentImgBox.dataset.border || '0', 10);
   const col = currentImgBox.dataset.borderColor || '#000000';
   const rot = parseInt(currentImgBox.dataset.rot || '0', 10);
-  
+  const isClear = currentImgBox.classList.contains('clear-line');
+
   const igr = document.getElementById('impGapRange'); if (igr) igr.value = gap;
   const igl = document.getElementById('impGapLabel'); if (igl) igl.textContent = gap;
   const irr = document.getElementById('impRadiusRange'); if (irr) irr.value = rad;
@@ -2334,6 +2359,9 @@ function syncImgMobilePanel() {
   const ibc = document.getElementById('impBorderColor'); if (ibc) ibc.value = col;
   const irrRot = document.getElementById('impRotRange'); if (irrRot) irrRot.value = rot;
   const irlRot = document.getElementById('impRotLabel'); if (irlRot) irlRot.textContent = rot;
+
+  const btn3 = document.getElementById('impClearBtn');
+  if (btn3) { if (isClear) btn3.classList.add('active'); else btn3.classList.remove('active'); }
 }
 
 // УЛУЧШЕННОЕ ПЛАВНОЕ ПЕРЕТАСКИВАНИЕ МЕНЮ ЗА ЗАГОЛОВОК
