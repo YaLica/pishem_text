@@ -240,6 +240,40 @@ cursor: pointer; overflow: hidden;
 #imgMobilePanel .imp-btns button:active { background: #3d7eff; }
 #imgMobilePanel .imp-rot-row { display: flex; gap: 6px; align-items: center; }
 #imgMobilePanel .imp-rot-row button { flex: 0 0 auto; width: 34px; height: 32px; background:#2a2f3a; color:#fff; }
+
+/* ===== КОЛОНКИ ВОКРУГ ЦЕНТРАЛЬНОЙ КАРТИНКИ ===== */
+.center-cols {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+  clear: both;
+  margin: 12px 0;
+  width: 100%;
+}
+.center-cols .cc-col {
+  flex: 1 1 0;
+  min-width: 40px;
+  outline: none;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+.center-cols .cc-col:empty:before {
+  content: 'Текст...';
+  opacity: 0.35;
+}
+.center-cols .cc-img {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+}
+.center-cols .cc-img .img-box {
+  float: none !important;
+  margin: 0 !important;
+  display: block !important;
+}
+.center-cols .cc-img .img-box .img-spacer-left,
+.center-cols .cc-img .img-box .img-spacer-right { display: none !important; }
 </style>
 </head>
 <body>
@@ -487,6 +521,20 @@ cursor: pointer; overflow: hidden;
   <button onmousedown="event.preventDefault()" onclick="miniToBottom()" title="В конец поста">⬇️</button>
   <div class="mb-div"></div>
   <button onmousedown="event.preventDefault()" onclick="miniDelete()" title="Удалить">🗑️</button>
+</div>
+
+<!-- ОКОШКО ВЫБОРА КОЛОНОК -->
+<div class="modal-overlay" id="colModal">
+  <div class="modal" style="width: 360px; text-align: center;">
+    <h2>🗂️ Колонки текста вокруг картинки</h2>
+    <p style="font-size: 13px; color: #9aa4b2; margin: 4px 0 16px;">Где добавить место для текста?</p>
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <button class="preset" style="padding: 12px;" onclick="applyColumns('left')">◀ Только слева</button>
+      <button class="preset" style="padding: 12px;" onclick="applyColumns('right')">Только справа ▶</button>
+      <button class="preset" style="padding: 12px;" onclick="applyColumns('both')">◀ Слева и справа ▶</button>
+      <button class="danger" style="margin-top: 6px; padding: 10px;" onclick="closeColModal()">✖️ Просто по центру (без колонок)</button>
+    </div>
+  </div>
 </div>
 
 <!-- ТЕЛЕФОННАЯ ПЛАВАЮЩАЯ МЕНЮ КАРТИНКИ -->
@@ -1528,7 +1576,7 @@ emojiWrap.appendChild(bar);
 
 function generatePlainText() {
 const clone = editor.cloneNode(true);
-clone.querySelectorAll('.img-box, .img-spacer-left, .img-spacer-right').forEach(el => el.remove());
+clone.querySelectorAll('.center-cols, .img-box, .img-spacer-left, .img-spacer-right').forEach(el => el.remove());
 return clone.innerText.replace(/\u200B/g, '').trim();
 }
 
@@ -1647,7 +1695,7 @@ zoomWrapper.style.transform = savedTransform;
 function getEditorLines() {
 const src = document.createElement('div');
 src.innerHTML = editor.innerHTML;
-src.querySelectorAll('.img-box, .img-spacer-left, .img-spacer-right').forEach(el => el.remove());
+src.querySelectorAll('.center-cols, .img-box, .img-spacer-left, .img-spacer-right').forEach(el => el.remove());
 
 // Удаляем стилистические спаны (размер, шрифт и т.д.), но оставляем форматирование
 src.querySelectorAll('span, font').forEach(function(el) {
@@ -2196,9 +2244,83 @@ function miniAlign(dir) {
   if (!currentImgBox) return;
   currentImgBox.classList.remove('align-right', 'align-center');
   if (dir === 'right') currentImgBox.classList.add('align-right');
-  else if (dir === 'center') currentImgBox.classList.add('align-center');
+  else if (dir === 'center') {
+    currentImgBox.classList.add('align-center');
+    applyImgStyles(currentImgBox);
+    updateRatio(); positionMiniBar();
+    openColModal();
+    return;
+  }
   applyImgStyles(currentImgBox);
   updateRatio(); positionMiniBar(); saveHistory(); focusEditor();
+}
+
+/* ===== КОЛОНКИ: логика ===== */
+let colTargetImg = null;
+
+function openColModal() {
+  colTargetImg = currentImgBox;
+  document.getElementById('colModal').style.display = 'flex';
+}
+
+function closeColModal() {
+  document.getElementById('colModal').style.display = 'none';
+  colTargetImg = null;
+  saveHistory();
+  focusEditor();
+}
+
+function applyColumns(mode) {
+  const box = colTargetImg;
+  if (!box) { closeColModal(); return; }
+
+  removeCenterSpacers(box);
+
+  // Создаём контейнер
+  const wrap = document.createElement('div');
+  wrap.className = 'center-cols';
+  wrap.contentEditable = 'false';
+
+  // Левая колонка
+  if (mode === 'left' || mode === 'both') {
+    const left = document.createElement('div');
+    left.className = 'cc-col cc-left';
+    left.contentEditable = 'true';
+    wrap.appendChild(left);
+  }
+
+  // Центр — картинка
+  const imgCell = document.createElement('div');
+  imgCell.className = 'cc-img';
+  box.classList.remove('align-center', 'align-right');
+  imgCell.appendChild(box);
+  wrap.appendChild(imgCell);
+
+  // Правая колонка
+  if (mode === 'right' || mode === 'both') {
+    const right = document.createElement('div');
+    right.className = 'cc-col cc-right';
+    right.contentEditable = 'true';
+    wrap.appendChild(right);
+  }
+
+  // Вставляем контейнер туда, где была картинка
+  editor.appendChild(wrap);
+  // подчистим пустой хвост
+  const zwsp = document.createTextNode('\u200B');
+  editor.appendChild(zwsp);
+
+  applyImgStyles(box);
+
+  document.getElementById('colModal').style.display = 'none';
+  colTargetImg = null;
+  currentImgBox = null;
+  hideMiniBar();
+  closeImgMobilePanel();
+
+  updateRatio();
+  saveHistory();
+  focusEditor();
 }
 
 function miniRotate(deg) {
@@ -2237,7 +2359,7 @@ function miniToBottom() {
 
 function miniDelete() {
   if (!currentImgBox) return;
-  removeCenterSpacers(currentImgBox);
+  removeCenterSpacers(box);
   currentImgBox.remove();
   currentImgBox = null;
   hideMiniBar();
