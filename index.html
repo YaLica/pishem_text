@@ -67,7 +67,7 @@ input[type="color"]::-webkit-color-swatch { border: none; }
 #export-node.no-tail::before { display: none; }
 
 #editor {
-outline: none; font-size: 32px; line-height: 1.2; white-space: normal;
+outline: none; font-size: 32px; line-height: 1.2; white-space: pre-wrap;
 word-break: normal; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto;
 min-height: 100px; text-align: justify; transition: font-size 0.2s; display: flow-root;
 cursor: text; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
@@ -207,7 +207,7 @@ cursor: pointer; overflow: hidden;
 #imgMobilePanel {
   position: fixed; z-index: 6000; display: none;
   width: 270px; max-width: 90vw;
-  background: rgba(23, 26, 33, 0.65); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  background: rgba(23, 26, 33, 0.78);
   border: 1px solid #3d7eff; border-radius: 14px;
   box-shadow: 0 8px 30px rgba(0,0,0,.6);
   padding: 0 12px 12px; color: #e8e8e8;
@@ -2248,18 +2248,24 @@ function openImgMobilePanel() {
   if (!p || !currentImgBox) return;
   syncImgMobilePanel();
   p.classList.add('visible');
-  const margin = 10;
-  if (impPos) {
-    let maxL = window.innerWidth - p.offsetWidth - margin;
-    let maxT = window.innerHeight - p.offsetHeight - margin;
-    let left = Math.max(margin, Math.min(impPos.left, maxL));
-    let top = Math.max(margin, Math.min(impPos.top, maxT));
+  requestAnimationFrame(function(){
+    const pw = p.offsetWidth || 270;
+    const ph = p.offsetHeight || 300;
+    const peek = 40;
+    const minL = peek - pw, maxL = window.innerWidth - peek;
+    const minT = peek - ph, maxT = window.innerHeight - peek;
+    let left, top;
+    if (impPos) {
+      left = Math.max(minL, Math.min(impPos.left, maxL));
+      top  = Math.max(minT, Math.min(impPos.top, maxT));
+    } else {
+      left = Math.max(0, (window.innerWidth - pw) / 2);
+      top  = 80;
+    }
     p.style.left = left + 'px';
     p.style.top = top + 'px';
-  } else {
-    p.style.left = Math.max(margin, (window.innerWidth / 2 - p.offsetWidth / 2)) + 'px';
-    p.style.top = '80px';
-  }
+    impPos = { left: left, top: top };
+  });
 }
 
 function closeImgMobilePanel() {
@@ -2301,11 +2307,15 @@ function syncImgMobilePanel() {
   function move(x, y) {
     if (!dragging) return;
     let nl = ox + (x - sx), nt = oy + (y - sy);
-    const margin = 8;
-    const maxL = window.innerWidth - panel.offsetWidth - margin;
-    const maxT = window.innerHeight - panel.offsetHeight - margin;
-    nl = Math.max(margin, Math.min(nl, maxL));
-    nt = Math.max(margin, Math.min(nt, maxT));
+    const peek = 40;
+    const pw = panel.offsetWidth;
+    const ph = panel.offsetHeight;
+    const minL = peek - pw;
+    const maxL = window.innerWidth - peek;
+    const minT = peek - ph;
+    const maxT = window.innerHeight - peek;
+    nl = Math.max(minL, Math.min(nl, maxL));
+    nt = Math.max(minT, Math.min(nt, maxT));
     panel.style.left = nl + 'px';
     panel.style.top = nt + 'px';
     impPos = { left: nl, top: nt };
