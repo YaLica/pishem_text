@@ -68,7 +68,7 @@ input[type="color"]::-webkit-color-swatch { border: none; }
 
 #editor {
 outline: none; font-size: 32px; line-height: 1.2; white-space: pre-wrap;
-word-break: normal; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto;
+word-break: normal; overflow-wrap: break-word; -webkit-hyphens: none; hyphens: none;
 min-height: 100px; text-align: justify; transition: font-size 0.2s; display: flow-root;
 cursor: text; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
 caret-color: #000000;
@@ -1547,18 +1547,27 @@ html2canvas(exportNode, {
   scale: 2,
   useCORS: true,
   width: exportNode.offsetWidth,
-  windowWidth: Math.max(exportNode.offsetWidth + 100, 1200),
-  windowHeight: exportNode.offsetHeight + 100,
+  height: exportNode.offsetHeight,
+  windowWidth: exportNode.offsetWidth,
+  windowHeight: exportNode.offsetHeight,
+  scrollX: 0,
+  scrollY: 0,
+  x: 0,
+  y: 0,
   onclone: function(clonedDoc) {
     var ed = clonedDoc.getElementById('editor');
     if (ed) {
-      ed.style.setProperty('-webkit-hyphens', 'auto');
-      ed.style.setProperty('-moz-hyphens', 'auto');
-      ed.style.setProperty('-ms-hyphens', 'auto');
-      ed.style.setProperty('hyphens', 'auto');
+      ed.style.setProperty('-webkit-hyphens', 'none');
+      ed.style.setProperty('-moz-hyphens', 'none');
+      ed.style.setProperty('-ms-hyphens', 'none');
+      ed.style.setProperty('hyphens', 'none');
       ed.style.setProperty('word-break', 'normal');
       ed.style.setProperty('overflow-wrap', 'break-word');
       ed.style.setProperty('text-align', 'justify');
+      ed.querySelectorAll('*').forEach(function(el){
+        el.style.setProperty('-webkit-hyphens', 'none');
+        el.style.setProperty('hyphens', 'none');
+      });
     }
     var cn = clonedDoc.documentElement;
     if (cn) cn.setAttribute('lang', 'ru');
