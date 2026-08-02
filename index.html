@@ -1542,7 +1542,25 @@ const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platfor
 const isAndroid = /Android/i.test(navigator.userAgent);
 
 setTimeout(function() {
-html2canvas(exportNode, { backgroundColor: null, scale: 2, useCORS: true }).then(function(canvas) {
+html2canvas(exportNode, {
+  backgroundColor: null,
+  scale: 2,
+  useCORS: true,
+  onclone: function(clonedDoc) {
+    var ed = clonedDoc.getElementById('editor');
+    if (ed) {
+      ed.style.setProperty('-webkit-hyphens', 'auto');
+      ed.style.setProperty('-moz-hyphens', 'auto');
+      ed.style.setProperty('-ms-hyphens', 'auto');
+      ed.style.setProperty('hyphens', 'auto');
+      ed.style.setProperty('word-break', 'normal');
+      ed.style.setProperty('overflow-wrap', 'break-word');
+      ed.style.setProperty('text-align', 'justify');
+    }
+    var cn = clonedDoc.documentElement;
+    if (cn) cn.setAttribute('lang', 'ru');
+  }
+}).then(function(canvas) {
 const dataUrl = canvas.toDataURL('image/png');
 
 let imgPreview = document.getElementById('previewImage');
