@@ -263,11 +263,13 @@ cursor: pointer; overflow: hidden;
   opacity: 0.35;
 }
 .center-cols .cc-img {
-  flex: 0 0 auto;
+  flex: 0 0 40%;
   display: flex;
   justify-content: center;
+  max-width: 50%;
 }
 .center-cols .cc-img .img-box {
+  width: 100% !important;
   float: none !important;
   margin: 0 !important;
   display: block !important;
@@ -2274,14 +2276,25 @@ function applyColumns(mode) {
   const box = colTargetImg;
   if (!box) { closeColModal(); return; }
 
+  // Запоминаем соседей картинки, чтобы вставить блок НА ЕЁ МЕСТО
+  const parent = box.parentNode;
+  const anchor = box.nextSibling; // сюда вставим блок
+
   removeCenterSpacers(box);
 
-  // Создаём контейнер
+  // Готовим картинку ДО помещения в колонки
+  box.classList.remove('align-center', 'align-right');
+  box.classList.remove('selected');
+  applyImgStyles(box);
+  box.style.width = box.style.width || '100%';
+  box.style.float = 'none';
+  box.style.margin = '0';
+
+  // Контейнер
   const wrap = document.createElement('div');
   wrap.className = 'center-cols';
   wrap.contentEditable = 'false';
 
-  // Левая колонка
   if (mode === 'left' || mode === 'both') {
     const left = document.createElement('div');
     left.className = 'cc-col cc-left';
@@ -2289,14 +2302,11 @@ function applyColumns(mode) {
     wrap.appendChild(left);
   }
 
-  // Центр — картинка
   const imgCell = document.createElement('div');
   imgCell.className = 'cc-img';
-  box.classList.remove('align-center', 'align-right');
   imgCell.appendChild(box);
   wrap.appendChild(imgCell);
 
-  // Правая колонка
   if (mode === 'right' || mode === 'both') {
     const right = document.createElement('div');
     right.className = 'cc-col cc-right';
@@ -2304,13 +2314,13 @@ function applyColumns(mode) {
     wrap.appendChild(right);
   }
 
-  // Вставляем контейнер туда, где была картинка
-  editor.appendChild(wrap);
-  // подчистим пустой хвост
-  const zwsp = document.createTextNode('\u200B');
-  editor.appendChild(zwsp);
+  // Вставляем блок ТОЧНО на место картинки
+  if (anchor) parent.insertBefore(wrap, anchor);
+  else parent.appendChild(wrap);
 
-  applyImgStyles(box);
+  // Чистим лишние ZWSP-якоря рядом с блоком
+  const p = wrap.previousSibling;
+  if (p && p.nodeType === Node.TEXT_NODE && p.textContent === '\u200B') p.remove();
 
   document.getElementById('colModal').style.display = 'none';
   colTargetImg = null;
@@ -2359,7 +2369,7 @@ function miniToBottom() {
 
 function miniDelete() {
   if (!currentImgBox) return;
-  removeCenterSpacers(box);
+  removeCenterSpacers(currentImgBox);
   currentImgBox.remove();
   currentImgBox = null;
   hideMiniBar();
