@@ -99,6 +99,21 @@ font-weight: 400;
 .img-box .img-rotor { display: block; transition: transform .12s linear; transform: rotate(var(--img-rot, 0deg)); transform-origin: center; }
 .img-box .img-rotor img { border-radius: var(--img-radius); box-shadow: 0 0 0 var(--img-border) var(--img-border-color) !important; }
 
+/* ===== ЭТАП 2: ТЕКСТОВЫЕ ПЛАШКИ ===== */
+.text-box {
+  position: absolute; left: 40px; top: 40px;
+  min-width: 60px; max-width: 90%;
+  padding: 10px 14px;
+  background: rgba(0,0,0,0.55); color: #ffffff;
+  border-radius: 10px; font-size: 24px; line-height: 1.25;
+  text-align: center; z-index: 20; cursor: move;
+  word-break: break-word; overflow-wrap: break-word;
+  -webkit-user-select: text; user-select: text; box-sizing: border-box;
+}
+.text-box:focus { outline: none; }
+.text-box.selected { outline: 3px solid #10b981; outline-offset: 2px; }
+.text-box:empty:before { content: attr(data-ph); opacity: 0.6; font-style: italic; }
+
 #imgMiniBar {
   position: fixed; z-index: 5000; display: none;
   background: #171a21; border: 1px solid #3d7eff; border-radius: 10px;
@@ -389,6 +404,7 @@ cursor: pointer; overflow: hidden;
 <b>Размер:</b> кликни и потяни за правый нижний угол ⇲.
 </div>
 <button id="btnDeleteImg" class="danger" onclick="deleteSelectedImage()" style="margin-top: 12px; padding: 8px; display: block;">🗑️ Удалить выбранную картинку</button>
+<button class="primary" onclick="addTextBox()" style="margin-top: 12px; padding: 10px; background:#10b981;">➕ Добавить надпись (плашку)</button>
 <div id="imgSettings">
   <label style="color:#4ade80; margin-top:0;">🎛️ Настройки выбранной картинки</label>
   <label>↔️ Отступ текста: <span id="imgGapLabel">20</span> px</label>
@@ -568,6 +584,7 @@ cursor: pointer; overflow: hidden;
 <option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">🏛️ Антиква: Oranienbaum</option>
 </select>
 <button onmousedown="qbImage(event)" title="Добавить картинку">🖼️</button>
+<button onmousedown="event.preventDefault(); addTextBox();" title="Добавить надпись">📝</button>
 <input type="file" id="qbImageInput" accept="image/*" multiple style="display:none;" onchange="insertMultipleImages(event)">
 </div>
 
@@ -2009,6 +2026,38 @@ handle.classList.toggle('open');
 handle.textContent = panel.classList.contains('open') ? '‹' : '›';
 }
 
+/* ================= ЭТАП 2: ТЕКСТОВЫЕ ПЛАШКИ ================= */
+let currentTextBox = null;
+
+function addTextBox() {
+  const count = exportNode.querySelectorAll('.text-box').length;
+  if (count >= 10) { alert('Максимум 10 надписей'); return; }
+  const box = document.createElement('div');
+  box.className = 'text-box';
+  box.contentEditable = 'true';
+  box.setAttribute('data-ph', 'Твой текст…');
+  box.style.left = (30 + count * 20) + 'px';
+  box.style.top  = (30 + count * 20) + 'px';
+  exportNode.appendChild(box);
+  bindTextBox(box);
+  selectTextBox(box);
+  setTimeout(function(){ box.focus(); }, 30);
+  saveHistory();
+}
+
+function bindTextBox(box) {
+  box.addEventListener('click', function(e){ e.stopPropagation(); selectTextBox(box); });
+  box.addEventListener('input', function(){ clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); });
+}
+
+function selectTextBox(box) {
+  editor.querySelectorAll('.img-box').forEach(function(b){ b.classList.remove('selected'); });
+  document.querySelectorAll('.text-box').forEach(function(b){ b.classList.remove('selected'); });
+  box.classList.add('selected');
+  currentTextBox = box;
+  currentImgBox = null;
+}
+
 /* ================= ЭТАП 1: РАСШИРЕННЫЕ КАРТИНКИ ================= */
 
 function ensureRotor(box) {
@@ -2237,7 +2286,7 @@ function miniToBottom() {
 
 function miniDelete() {
   if (!currentImgBox) return;
-  removeCenterSpacers(currentImgBox);
+  removeCenterSpacers(box);
   currentImgBox.remove();
   currentImgBox = null;
   hideMiniBar();
