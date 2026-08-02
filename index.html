@@ -67,7 +67,7 @@ input[type="color"]::-webkit-color-swatch { border: none; }
 #export-node.no-tail::before { display: none; }
 
 #editor {
-outline: none; font-size: 32px; line-height: 1.2; white-space: pre-wrap;
+outline: none; font-size: 32px; line-height: 1.2; white-space: normal;
 word-break: normal; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto;
 min-height: 100px; text-align: justify; transition: font-size 0.2s; display: flow-root;
 cursor: text; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
@@ -207,16 +207,17 @@ cursor: pointer; overflow: hidden;
 #imgMobilePanel {
   position: fixed; z-index: 6000; display: none;
   width: 270px; max-width: 90vw;
-  background: rgba(23, 26, 33, 0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  background: rgba(23, 26, 33, 0.65); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   border: 1px solid #3d7eff; border-radius: 14px;
   box-shadow: 0 8px 30px rgba(0,0,0,.6);
   padding: 0 12px 12px; color: #e8e8e8;
+  touch-action: none;
 }
 #imgMobilePanel.visible { display: block; }
 #imgMobilePanel .imp-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 0 8px; cursor: grab; user-select: none; touch-action: none;
-  border-bottom: 1px solid #2a2f3a; margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px;
 }
 #imgMobilePanel .imp-head.grabbing { cursor: grabbing; }
 #imgMobilePanel .imp-title { font-size: 13px; font-weight: bold; color: #4ade80; }
@@ -1390,7 +1391,6 @@ editor.querySelectorAll('.img-box').forEach(function(b) { b.classList.remove('se
 currentImgBox = null;
 hideMiniBar();
 closeImgMobilePanel();
-// Панель настроек боковая не прячется
 }
 });
 
@@ -1714,7 +1714,6 @@ let ok = false;
 const btn = btnId ? document.getElementById(btnId) : null;
 const original = btn ? btn.innerHTML : '';
 
-// Оборачиваем HTML в стандартный контейнер, чтобы MAX идеально считывал его как Rich Text
 const richHtml = '<div>' + html + '</div>';
 
 try {
@@ -1755,7 +1754,6 @@ setTimeout(function() { btn.innerHTML = original; }, 2000);
 restoreSelection();
 }
 
-/* КОПИРОВАНИЕ: слово-ссылка. В plain (запасной) — слово + адрес с новой строки */
 async function copyForTelegram() {
 if (!editor.innerText.trim()) return;
 const lines = getEditorLines();
@@ -2250,11 +2248,16 @@ function openImgMobilePanel() {
   if (!p || !currentImgBox) return;
   syncImgMobilePanel();
   p.classList.add('visible');
+  const margin = 10;
   if (impPos) {
-    p.style.left = impPos.left + 'px';
-    p.style.top = impPos.top + 'px';
+    let maxL = window.innerWidth - p.offsetWidth - margin;
+    let maxT = window.innerHeight - p.offsetHeight - margin;
+    let left = Math.max(margin, Math.min(impPos.left, maxL));
+    let top = Math.max(margin, Math.min(impPos.top, maxT));
+    p.style.left = left + 'px';
+    p.style.top = top + 'px';
   } else {
-    p.style.left = Math.max(10, (window.innerWidth / 2 - p.offsetWidth / 2)) + 'px';
+    p.style.left = Math.max(margin, (window.innerWidth / 2 - p.offsetWidth / 2)) + 'px';
     p.style.top = '80px';
   }
 }
@@ -2283,7 +2286,7 @@ function syncImgMobilePanel() {
   const irlRot = document.getElementById('impRotLabel'); if (irlRot) irlRot.textContent = rot;
 }
 
-// ПЕРЕТАСКИВАНИЕ МЕНЮ ЗА ЗАГОЛОВОК
+// УЛУЧШЕННОЕ ПЛАВНОЕ ПЕРЕТАСКИВАНИЕ МЕНЮ ЗА ЗАГОЛОВОК
 (function(){
   const head = document.getElementById('impHead');
   const panel = document.getElementById('imgMobilePanel');
@@ -2298,8 +2301,11 @@ function syncImgMobilePanel() {
   function move(x, y) {
     if (!dragging) return;
     let nl = ox + (x - sx), nt = oy + (y - sy);
-    nl = Math.max(0, Math.min(nl, window.innerWidth - panel.offsetWidth));
-    nt = Math.max(0, Math.min(nt, window.innerHeight - panel.offsetHeight));
+    const margin = 8;
+    const maxL = window.innerWidth - panel.offsetWidth - margin;
+    const maxT = window.innerHeight - panel.offsetHeight - margin;
+    nl = Math.max(margin, Math.min(nl, maxL));
+    nt = Math.max(margin, Math.min(nt, maxT));
     panel.style.left = nl + 'px';
     panel.style.top = nt + 'px';
     impPos = { left: nl, top: nt };
