@@ -99,21 +99,30 @@ font-weight: 400;
 .img-box .img-rotor { display: block; transition: transform .12s linear; transform: rotate(var(--img-rot, 0deg)); transform-origin: center; }
 .img-box .img-rotor img { border-radius: var(--img-radius); box-shadow: 0 0 0 var(--img-border) var(--img-border-color) !important; }
 
-/* ===== ЭТАП 2: ТЕКСТОВЫЕ ПЛАШКИ ===== */
+/* ===== ЭТАП 2: ТЕКСТОВЫЕ ПЛАШКИ (ТЕКСТ-БЛОКИ) ===== */
 .text-box {
   position: absolute; left: 40px; top: 40px;
   min-width: 60px; max-width: 90%;
   padding: 10px 14px;
   background: rgba(0,0,0,0.55); color: #ffffff;
   border-radius: 10px; font-size: 24px; line-height: 1.25;
-  text-align: center; z-index: 20; cursor: move;
+  text-align: center; z-index: 20; cursor: text;
   word-break: break-word; overflow-wrap: break-word;
   -webkit-user-select: text; user-select: text; box-sizing: border-box;
-  touch-action: none;
 }
 .text-box:focus { outline: none; }
 .text-box.selected { outline: 3px solid #10b981; outline-offset: 2px; }
 .text-box:empty:before { content: attr(data-ph); opacity: 0.6; font-style: italic; }
+.text-box .tb-drag-frame {
+  position: absolute; inset: -3px; z-index: 2;
+  display: none; pointer-events: none;
+}
+.text-box.selected .tb-drag-frame { display: block; }
+.text-box .tb-edge { position: absolute; pointer-events: auto; cursor: move; touch-action: none; }
+.text-box .tb-edge.top    { top: -3px; left: -3px; right: -3px; height: 12px; }
+.text-box .tb-edge.bottom { bottom: -3px; left: -3px; right: -3px; height: 12px; }
+.text-box .tb-edge.left   { left: -3px; top: -3px; bottom: -3px; width: 12px; }
+.text-box .tb-edge.right  { right: -3px; top: -3px; bottom: -3px; width: 12px; }
 
 #imgMiniBar {
   position: fixed; z-index: 5000; display: none;
@@ -2058,7 +2067,7 @@ handle.classList.toggle('open');
 handle.textContent = panel.classList.contains('open') ? '‹' : '›';
 }
 
-/* ================= ЭТАП 2: ТЕКСТОВЫЕ ПЛАШКИ ================= */
+/* ================= ЭТАП 2: ТЕКСТОВЫЕ ПЛАШКИ (ТЕКСТ-БЛОКИ) ================= */
 let currentTextBox = null;
 
 function addTextBox() {
@@ -2080,7 +2089,22 @@ function addTextBox() {
 function bindTextBox(box) {
   box.addEventListener('click', function(e){ e.stopPropagation(); selectTextBox(box); });
   box.addEventListener('input', function(){ clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); });
+  ensureDragFrame(box);
   makeTextBoxDraggable(box);
+}
+
+function ensureDragFrame(box) {
+  if (box.querySelector('.tb-drag-frame')) return;
+  const frame = document.createElement('div');
+  frame.className = 'tb-drag-frame';
+  frame.contentEditable = 'false';
+  ['top','bottom','left','right'].forEach(function(side){
+    const edge = document.createElement('div');
+    edge.className = 'tb-edge ' + side;
+    edge.contentEditable = 'false';
+    frame.appendChild(edge);
+  });
+  box.appendChild(frame);
 }
 
 function makeTextBoxDraggable(box) {
@@ -2088,6 +2112,11 @@ function makeTextBoxDraggable(box) {
   let startX, startY, origLeft, origTop;
 
   function onStart(e) {
+    const edge = e.target.closest('.tb-edge');
+    if (!edge) return;
+
+    selectTextBox(box);
+
     const touch = e.touches ? e.touches[0] : e;
     startX = touch.clientX;
     startY = touch.clientY;
@@ -2095,19 +2124,22 @@ function makeTextBoxDraggable(box) {
     origTop = box.offsetTop;
     isDragging = false;
 
+    if (e.cancelable) e.preventDefault();
+
     function onMove(ev) {
       const t = ev.touches ? ev.touches[0] : ev;
       const dx = t.clientX - startX;
       const dy = t.clientY - startY;
 
-      if (!isDragging && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
+      if (!isDragging && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
         isDragging = true;
       }
 
       if (isDragging) {
         if (ev.cancelable) ev.preventDefault();
-        let newLeft = origLeft + dx;
-        let newTop = origTop + dy;
+        const z = (typeof currentZoom === 'number' && currentZoom > 0) ? currentZoom : 1;
+        let newLeft = origLeft + dx / z;
+        let newTop = origTop + dy / z;
 
         const maxLeft = exportNode.clientWidth - box.offsetWidth;
         const maxTop = exportNode.clientHeight - box.offsetHeight;
@@ -2139,7 +2171,7 @@ function makeTextBoxDraggable(box) {
   }
 
   box.addEventListener('mousedown', onStart);
-  box.addEventListener('touchstart', onStart, {passive: true});
+  box.addEventListener('touchstart', onStart, {passive: false});
 }
 
 function selectTextBox(box) {
