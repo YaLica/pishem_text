@@ -549,16 +549,16 @@ cursor: pointer; overflow: hidden;
 
 <!-- QUICKBAR -->
 <div id="quickBar">
-<button ontouchstart="undoAction(event)" onmousedown="undoAction(event)">↩️</button>
-<button ontouchstart="redoAction(event)" onmousedown="redoAction(event)">↪️</button>
-<button ontouchstart="qb(event,'bold')" onmousedown="qb(event,'bold')"><b>Ж</b></button>
-<button ontouchstart="qb(event,'italic')" onmousedown="qb(event,'italic')"><i>К</i></button>
-<button ontouchstart="qb(event,'underline')" onmousedown="qb(event,'underline')"><u>Ч</u></button>
-<button ontouchstart="qbSize(event,1.2)" onmousedown="qbSize(event,1.2)">A+</button>
-<button ontouchstart="qbSize(event,0.85)" onmousedown="qbSize(event,0.85)">A-</button>
+<button onmousedown="undoAction(event)">↩️</button>
+<button onmousedown="redoAction(event)">↪️</button>
+<button onmousedown="qb(event,'bold')"><b>Ж</b></button>
+<button onmousedown="qb(event,'italic')"><i>К</i></button>
+<button onmousedown="qb(event,'underline')"><u>Ч</u></button>
+<button onmousedown="qbSize(event,1.2)">A+</button>
+<button onmousedown="qbSize(event,0.85)">A-</button>
 <input type="color" id="qbWordColor" value="#ff0000" oninput="applyTextColor(this.value)" onchange="applyTextColor(this.value)" title="Цвет выделенного текста">
-<button ontouchstart="qbLink(event)" onmousedown="qbLink(event)">🔗</button>
-<button ontouchstart="qbClean(event)" onmousedown="qbClean(event)" title="Сбросить стили">🧹</button>
+<button onmousedown="qbLink(event)">🔗</button>
+<button onmousedown="qbClean(event)" title="Сбросить стили">🧹</button>
 <select id="qbFontSelect" ontouchstart="saveSelectionBeforeAction(); event.stopPropagation();" onmousedown="saveSelectionBeforeAction(); event.stopPropagation();" onchange="qbFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного слова" style="flex:0 0 auto; width:auto; min-width:90px; height:42px; padding:0 6px; border-radius:10px; background:#2a2f3a; color:#e6ebf2; border:1px solid #3a4150; font-size:13px;">
 <option value="">🔤 Шрифт</option>
 <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">📱 Системный (Стандарт)</option>
@@ -588,12 +588,13 @@ cursor: pointer; overflow: hidden;
 <option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">💻 Киберпанк: Kelly Slab</option>
 <option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">✍️ Маркер: Neucha</option>
 <option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">🎬 Кино: Amatic SC</option>
+<option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">☕ Кофейня: Marck Script</option>
 <option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">📝 Записки: Bad Script</option>
 <option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">🌸 Салон: Yeseva One</option>
 <option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">🕊️ Изящный: Philosopher</option>
 <option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">🏛️ Антиква: Oranienbaum</option>
 </select>
-<button onmousedown="qbImage(event)">🖼️</button>
+<button onmousedown="qbImage(event)" title="Добавить картинку">🖼️</button>
 <button onmousedown="event.preventDefault(); addTextBox();" title="Добавить надпись">📝</button>
 <input type="file" id="qbImageInput" accept="image/*" multiple style="display:none;" onchange="insertMultipleImages(event)">
 </div>
@@ -1043,12 +1044,7 @@ if (sel && sel.rangeCount > 0) {
 }
 }
 
-document.addEventListener('selectionchange', function(){
-  const ae = document.activeElement;
-  if (ae === editor || (currentTextBox && ae === currentTextBox)) {
-    saveSelectionBeforeAction();
-  }
-});
+document.addEventListener('selectionchange', saveSelectionBeforeAction);
 
 editor.addEventListener('keyup', saveSelectionBeforeAction);
 editor.addEventListener('mouseup', saveSelectionBeforeAction);
