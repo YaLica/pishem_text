@@ -1030,11 +1030,14 @@ updateRatio();
 
 function saveSelectionBeforeAction() {
 const sel = window.getSelection();
-if (sel && sel.rangeCount > 0 && editor.contains(sel.anchorNode)) {
-const range = sel.getRangeAt(0);
-if (!range.collapsed || document.activeElement === editor) {
-savedSelection = range.cloneRange();
-}
+if (sel && sel.rangeCount > 0) {
+  const anchor = sel.anchorNode;
+  if (editor.contains(anchor) || (currentTextBox && currentTextBox.contains(anchor))) {
+    const range = sel.getRangeAt(0);
+    if (!range.collapsed || document.activeElement === editor || (currentTextBox && document.activeElement === currentTextBox)) {
+      savedSelection = range.cloneRange();
+    }
+  }
 }
 }
 
@@ -1044,17 +1047,26 @@ editor.addEventListener('mouseup', saveSelectionBeforeAction);
 editor.addEventListener('touchend', saveSelectionBeforeAction);
 
 function restoreSelection() {
-editor.focus();
-if (savedSelection && editor.contains(savedSelection.commonAncestorContainer)) {
-const sel = window.getSelection();
-sel.removeAllRanges();
-sel.addRange(savedSelection);
+if (currentTextBox && exportNode.contains(currentTextBox)) {
+  currentTextBox.focus();
+  if (savedSelection && currentTextBox.contains(savedSelection.commonAncestorContainer)) {
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedSelection);
+  }
+} else {
+  editor.focus();
+  if (savedSelection && editor.contains(savedSelection.commonAncestorContainer)) {
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedSelection);
+  }
 }
 }
 
 function getStyledInlineParent(node) {
 let curr = (node.nodeType === Node.TEXT_NODE) ? node.parentNode : node;
-while (curr && curr !== editor) {
+while (curr && curr !== editor && (!currentTextBox || curr !== currentTextBox)) {
 const tag = curr.tagName;
 if (tag === 'SPAN' || tag === 'FONT' || tag === 'B' || tag === 'STRONG' ||
 tag === 'I' || tag === 'EM' || tag === 'U' || tag === 'S' || tag === 'STRIKE' || tag === 'CODE') {
@@ -1090,9 +1102,13 @@ sel.addRange(newRange);
 function applyTextColor(color) {
 restoreSelection();
 document.execCommand('foreColor', false, color);
-exitSelectionFromFormatting();
+if (!currentTextBox) {
+  exitSelectionFromFormatting();
+  focusEditor();
+} else {
+  currentTextBox.focus();
+}
 saveHistory();
-focusEditor();
 }
 
 function format(command, value) {
@@ -1104,9 +1120,13 @@ else if (command === 'justifyFull') { currentImgBox.classList.remove('align-righ
 }
 restoreSelection();
 document.execCommand(command, false, value || null);
-exitSelectionFromFormatting();
+if (!currentTextBox) {
+  exitSelectionFromFormatting();
+  focusEditor();
+} else {
+  currentTextBox.focus();
+}
 saveHistory();
-focusEditor();
 }
 
 function cleanFormat() {
@@ -1115,7 +1135,7 @@ const sel = window.getSelection();
 if (!sel || !sel.rangeCount || sel.toString().length === 0) return;
 document.execCommand('removeFormat', false, null);
 saveHistory();
-focusEditor();
+if (!currentTextBox) focusEditor(); else currentTextBox.focus();
 }
 
 function formatCode() {
@@ -1126,9 +1146,9 @@ const codeNode = document.createElement('code');
 codeNode.textContent = sel.toString();
 range.deleteContents();
 range.insertNode(codeNode);
-exitSelectionFromFormatting();
+if (!currentTextBox) exitSelectionFromFormatting();
 saveHistory();
-focusEditor();
+if (!currentTextBox) focusEditor(); else currentTextBox.focus();
 }
 }
 
@@ -1139,7 +1159,8 @@ if (!sel || !sel.rangeCount || sel.toString().length === 0) return;
 const range = sel.getRangeAt(0);
 const wrapper = document.createElement('span');
 try { range.surroundContents(wrapper); } catch (e) { wrapper.appendChild(range.extractContents()); range.insertNode(wrapper); }
-const baseSize = parseFloat(getComputedStyle(editor).fontSize) || 32;
+const container = currentTextBox || editor;
+const baseSize = parseFloat(getComputedStyle(container).fontSize) || (currentTextBox ? 24 : 32);
 function scaleEl(el) {
 let current = parseFloat(el.style.fontSize);
 if (!current) current = parseFloat(getComputedStyle(el).fontSize) || baseSize;
@@ -1151,10 +1172,14 @@ el.setAttribute('data-custom-size', 'true');
 }
 scaleEl(wrapper);
 wrapper.querySelectorAll('*').forEach(function(child) { if (child.style && child.style.fontSize) scaleEl(child); });
-exitSelectionFromFormatting();
+if (!currentTextBox) {
+  exitSelectionFromFormatting();
+  focusEditor();
+} else {
+  currentTextBox.focus();
+}
 updateRatio();
 saveHistory();
-focusEditor();
 }
 
 function selectWordAtCaret() {
@@ -1194,7 +1219,8 @@ if (!sel || !sel.rangeCount || sel.toString().trim().length === 0) return;
 
 document.execCommand('fontName', false, font);
 
-editor.querySelectorAll('font[face]').forEach(el => {
+const scope = currentTextBox || editor;
+scope.querySelectorAll('font[face]').forEach(el => {
 const span = document.createElement('span');
 span.style.fontFamily = el.getAttribute('face');
 span.setAttribute('data-custom-font', 'true');
@@ -1202,10 +1228,10 @@ while (el.firstChild) span.appendChild(el.firstChild);
 el.parentNode.replaceChild(span, el);
 });
 
-exitSelectionFromFormatting();
+if (!currentTextBox) exitSelectionFromFormatting();
 updateRatio();
 saveHistory();
-focusEditor();
+if (!currentTextBox) focusEditor(); else currentTextBox.focus();
 }
 
 function deleteSelection() {
@@ -1217,7 +1243,7 @@ updateImgCounter();
 document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
 updateRatio();
 saveHistory();
-focusEditor();
+if (!currentTextBox) focusEditor(); else currentTextBox.focus();
 }
 
 /* ФУНКЦИЯ ПОЛНОЙ ОЧИСТКИ И ВАЛИДАЦИИ ССЫЛОК */
@@ -1271,16 +1297,16 @@ if (!input) return;
 let url = sanitizeUrl(input);
 if (!url || url === 'https://') return;
 
-editor.focus();
+if (currentTextBox) currentTextBox.focus(); else editor.focus();
 const currentSel = window.getSelection();
 currentSel.removeAllRanges();
 currentSel.addRange(rangeBackup);
 
 document.execCommand('createLink', false, url);
-exitSelectionFromFormatting();
+if (!currentTextBox) exitSelectionFromFormatting();
 
 saveHistory();
-focusEditor();
+if (!currentTextBox) focusEditor(); else currentTextBox.focus();
 }
 
 function updateImgCounter() {
@@ -1450,7 +1476,7 @@ currentImgBox = null;
 hideMiniBar();
 closeImgMobilePanel();
 }
-if (!e.target.closest('.text-box')) {
+if (!e.target.closest('.text-box') && !e.target.closest('.toolbar') && !e.target.closest('#quickBar') && !e.target.closest('#imgMiniBar')) {
 document.querySelectorAll('.text-box').forEach(function(b) { b.classList.remove('selected'); });
 currentTextBox = null;
 }
@@ -1578,7 +1604,7 @@ const t = document.createElement('div'); t.className = 'emoji-section-title'; t.
 const bar = document.createElement('div'); bar.className = 'emoji-bar';
 emojiGroups[g].forEach(function(e) {
 const span = document.createElement('span'); span.textContent = e;
-span.onclick = function() { restoreSelection(); document.execCommand('insertText', false, e); updateRatio(); saveHistory(); focusEditor(); };
+span.onclick = function() { restoreSelection(); document.execCommand('insertText', false, e); updateRatio(); saveHistory(); if (!currentTextBox) focusEditor(); else currentTextBox.focus(); };
 bar.appendChild(span);
 });
 emojiWrap.appendChild(bar);
@@ -2030,8 +2056,9 @@ quickBar.style.bottom = bottomGap + 'px';
 
 function qb(e, command) {
 if(e && e.preventDefault) e.preventDefault();
+restoreSelection();
 document.execCommand(command, false, null);
-exitSelectionFromFormatting();
+if (!currentTextBox) exitSelectionFromFormatting();
 saveHistory();
 }
 
@@ -2089,6 +2116,9 @@ function addTextBox() {
 function bindTextBox(box) {
   box.addEventListener('click', function(e){ e.stopPropagation(); selectTextBox(box); });
   box.addEventListener('input', function(){ clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); });
+  box.addEventListener('keyup', saveSelectionBeforeAction);
+  box.addEventListener('mouseup', saveSelectionBeforeAction);
+  box.addEventListener('touchend', saveSelectionBeforeAction);
   ensureDragFrame(box);
   makeTextBoxDraggable(box);
 }
