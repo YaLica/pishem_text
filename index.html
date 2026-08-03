@@ -109,6 +109,7 @@ font-weight: 400;
   text-align: center; z-index: 20; cursor: move;
   word-break: break-word; overflow-wrap: break-word;
   -webkit-user-select: text; user-select: text; box-sizing: border-box;
+  touch-action: none;
 }
 .text-box:focus { outline: none; }
 .text-box.selected { outline: 3px solid #10b981; outline-offset: 2px; }
@@ -618,10 +619,21 @@ document.getElementById('btnRedo').disabled = (historyIndex >= historyStack.leng
 }
 
 function saveHistory() {
-const snapshot = { html: editor.innerHTML, fontSize: baseFontSlider.value, lineHeight: lineHeightSlider.value, fontFamily: fontFamilySelector.value };
+const textBoxesData = Array.from(exportNode.querySelectorAll('.text-box')).map(b => ({
+  html: b.innerHTML,
+  left: b.style.left,
+  top: b.style.top
+}));
+const snapshot = { 
+  html: editor.innerHTML, 
+  textBoxes: textBoxesData,
+  fontSize: baseFontSlider.value, 
+  lineHeight: lineHeightSlider.value, 
+  fontFamily: fontFamilySelector.value 
+};
 if (historyIndex >= 0) {
 const last = historyStack[historyIndex];
-if (last.html === snapshot.html && last.fontSize === snapshot.fontSize && last.lineHeight === snapshot.lineHeight && last.fontFamily === snapshot.fontFamily) return;
+if (last.html === snapshot.html && JSON.stringify(last.textBoxes) === JSON.stringify(snapshot.textBoxes) && last.fontSize === snapshot.fontSize && last.lineHeight === snapshot.lineHeight && last.fontFamily === snapshot.fontFamily) return;
 }
 if (historyIndex < historyStack.length - 1) historyStack = historyStack.slice(0, historyIndex + 1);
 historyStack.push(snapshot);
@@ -639,6 +651,21 @@ document.getElementById('lineHeightLabel').textContent = snapshot.lineHeight;
 editor.style.lineHeight = snapshot.lineHeight;
 fontFamilySelector.value = snapshot.fontFamily;
 editor.style.fontFamily = snapshot.fontFamily;
+
+exportNode.querySelectorAll('.text-box').forEach(b => b.remove());
+if (snapshot.textBoxes && Array.isArray(snapshot.textBoxes)) {
+  snapshot.textBoxes.forEach(tb => {
+    const box = document.createElement('div');
+    box.className = 'text-box';
+    box.contentEditable = 'true';
+    box.setAttribute('data-ph', 'Твой текст…');
+    box.innerHTML = tb.html;
+    box.style.left = tb.left;
+    box.style.top = tb.top;
+    exportNode.appendChild(box);
+    bindTextBox(box);
+  });
+}
 }
 
 function undoAction(e) {
@@ -783,6 +810,7 @@ autoScreenFit();
 function canPan(target) {
 if (target.closest('#zoomControls')) return false;
 if (target.closest('.img-box')) return false;
+if (target.closest('.text-box')) return false;
 if (handMode) return true;
 if (target.closest('#editor')) return false;
 return true;
@@ -1412,6 +1440,10 @@ editor.querySelectorAll('.img-box').forEach(function(b) { b.classList.remove('se
 currentImgBox = null;
 hideMiniBar();
 closeImgMobilePanel();
+}
+if (!e.target.closest('.text-box')) {
+document.querySelectorAll('.text-box').forEach(function(b) { b.classList.remove('selected'); });
+currentTextBox = null;
 }
 });
 
@@ -2048,6 +2080,66 @@ function addTextBox() {
 function bindTextBox(box) {
   box.addEventListener('click', function(e){ e.stopPropagation(); selectTextBox(box); });
   box.addEventListener('input', function(){ clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); });
+  makeTextBoxDraggable(box);
+}
+
+function makeTextBoxDraggable(box) {
+  let isDragging = false;
+  let startX, startY, origLeft, origTop;
+
+  function onStart(e) {
+    const touch = e.touches ? e.touches[0] : e;
+    startX = touch.clientX;
+    startY = touch.clientY;
+    origLeft = box.offsetLeft;
+    origTop = box.offsetTop;
+    isDragging = false;
+
+    function onMove(ev) {
+      const t = ev.touches ? ev.touches[0] : ev;
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+
+      if (!isDragging && (Math.abs(dx) > 4 || Math.abs(dy) > 4)) {
+        isDragging = true;
+      }
+
+      if (isDragging) {
+        if (ev.cancelable) ev.preventDefault();
+        let newLeft = origLeft + dx;
+        let newTop = origTop + dy;
+
+        const maxLeft = exportNode.clientWidth - box.offsetWidth;
+        const maxTop = exportNode.clientHeight - box.offsetHeight;
+
+        if (newLeft < 0) newLeft = 0;
+        if (newTop < 0) newTop = 0;
+        if (newLeft > maxLeft) newLeft = maxLeft;
+        if (newTop > maxTop) newTop = maxTop;
+
+        box.style.left = newLeft + 'px';
+        box.style.top = newTop + 'px';
+      }
+    }
+
+    function onEnd() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      if (isDragging) {
+        saveHistory();
+      }
+    }
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchmove', onMove, {passive: false});
+    document.addEventListener('touchend', onEnd);
+  }
+
+  box.addEventListener('mousedown', onStart);
+  box.addEventListener('touchstart', onStart, {passive: true});
 }
 
 function selectTextBox(box) {
@@ -2286,7 +2378,7 @@ function miniToBottom() {
 
 function miniDelete() {
   if (!currentImgBox) return;
-  removeCenterSpacers(box);
+  removeCenterSpacers(currentImgBox);
   currentImgBox.remove();
   currentImgBox = null;
   hideMiniBar();
