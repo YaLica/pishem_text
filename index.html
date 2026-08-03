@@ -818,8 +818,8 @@ autoScreenFit();
 
 function canPan(target) {
 if (target.closest('#zoomControls')) return false;
-if (target.closest('.img-box')) return false;
 if (target.closest('.text-box')) return false;
+if (target.closest('.img-box')) return false;
 if (handMode) return true;
 if (target.closest('#editor')) return false;
 return true;
@@ -1032,9 +1032,13 @@ function saveSelectionBeforeAction() {
 const sel = window.getSelection();
 if (sel && sel.rangeCount > 0) {
   const anchor = sel.anchorNode;
-  if (editor.contains(anchor) || (currentTextBox && currentTextBox.contains(anchor))) {
+  const inEditor = editor.contains(anchor);
+  const inBox = currentTextBox && currentTextBox.contains(anchor);
+  if (inEditor || inBox) {
     const range = sel.getRangeAt(0);
-    if (!range.collapsed || document.activeElement === editor || (currentTextBox && document.activeElement === currentTextBox)) {
+    const activeOk = document.activeElement === editor ||
+                     (currentTextBox && document.activeElement === currentTextBox);
+    if (!range.collapsed || activeOk) {
       savedSelection = range.cloneRange();
     }
   }
@@ -2027,6 +2031,12 @@ editor.addEventListener('focus', function() {
 if (isMobile()) quickBar.classList.add('visible');
 });
 
+document.addEventListener('focusin', function(e){
+  if (isMobile() && e.target.classList && e.target.classList.contains('text-box')) {
+    quickBar.classList.add('visible');
+  }
+});
+
 editor.addEventListener('blur', function() {
 setTimeout(function() {
 const active = document.activeElement;
@@ -2114,11 +2124,22 @@ function addTextBox() {
 }
 
 function bindTextBox(box) {
-  box.addEventListener('click', function(e){ e.stopPropagation(); selectTextBox(box); });
+  box.addEventListener('click', function(e){
+    if (e.target.closest('.tb-edge')) return;
+    e.stopPropagation();
+    selectTextBox(box);
+    box.focus();
+  });
+  box.addEventListener('touchend', function(e){
+    if (e.target.closest('.tb-edge')) return;
+    selectTextBox(box);
+    box.focus();
+    saveSelectionBeforeAction();
+  }, {passive: true});
+
   box.addEventListener('input', function(){ clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); });
   box.addEventListener('keyup', saveSelectionBeforeAction);
   box.addEventListener('mouseup', saveSelectionBeforeAction);
-  box.addEventListener('touchend', saveSelectionBeforeAction);
   ensureDragFrame(box);
   makeTextBoxDraggable(box);
 }
