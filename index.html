@@ -2136,7 +2136,6 @@ function addTextBox() {
   box.className = 'text-box';
   box.contentEditable = 'true';
   box.setAttribute('data-ph', 'Твой текст…');
-  box.addEventListener('touchstart', function(){ box.style.background = 'red'; }, {passive:true});
   box.style.left = (30 + count * 20) + 'px';
   box.style.top  = (30 + count * 20) + 'px';
   exportNode.appendChild(box);
