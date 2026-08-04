@@ -2156,6 +2156,28 @@ function bindTextBox(box) {
   box.addEventListener('touchend', function(e){
     if (e.target.closest('.tb-edge') || e.target.closest('.tb-handle')) return;
     selectTextBox(box);
+
+    const touch = e.changedTouches[0];
+    let range = null;
+    if (document.caretRangeFromPoint) {
+      range = document.caretRangeFromPoint(touch.clientX, touch.clientY);
+    } else if (document.caretPositionFromPoint) {
+      const pos = document.caretPositionFromPoint(touch.clientX, touch.clientY);
+      if (pos) {
+        range = document.createRange();
+        range.setStart(pos.offsetNode, pos.offset);
+        range.collapse(true);
+      }
+    }
+
+    box.focus();
+
+    if (range && box.contains(range.startContainer)) {
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
     saveSelectionBeforeAction();
   }, {passive: true});
 
@@ -2641,9 +2663,6 @@ function syncImgMobilePanel() {
 
 stageArea.addEventListener('scroll', () => currentImgBox && positionMiniBar());
 window.addEventListener('scroll', () => currentImgBox && positionMiniBar());
-  
-  }
-});
 
 </script>
 </body>
