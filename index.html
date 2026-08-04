@@ -99,44 +99,6 @@ font-weight: 400;
 .img-box .img-rotor { display: block; transition: transform .12s linear; transform: rotate(var(--img-rot, 0deg)); transform-origin: center; }
 .img-box .img-rotor img { border-radius: var(--img-radius); box-shadow: 0 0 0 var(--img-border) var(--img-border-color) !important; }
 
-/* ===== ЭТАП 2: ТЕКСТОВЫЕ ПЛАШКИ (ТЕКСТ-БЛОКИ) ===== */
-.text-box {
-  position: absolute; left: 40px; top: 40px;
-  min-width: 60px; max-width: 90%;
-  padding: 10px 14px;
-  background: rgba(0,0,0,0.55); color: #ffffff;
-  border-radius: 10px; font-size: 24px; line-height: 1.25;
-  text-align: center; z-index: 20; cursor: text;
-  word-break: break-word; overflow-wrap: break-word;
-  -webkit-user-select: text; user-select: text; box-sizing: border-box;
-}
-.text-box:focus { outline: none; }
-.text-box.selected { outline: none; }
-.text-box:empty:before { content: attr(data-ph); opacity: 0.6; font-style: italic; }
-.text-box .tb-drag-frame {
-  position: absolute; inset: -3px; z-index: 2;
-  display: none; pointer-events: none;
-}
-.text-box.selected .tb-drag-frame { display: block; }
-.text-box .tb-edge { position: absolute; pointer-events: auto; cursor: move; touch-action: none; }
-.text-box .tb-edge.top    { top: -3px; left: -3px; right: -3px; height: 12px; }
-.text-box .tb-edge.bottom { bottom: -3px; left: -3px; right: -3px; height: 12px; }
-.text-box .tb-edge.left   { left: -3px; top: -3px; bottom: -3px; width: 12px; }
-.text-box .tb-edge.right  { right: -3px; top: -3px; bottom: -3px; width: 12px; }
-
-/* Хваталка перемещения (правый верхний угол, только при выделении) */
-.text-box .tb-handle {
-  position: absolute; top: -14px; right: -14px;
-  width: 30px; height: 30px; z-index: 30;
-  display: none; align-items: center; justify-content: center;
-  background: #10b981; color: #fff; border-radius: 50%;
-  font-size: 16px; line-height: 1; cursor: move;
-  box-shadow: 0 2px 6px rgba(0,0,0,.5);
-  touch-action: none; user-select: none; -webkit-user-select: none;
-  pointer-events: auto;
-}
-.text-box.selected .tb-handle { display: flex; }
-
 #imgMiniBar {
   position: fixed; z-index: 5000; display: none;
   background: #171a21; border: 1px solid #3d7eff; border-radius: 10px;
@@ -427,7 +389,6 @@ cursor: pointer; overflow: hidden;
 <b>Размер:</b> кликни и потяни за правый нижний угол ⇲.
 </div>
 <button id="btnDeleteImg" class="danger" onclick="deleteSelectedImage()" style="margin-top: 12px; padding: 8px; display: block;">🗑️ Удалить выбранную картинку</button>
-<button class="primary" onclick="addTextBox()" style="margin-top: 12px; padding: 10px; background:#10b981;">➕ Добавить надпись (плашку)</button>
 <div id="imgSettings">
   <label style="color:#4ade80; margin-top:0;">🎛️ Настройки выбранной картинки</label>
   <label>↔️ Отступ текста: <span id="imgGapLabel">20</span> px</label>
@@ -601,14 +562,12 @@ cursor: pointer; overflow: hidden;
 <option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">💻 Киберпанк: Kelly Slab</option>
 <option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">✍️ Маркер: Neucha</option>
 <option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">🎬 Кино: Amatic SC</option>
-<option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">☕ Кофейня: Marck Script</option>
 <option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">📝 Записки: Bad Script</option>
 <option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">🌸 Салон: Yeseva One</option>
 <option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">🕊️ Изящный: Philosopher</option>
 <option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">🏛️ Антиква: Oranienbaum</option>
 </select>
 <button onmousedown="qbImage(event)" title="Добавить картинку">🖼️</button>
-<button onmousedown="event.preventDefault(); addTextBox();" title="Добавить надпись">📝</button>
 <input type="file" id="qbImageInput" accept="image/*" multiple style="display:none;" onchange="insertMultipleImages(event)">
 </div>
 
@@ -642,21 +601,10 @@ document.getElementById('btnRedo').disabled = (historyIndex >= historyStack.leng
 }
 
 function saveHistory() {
-const textBoxesData = Array.from(exportNode.querySelectorAll('.text-box')).map(b => ({
-  html: b.innerHTML,
-  left: b.style.left,
-  top: b.style.top
-}));
-const snapshot = { 
-  html: editor.innerHTML, 
-  textBoxes: textBoxesData,
-  fontSize: baseFontSlider.value, 
-  lineHeight: lineHeightSlider.value, 
-  fontFamily: fontFamilySelector.value 
-};
+const snapshot = { html: editor.innerHTML, fontSize: baseFontSlider.value, lineHeight: lineHeightSlider.value, fontFamily: fontFamilySelector.value };
 if (historyIndex >= 0) {
 const last = historyStack[historyIndex];
-if (last.html === snapshot.html && JSON.stringify(last.textBoxes) === JSON.stringify(snapshot.textBoxes) && last.fontSize === snapshot.fontSize && last.lineHeight === snapshot.lineHeight && last.fontFamily === snapshot.fontFamily) return;
+if (last.html === snapshot.html && last.fontSize === snapshot.fontSize && last.lineHeight === snapshot.lineHeight && last.fontFamily === snapshot.fontFamily) return;
 }
 if (historyIndex < historyStack.length - 1) historyStack = historyStack.slice(0, historyIndex + 1);
 historyStack.push(snapshot);
@@ -674,21 +622,6 @@ document.getElementById('lineHeightLabel').textContent = snapshot.lineHeight;
 editor.style.lineHeight = snapshot.lineHeight;
 fontFamilySelector.value = snapshot.fontFamily;
 editor.style.fontFamily = snapshot.fontFamily;
-
-exportNode.querySelectorAll('.text-box').forEach(b => b.remove());
-if (snapshot.textBoxes && Array.isArray(snapshot.textBoxes)) {
-  snapshot.textBoxes.forEach(tb => {
-    const box = document.createElement('div');
-    box.className = 'text-box';
-    box.contentEditable = 'true';
-    box.setAttribute('data-ph', 'Твой текст…');
-    box.innerHTML = tb.html;
-    box.style.left = tb.left;
-    box.style.top = tb.top;
-    exportNode.appendChild(box);
-    bindTextBox(box);
-  });
-}
 }
 
 function undoAction(e) {
@@ -832,7 +765,6 @@ autoScreenFit();
 
 function canPan(target) {
 if (target.closest('#zoomControls')) return false;
-if (target.closest('.text-box')) return false;
 if (target.closest('.img-box')) return false;
 if (handMode) return true;
 if (target.closest('#editor')) return false;
@@ -883,7 +815,6 @@ let touchPanStartX = 0, touchPanStartY = 0, touchPanOrigX = 0, touchPanOrigY = 0
 let touchMode = null;
 
 stageArea.addEventListener('touchstart', function(e) {
-if (e.target.closest('.text-box')) { touchMode = null; return; } // Ранний выход для плашки
 if (e.touches.length === 1) {
 if (!canPan(e.target)) { touchMode = null; return; }
 touchMode = 'pan';
@@ -1045,46 +976,31 @@ updateRatio();
 
 function saveSelectionBeforeAction() {
 const sel = window.getSelection();
-if (sel && sel.rangeCount > 0) {
-  const anchor = sel.anchorNode;
-  const inEditor = editor.contains(anchor);
-  const inBox = currentTextBox && currentTextBox.contains(anchor);
-  if (inEditor || inBox) {
-    const range = sel.getRangeAt(0);
-    if (!range.collapsed) {
-      savedSelection = range.cloneRange();
-    }
-  }
+if (sel && sel.rangeCount > 0 && editor.contains(sel.anchorNode)) {
+const range = sel.getRangeAt(0);
+if (!range.collapsed || document.activeElement === editor) {
+savedSelection = range.cloneRange();
+}
 }
 }
 
 document.addEventListener('selectionchange', saveSelectionBeforeAction);
-
 editor.addEventListener('keyup', saveSelectionBeforeAction);
 editor.addEventListener('mouseup', saveSelectionBeforeAction);
 editor.addEventListener('touchend', saveSelectionBeforeAction);
 
 function restoreSelection() {
-if (currentTextBox && exportNode.contains(currentTextBox)) {
-  currentTextBox.focus();
-  if (savedSelection && currentTextBox.contains(savedSelection.commonAncestorContainer)) {
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(savedSelection);
-  }
-} else {
-  editor.focus();
-  if (savedSelection && editor.contains(savedSelection.commonAncestorContainer)) {
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(savedSelection);
-  }
+editor.focus();
+if (savedSelection && editor.contains(savedSelection.commonAncestorContainer)) {
+const sel = window.getSelection();
+sel.removeAllRanges();
+sel.addRange(savedSelection);
 }
 }
 
 function getStyledInlineParent(node) {
 let curr = (node.nodeType === Node.TEXT_NODE) ? node.parentNode : node;
-while (curr && curr !== editor && (!currentTextBox || curr !== currentTextBox)) {
+while (curr && curr !== editor) {
 const tag = curr.tagName;
 if (tag === 'SPAN' || tag === 'FONT' || tag === 'B' || tag === 'STRONG' ||
 tag === 'I' || tag === 'EM' || tag === 'U' || tag === 'S' || tag === 'STRIKE' || tag === 'CODE') {
@@ -1120,13 +1036,9 @@ sel.addRange(newRange);
 function applyTextColor(color) {
 restoreSelection();
 document.execCommand('foreColor', false, color);
-if (!currentTextBox) {
-  exitSelectionFromFormatting();
-  focusEditor();
-} else {
-  currentTextBox.focus();
-}
+exitSelectionFromFormatting();
 saveHistory();
+focusEditor();
 }
 
 function format(command, value) {
@@ -1138,13 +1050,9 @@ else if (command === 'justifyFull') { currentImgBox.classList.remove('align-righ
 }
 restoreSelection();
 document.execCommand(command, false, value || null);
-if (!currentTextBox) {
-  exitSelectionFromFormatting();
-  focusEditor();
-} else {
-  currentTextBox.focus();
-}
+exitSelectionFromFormatting();
 saveHistory();
+focusEditor();
 }
 
 function cleanFormat() {
@@ -1153,7 +1061,7 @@ const sel = window.getSelection();
 if (!sel || !sel.rangeCount || sel.toString().length === 0) return;
 document.execCommand('removeFormat', false, null);
 saveHistory();
-if (!currentTextBox) focusEditor(); else currentTextBox.focus();
+focusEditor();
 }
 
 function formatCode() {
@@ -1164,9 +1072,9 @@ const codeNode = document.createElement('code');
 codeNode.textContent = sel.toString();
 range.deleteContents();
 range.insertNode(codeNode);
-if (!currentTextBox) exitSelectionFromFormatting();
+exitSelectionFromFormatting();
 saveHistory();
-if (!currentTextBox) focusEditor(); else currentTextBox.focus();
+focusEditor();
 }
 }
 
@@ -1177,8 +1085,7 @@ if (!sel || !sel.rangeCount || sel.toString().length === 0) return;
 const range = sel.getRangeAt(0);
 const wrapper = document.createElement('span');
 try { range.surroundContents(wrapper); } catch (e) { wrapper.appendChild(range.extractContents()); range.insertNode(wrapper); }
-const container = currentTextBox || editor;
-const baseSize = parseFloat(getComputedStyle(container).fontSize) || (currentTextBox ? 24 : 32);
+const baseSize = parseFloat(getComputedStyle(editor).fontSize) || 32;
 function scaleEl(el) {
 let current = parseFloat(el.style.fontSize);
 if (!current) current = parseFloat(getComputedStyle(el).fontSize) || baseSize;
@@ -1190,14 +1097,10 @@ el.setAttribute('data-custom-size', 'true');
 }
 scaleEl(wrapper);
 wrapper.querySelectorAll('*').forEach(function(child) { if (child.style && child.style.fontSize) scaleEl(child); });
-if (!currentTextBox) {
-  exitSelectionFromFormatting();
-  focusEditor();
-} else {
-  currentTextBox.focus();
-}
+exitSelectionFromFormatting();
 updateRatio();
 saveHistory();
+focusEditor();
 }
 
 function selectWordAtCaret() {
@@ -1237,8 +1140,7 @@ if (!sel || !sel.rangeCount || sel.toString().trim().length === 0) return;
 
 document.execCommand('fontName', false, font);
 
-const scope = currentTextBox || editor;
-scope.querySelectorAll('font[face]').forEach(el => {
+editor.querySelectorAll('font[face]').forEach(el => {
 const span = document.createElement('span');
 span.style.fontFamily = el.getAttribute('face');
 span.setAttribute('data-custom-font', 'true');
@@ -1246,10 +1148,10 @@ while (el.firstChild) span.appendChild(el.firstChild);
 el.parentNode.replaceChild(span, el);
 });
 
-if (!currentTextBox) exitSelectionFromFormatting();
+exitSelectionFromFormatting();
 updateRatio();
 saveHistory();
-if (!currentTextBox) focusEditor(); else currentTextBox.focus();
+focusEditor();
 }
 
 function deleteSelection() {
@@ -1261,7 +1163,7 @@ updateImgCounter();
 document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
 updateRatio();
 saveHistory();
-if (!currentTextBox) focusEditor(); else currentTextBox.focus();
+focusEditor();
 }
 
 /* ФУНКЦИЯ ПОЛНОЙ ОЧИСТКИ И ВАЛИДАЦИИ ССЫЛОК */
@@ -1315,16 +1217,16 @@ if (!input) return;
 let url = sanitizeUrl(input);
 if (!url || url === 'https://') return;
 
-if (currentTextBox) currentTextBox.focus(); else editor.focus();
+editor.focus();
 const currentSel = window.getSelection();
 currentSel.removeAllRanges();
 currentSel.addRange(rangeBackup);
 
 document.execCommand('createLink', false, url);
-if (!currentTextBox) exitSelectionFromFormatting();
+exitSelectionFromFormatting();
 
 saveHistory();
-if (!currentTextBox) focusEditor(); else currentTextBox.focus();
+focusEditor();
 }
 
 function updateImgCounter() {
@@ -1494,10 +1396,6 @@ currentImgBox = null;
 hideMiniBar();
 closeImgMobilePanel();
 }
-if (!e.target.closest('.text-box') && !e.target.closest('.toolbar') && !e.target.closest('#quickBar') && !e.target.closest('#imgMiniBar')) {
-document.querySelectorAll('.text-box').forEach(function(b) { b.classList.remove('selected'); });
-currentTextBox = null;
-}
 });
 
 let dragBox = null;
@@ -1622,7 +1520,7 @@ const t = document.createElement('div'); t.className = 'emoji-section-title'; t.
 const bar = document.createElement('div'); bar.className = 'emoji-bar';
 emojiGroups[g].forEach(function(e) {
 const span = document.createElement('span'); span.textContent = e;
-span.onclick = function() { restoreSelection(); document.execCommand('insertText', false, e); updateRatio(); saveHistory(); if (!currentTextBox) focusEditor(); else currentTextBox.focus(); };
+span.onclick = function() { restoreSelection(); document.execCommand('insertText', false, e); updateRatio(); saveHistory(); focusEditor(); };
 bar.appendChild(span);
 });
 emojiWrap.appendChild(bar);
@@ -2045,24 +1943,10 @@ editor.addEventListener('focus', function() {
 if (isMobile()) quickBar.classList.add('visible');
 });
 
-document.addEventListener('focusin', function(e){
-  if (isMobile() && e.target.classList && e.target.classList.contains('text-box')) {
-    quickBar.classList.add('visible');
-  }
-});
-
-document.addEventListener('touchstart', function(e){
-  if (isMobile() && e.target.closest && e.target.closest('.text-box')) {
-    quickBar.classList.add('visible');
-  }
-}, {passive: true});
-
 editor.addEventListener('blur', function() {
 setTimeout(function() {
 const active = document.activeElement;
-const inTextBox = active && active.classList && active.classList.contains('text-box');
 if (!editor.matches(':focus')
-&& !inTextBox
 && active !== qbWordColor
 && active !== document.getElementById('qbFontSelect')
 && active !== document.getElementById('qbImageInput')) {
@@ -2088,9 +1972,8 @@ quickBar.style.bottom = bottomGap + 'px';
 
 function qb(e, command) {
 if(e && e.preventDefault) e.preventDefault();
-restoreSelection();
 document.execCommand(command, false, null);
-if (!currentTextBox) exitSelectionFromFormatting();
+exitSelectionFromFormatting();
 saveHistory();
 }
 
@@ -2124,193 +2007,6 @@ const handle = document.getElementById('panelHandle');
 panel.classList.toggle('open');
 handle.classList.toggle('open');
 handle.textContent = panel.classList.contains('open') ? '‹' : '›';
-}
-
-/* ================= ЭТАП 2: ТЕКСТОВЫЕ ПЛАШКИ (ТЕКСТ-БЛОКИ) ================= */
-let currentTextBox = null;
-
-function addTextBox() {
-  const count = exportNode.querySelectorAll('.text-box').length;
-  if (count >= 10) { alert('Максимум 10 надписей'); return; }
-  const box = document.createElement('div');
-  box.className = 'text-box';
-  box.contentEditable = 'true';
-  box.setAttribute('data-ph', 'Твой текст…');
-  box.style.left = (30 + count * 20) + 'px';
-  box.style.top  = (30 + count * 20) + 'px';
-  exportNode.appendChild(box);
-  bindTextBox(box);
-  selectTextBox(box);
-  saveHistory();
-}
-
-function bindTextBox(box) {
-  // Ставим каретку по твоему рецепту: preventDefault + requestAnimationFrame
-  function placeCaret(clientX, clientY){
-    box.focus();
-    requestAnimationFrame(function(){
-      box.focus();
-      let range = null;
-      if (document.caretRangeFromPoint) {
-        range = document.caretRangeFromPoint(clientX, clientY);
-      } else if (document.caretPositionFromPoint) {
-        const pos = document.caretPositionFromPoint(clientX, clientY);
-        if (pos) { range = document.createRange(); range.setStart(pos.offsetNode, pos.offset); range.collapse(true); }
-      }
-      if (range && box.contains(range.startContainer)) {
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-      } else {
-        // если не попали в текст — каретка в конец
-        const sel = window.getSelection();
-        const r = document.createRange();
-        r.selectNodeContents(box);
-        r.collapse(false);
-        sel.removeAllRanges();
-        sel.addRange(r);
-      }
-    });
-  }
-
-  // ТАП по плашке (телефон): passive:false + preventDefault + rAF
-  box.addEventListener('touchend', function(e){
-    if (e.target.closest('.tb-edge') || e.target.closest('.tb-handle')) return;
-    e.preventDefault();
-    e.stopPropagation();
-    selectTextBox(box);
-    const t = (e.changedTouches && e.changedTouches[0]) ? e.changedTouches[0] : null;
-    placeCaret(t ? t.clientX : 0, t ? t.clientY : 0);
-  }, {passive:false});
-
-  // КЛИК (компьютер)
-  box.addEventListener('click', function(e){
-    if (e.target.closest('.tb-edge') || e.target.closest('.tb-handle')) return;
-    e.stopPropagation();
-    selectTextBox(box);
-    if (!isMobile()) {
-      box.focus();
-      placeCaret(e.clientX, e.clientY);
-    }
-  });
-
-  // Сохраняем историю при вводе внутри плашки
-  box.addEventListener('input', function(){
-    clearTimeout(typeTimer);
-    typeTimer = setTimeout(saveHistory, 400);
-  });
-
-  ensureDragFrame(box);
-  makeTextBoxDraggable(box);
-}
-
-function ensureDragFrame(box) {
-  if (box.querySelector('.tb-drag-frame')) return;
-  const frame = document.createElement('div');
-  frame.className = 'tb-drag-frame';
-  frame.contentEditable = 'false';
-  ['top','bottom','left','right'].forEach(function(side){
-    const edge = document.createElement('div');
-    edge.className = 'tb-edge ' + side;
-    edge.contentEditable = 'false';
-    frame.appendChild(edge);
-  });
-  box.appendChild(frame);
-
-  if (!box.querySelector('.tb-handle')) {
-    const handle = document.createElement('div');
-    handle.className = 'tb-handle';
-    handle.contentEditable = 'false';
-    handle.textContent = '✥';
-    box.appendChild(handle);
-  }
-}
-
-function makeTextBoxDraggable(box) {
-  let isDragging = false;
-  let startX, startY, origLeft, origTop;
-
-  function onStart(e) {
-    const edge = e.target.closest('.tb-edge') || e.target.closest('.tb-handle');
-    if (!edge) return;
-
-    selectTextBox(box);
-
-    const touch = e.touches ? e.touches[0] : e;
-    startX = touch.clientX;
-    startY = touch.clientY;
-    origLeft = box.offsetLeft;
-    origTop = box.offsetTop;
-    isDragging = false;
-
-    if (e.cancelable) e.preventDefault();
-
-    function onMove(ev) {
-      const t = ev.touches ? ev.touches[0] : ev;
-      const dx = t.clientX - startX;
-      const dy = t.clientY - startY;
-
-      if (!isDragging && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
-        isDragging = true;
-      }
-
-      if (isDragging) {
-        if (ev.cancelable) ev.preventDefault();
-        const z = (typeof currentZoom === 'number' && currentZoom > 0) ? currentZoom : 1;
-        let newLeft = origLeft + dx / z;
-        let newTop = origTop + dy / z;
-
-        const maxLeft = exportNode.clientWidth - box.offsetWidth;
-        const maxTop = exportNode.clientHeight - box.offsetHeight;
-
-        if (newLeft < 0) newLeft = 0;
-        if (newTop < 0) newTop = 0;
-        if (newLeft > maxLeft) newLeft = maxLeft;
-        if (newTop > maxTop) newTop = maxTop;
-
-        box.style.left = newLeft + 'px';
-        box.style.top = newTop + 'px';
-      }
-    }
-
-    function onEnd() {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onEnd);
-      document.removeEventListener('touchmove', onMove);
-      document.removeEventListener('touchmove', onMove, {passive: false});
-      document.removeEventListener('touchend', onEnd);
-      if (isDragging) {
-        saveHistory();
-      }
-    }
-
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onEnd);
-    document.addEventListener('touchmove', onMove, {passive: false});
-    document.addEventListener('touchend', onEnd);
-  }
-
-  // Драг вешаем ТОЛЬКО на хваталку и рёбра, НЕ на всё тело плашки.
-  // Иначе non-passive touchstart на теле блокирует установку каретки на iOS.
-  const handle = box.querySelector('.tb-handle');
-  const edges = box.querySelectorAll('.tb-edge');
-
-  if (handle) {
-    handle.addEventListener('mousedown', onStart);
-    handle.addEventListener('touchstart', onStart, {passive: false});
-  }
-  edges.forEach(function(edge){
-    edge.addEventListener('mousedown', onStart);
-    edge.addEventListener('touchstart', onStart, {passive: false});
-  });
-}
-
-function selectTextBox(box) {
-  editor.querySelectorAll('.img-box').forEach(function(b){ b.classList.remove('selected'); });
-  document.querySelectorAll('.text-box').forEach(function(b){ b.classList.remove('selected'); });
-  box.classList.add('selected');
-  currentTextBox = box;
-  currentImgBox = null;
 }
 
 /* ================= ЭТАП 1: РАСШИРЕННЫЕ КАРТИНКИ ================= */
