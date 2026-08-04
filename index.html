@@ -2642,14 +2642,6 @@ function syncImgMobilePanel() {
 stageArea.addEventListener('scroll', () => currentImgBox && positionMiniBar());
 window.addEventListener('scroll', () => currentImgBox && positionMiniBar());
   
-  // ВРЕМЕННЫЙ ТЕСТ — потом удалить
-document.addEventListener('touchend', function(e){
-  const box = e.target.closest('.text-box');
-  if (box) {
-    alert('Тап по плашке пойман!\n' +
-          'contentEditable: ' + box.contentEditable + '\n' +
-          'isMobile: ' + isMobile() + '\n' +
-          'target: ' + e.target.className);
   }
 });
 
