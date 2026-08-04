@@ -883,6 +883,7 @@ let touchPanStartX = 0, touchPanStartY = 0, touchPanOrigX = 0, touchPanOrigY = 0
 let touchMode = null;
 
 stageArea.addEventListener('touchstart', function(e) {
+if (e.target.closest('.text-box')) { touchMode = null; return; } // Ранний выход для плашки
 if (e.touches.length === 1) {
 if (!canPan(e.target)) { touchMode = null; return; }
 touchMode = 'pan';
@@ -2146,37 +2147,21 @@ function addTextBox() {
 
 function bindTextBox(box) {
   box.addEventListener('click', function(e){
-    if (e.target.closest('.tb-edge')) return;
+    if (e.target.closest('.tb-edge') || e.target.closest('.tb-handle')) return;
     e.stopPropagation();
     selectTextBox(box);
-    box.focus();
+    if (!isMobile()) box.focus();
   });
 
-  box.addEventListener('touchstart', function(e){
-    if (e.target.closest('.tb-edge')) return;
-    e.stopPropagation();
+  box.addEventListener('touchend', function(e){
+    if (e.target.closest('.tb-edge') || e.target.closest('.tb-handle')) return;
     selectTextBox(box);
-    box.focus();
-    const t = e.touches[0];
-    let range = null;
-    if (document.caretRangeFromPoint) {
-      range = document.caretRangeFromPoint(t.clientX, t.clientY);
-    } else if (document.caretPositionFromPoint) {
-      const pos = document.caretPositionFromPoint(t.clientX, t.clientY);
-      if (pos) { range = document.createRange(); range.setStart(pos.offsetNode, pos.offset); }
-    }
-    if (range && box.contains(range.startContainer)) {
-      range.collapse(true);
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
+    saveSelectionBeforeAction();
   }, {passive: true});
 
   box.addEventListener('input', function(){ clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); });
   box.addEventListener('keyup', saveSelectionBeforeAction);
   box.addEventListener('mouseup', saveSelectionBeforeAction);
-  box.addEventListener('touchend', saveSelectionBeforeAction);
   ensureDragFrame(box);
   makeTextBoxDraggable(box);
 }
