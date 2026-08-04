@@ -612,6 +612,9 @@ cursor: pointer; overflow: hidden;
 <input type="file" id="qbImageInput" accept="image/*" multiple style="display:none;" onchange="insertMultipleImages(event)">
 </div>
 
+<!-- ДОБАВЛЕНО: Скрытое поле для 100% надежного ввода текста на телефонах -->
+<textarea id="tbEditor" style="position:fixed;left:-9999px;top:0;opacity:0;"></textarea>
+
 <script>
 const editor = document.getElementById('editor');
 const exportNode = document.getElementById('export-node');
@@ -680,7 +683,7 @@ if (snapshot.textBoxes && Array.isArray(snapshot.textBoxes)) {
   snapshot.textBoxes.forEach(tb => {
     const box = document.createElement('div');
     box.className = 'text-box';
-    box.contentEditable = 'true';
+    box.contentEditable = 'false'; // ИЗМЕНЕНО
     box.setAttribute('data-ph', 'Твой текст…');
     box.innerHTML = tb.html;
     box.style.left = tb.left;
@@ -2134,52 +2137,50 @@ function addTextBox() {
   if (count >= 10) { alert('Максимум 10 надписей'); return; }
   const box = document.createElement('div');
   box.className = 'text-box';
-  box.contentEditable = 'true';
+  box.contentEditable = 'false';
   box.setAttribute('data-ph', 'Твой текст…');
   box.style.left = (30 + count * 20) + 'px';
   box.style.top  = (30 + count * 20) + 'px';
   exportNode.appendChild(box);
   bindTextBox(box);
   selectTextBox(box);
-  setTimeout(function(){ box.focus(); }, 30);
   saveHistory();
 }
 
 function bindTextBox(box) {
-  box.addEventListener('touchend', function(e){
+  function openEditor(e){
     if (e.target.closest('.tb-edge') || e.target.closest('.tb-handle')) return;
+    if (e.cancelable) e.preventDefault();
+    e.stopPropagation();
     selectTextBox(box);
 
-    const touch = e.changedTouches[0];
-    let range = null;
-    if (document.caretRangeFromPoint) {
-      range = document.caretRangeFromPoint(touch.clientX, touch.clientY);
-    } else if (document.caretPositionFromPoint) {
-      const pos = document.caretPositionFromPoint(touch.clientX, touch.clientY);
-      if (pos) {
-        range = document.createRange();
-        range.setStart(pos.offsetNode, pos.offset);
-        range.collapse(true);
-      }
-    }
+    const editorInput = document.getElementById('tbEditor');
+    editorInput.value = box.innerText;
 
-    box.focus();
+    editorInput.oninput = function(){
+      box.innerText = editorInput.value;
+    };
+    editorInput.onblur = function(){
+      clearTimeout(typeTimer);
+      typeTimer = setTimeout(saveHistory, 100);
+      editorInput.oninput = null;
+      editorInput.onblur = null;
+    };
 
-    if (range && box.contains(range.startContainer)) {
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
-  }, {passive: true});
+    editorInput.style.left = '0';
+    editorInput.focus();
+    editorInput.setSelectionRange(editorInput.value.length, editorInput.value.length);
+    editorInput.style.left = '-9999px';
+  }
 
+  box.addEventListener('touchend', openEditor, {passive:false});
   box.addEventListener('click', function(e){
     if (e.target.closest('.tb-edge') || e.target.closest('.tb-handle')) return;
     e.stopPropagation();
     selectTextBox(box);
-    if (!isMobile()) box.focus();
+    if (!isMobile()) openEditor(e);
   });
 
-  box.addEventListener('input', function(){ clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); });
   ensureDragFrame(box);
   makeTextBoxDraggable(box);
 }
