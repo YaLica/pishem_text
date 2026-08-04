@@ -2266,8 +2266,19 @@ function makeTextBoxDraggable(box) {
     document.addEventListener('touchend', onEnd);
   }
 
-  box.addEventListener('mousedown', onStart);
-  box.addEventListener('touchstart', onStart, {passive: false});
+  // Драг вешаем ТОЛЬКО на хваталку и рёбра, НЕ на всё тело плашки.
+  // Иначе non-passive touchstart на теле блокирует установку каретки на iOS.
+  const handle = box.querySelector('.tb-handle');
+  const edges = box.querySelectorAll('.tb-edge');
+
+  if (handle) {
+    handle.addEventListener('mousedown', onStart);
+    handle.addEventListener('touchstart', onStart, {passive: false});
+  }
+  edges.forEach(function(edge){
+    edge.addEventListener('mousedown', onStart);
+    edge.addEventListener('touchstart', onStart, {passive: false});
+  });
 }
 
 function selectTextBox(box) {
