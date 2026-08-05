@@ -1560,6 +1560,8 @@ html2canvas(exportNode, {
   backgroundColor: null,
   scale: 2,
   useCORS: true,
+  imageTimeout: 0,
+  foreignObjectRendering: false,
   width: exportNode.offsetWidth,
   windowWidth: exportNode.offsetWidth,
   scrollX: 0,
@@ -1567,6 +1569,7 @@ html2canvas(exportNode, {
   x: 0,
   y: 0,
   onclone: function(clonedDoc) {
+    var srcEditor = document.getElementById('editor');
     var ed = clonedDoc.getElementById('editor');
     if (ed) {
       ed.style.setProperty('-webkit-hyphens', 'none');
@@ -1576,9 +1579,34 @@ html2canvas(exportNode, {
       ed.style.setProperty('word-break', 'normal');
       ed.style.setProperty('overflow-wrap', 'break-word');
       ed.style.setProperty('text-align', 'justify');
+      ed.style.setProperty('text-align-last', 'left');
+      // фиксируем реальную ширину редактора, чтобы текст не «раздувался»
+      ed.style.setProperty('width', srcEditor.offsetWidth + 'px');
+      ed.style.setProperty('display', 'flow-root');
+
       ed.querySelectorAll('*').forEach(function(el){
         el.style.setProperty('-webkit-hyphens', 'none');
         el.style.setProperty('hyphens', 'none');
+      });
+
+      // жёстко копируем раскладку каждой картинки 1:1 из живого редактора
+      var srcBoxes = srcEditor.querySelectorAll('.img-box');
+      var dstBoxes = ed.querySelectorAll('.img-box');
+      srcBoxes.forEach(function(sBox, i){
+        var dBox = dstBoxes[i];
+        if (!dBox) return;
+        var cs = getComputedStyle(sBox);
+        dBox.style.setProperty('float', cs.float);
+        dBox.style.setProperty('clear', cs.clear);
+        dBox.style.setProperty('width', sBox.offsetWidth + 'px');
+        dBox.style.setProperty('max-width', cs.maxWidth);
+        dBox.style.setProperty('margin', cs.margin);
+        var sImg = sBox.querySelector('img');
+        var dImg = dBox.querySelector('img');
+        if (sImg && dImg) {
+          dImg.style.setProperty('width', sImg.offsetWidth + 'px');
+          dImg.style.setProperty('height', sImg.offsetHeight + 'px');
+        }
       });
     }
     var cn = clonedDoc.documentElement;
@@ -2262,6 +2290,14 @@ function miniDuplicate() {
   if (updateImgCounter() >= 10) { alert('Максимум 10 картинок'); return; }
   const clone = currentImgBox.cloneNode(true);
   clone.classList.remove('selected');
+  if (!currentImgBox.classList.contains('align-center')) {
+    if (currentImgBox.classList.contains('align-right')) {
+      clone.classList.remove('align-right', 'align-center');
+    } else {
+      clone.classList.remove('align-center');
+      clone.classList.add('align-right');
+    }
+  }
   currentImgBox.parentNode.insertBefore(clone, currentImgBox.nextSibling);
   const zwsp = document.createTextNode('\u200B');
   clone.parentNode.insertBefore(zwsp, clone.nextSibling);
