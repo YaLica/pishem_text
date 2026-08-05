@@ -68,8 +68,8 @@ input[type="color"]::-webkit-color-swatch { border: none; }
 
 #editor {
 outline: none; font-size: 32px; line-height: 1.2; white-space: pre-wrap;
-word-break: normal; overflow-wrap: break-word; -webkit-hyphens: none; hyphens: none;
-min-height: 100px; text-align: justify; text-align-last: left; transition: font-size 0.2s; display: flow-root;
+word-break: normal; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto;
+min-height: 100px; text-align: justify; transition: font-size 0.2s; display: flow-root;
 cursor: text; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
 caret-color: #000000;
 font-weight: 400;
@@ -79,8 +79,8 @@ font-weight: 400;
 #editor[placeholder]:empty:before { content: attr(placeholder); opacity: 0.5; }
 #editor code { background: rgba(128,128,128,0.2); padding: 4px 8px; border-radius: 6px; font-family: monospace; }
 #editor a { color: #3d7eff; text-decoration: underline; cursor: pointer; }
-.img-box { position: relative; float: left; margin: 0 20px 8px 0; width: 50%; max-width: 95%; cursor: grab; user-select: none; -webkit-user-select: none; border-radius: 12px; }
-.img-box.align-right { float: right; margin: 0 0 8px 20px; }
+.img-box { position: relative; float: left; margin: 8px 20px 8px 0; width: 50%; max-width: 95%; cursor: grab; user-select: none; -webkit-user-select: none; border-radius: 12px; }
+.img-box.align-right { float: right; margin: 8px 0 8px 20px; }
 .img-box.align-center { float: none; display: block; margin: 10px auto; clear: both; }
 .img-spacer-left { float: left; height: 10px; width: var(--side-space, 0px); }
 .img-spacer-right { float: right; height: 10px; width: var(--side-space, 0px); }
@@ -178,9 +178,6 @@ transition: left 0.3s ease;
 .modal { width: 92%; max-width: 500px; }
 .emoji-wrap, label[style*="😀 Эмодзи"] { display: none !important; }
 #imgMiniBar { display: none !important; }
-
-/* iPhone: разрешить курсор внутрь слова */
-#editor { word-break: break-word; }
 }
 
 #quickBar {
@@ -210,17 +207,16 @@ cursor: pointer; overflow: hidden;
 #imgMobilePanel {
   position: fixed; z-index: 6000; display: none;
   width: 270px; max-width: 90vw;
-  background: rgba(23, 26, 33, 0.78);
+  background: rgba(23, 26, 33, 0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   border: 1px solid #3d7eff; border-radius: 14px;
   box-shadow: 0 8px 30px rgba(0,0,0,.6);
   padding: 0 12px 12px; color: #e8e8e8;
-  touch-action: none;
 }
 #imgMobilePanel.visible { display: block; }
 #imgMobilePanel .imp-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 0 8px; cursor: grab; user-select: none; touch-action: none;
-  border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px;
+  border-bottom: 1px solid #2a2f3a; margin-bottom: 8px;
 }
 #imgMobilePanel .imp-head.grabbing { cursor: grabbing; }
 #imgMobilePanel .imp-title { font-size: 13px; font-weight: bold; color: #4ade80; }
@@ -271,38 +267,6 @@ cursor: pointer; overflow: hidden;
 <div style="margin-bottom: 15px;">
 <label style="color: #fff; margin-top: 0;">🔤 Основной шрифт всего поста</label>
 <select id="fontFamilySelector" onchange="updateFontFamily(this.value)">
-<option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">📱 Системный (Стандарт)</option>
-<option value="'Times New Roman', Times, serif" style="font-family: 'Times New Roman', Times, serif">🏛️ Классический: Times New Roman</option>
-<option value="'Roboto', sans-serif" style="font-family: 'Roboto', sans-serif">🤖 Современный: Roboto</option>
-<option value="'Open Sans', sans-serif" style="font-family: 'Open Sans', sans-serif">📖 Открытый: Open Sans</option>
-<option value="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif">💎 Стильный: Montserrat</option>
-<option value="'Inter', sans-serif" style="font-family: 'Inter', sans-serif">✨ Чистый: Inter</option>
-<option value="'Oswald', sans-serif" style="font-family: 'Oswald', sans-serif">📏 Узкий: Oswald</option>
-<option value="'Raleway', sans-serif" style="font-family: 'Raleway', sans-serif">⚜️ Элегантный: Raleway</option>
-<option value="'Ubuntu', sans-serif" style="font-family: 'Ubuntu', sans-serif">🟢 Округлый: Ubuntu</option>
-<option value="'Nunito', sans-serif" style="font-family: 'Nunito', sans-serif">☁️ Мягкий: Nunito</option>
-<option value="'Rubik', sans-serif" style="font-family: 'Rubik', sans-serif">🟥 Плотный: Rubik</option>
-<option value="'Exo 2', sans-serif" style="font-family: 'Exo 2', sans-serif">⚡ Техно: Exo 2</option>
-<option value="'Merriweather', serif" style="font-family: 'Merriweather', serif">📚 Книжный: Merriweather</option>
-<option value="'Playfair Display', serif" style="font-family: 'Playfair Display', serif">📰 Журнальный: Playfair Display</option>
-<option value="'Lora', serif" style="font-family: 'Lora', serif">🪶 Поэтичный: Lora</option>
-<option value="'PT Serif', serif" style="font-family: 'PT Serif', serif">🏢 Официальный: PT Serif</option>
-<option value="'Cormorant Garamond', serif" style="font-family: 'Cormorant Garamond', serif">👑 Премиум: Cormorant Garamond</option>
-<option value="'Tenor Sans', sans-serif" style="font-family: 'Tenor Sans', sans-serif">🎨 Гротеск: Tenor Sans</option>
-<option value="'Alice', serif" style="font-family: 'Alice', serif">📜 Винтаж: Alice</option>
-<option value="'Comfortaa', cursive" style="font-family: 'Comfortaa', cursive">🎈 Пузырьковый: Comfortaa</option>
-<option value="'Caveat', cursive" style="font-family: 'Caveat', cursive">🖋️ Рукописный: Caveat</option>
-<option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif">📢 ТИТУЛ: Bebas Neue</option>
-<option value="'Russo One', sans-serif" style="font-family: 'Russo One', sans-serif">🔥 Мощный: Russo One</option>
-<option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">🌊 Летний: Pacifico</option>
-<option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">💻 Киберпанк: Kelly Slab</option>
-<option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">✍️ Маркер: Neucha</option>
-<option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">🎬 Кино: Amatic SC</option>
-<option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">☕ Кофейня: Marck Script</option>
-<option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">📝 Записки: Bad Script</option>
-<option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">🌸 Салон: Yeseva One</option>
-<option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">🕊️ Изящный: Philosopher</option>
-<option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">🏛️ Антиква: Oranienbaum</option>
 </select>
 </div>
 
@@ -336,40 +300,7 @@ cursor: pointer; overflow: hidden;
 <input type="color" id="wordColor" value="#ff0000" oninput="applyTextColor(this.value)" title="Цвет выделенного текста">
 <button onclick="changeWordSize(1.2)" title="Увеличить выделенное">A+</button>
 <button onclick="changeWordSize(0.85)" title="Уменьшить выделенное">A-</button>
-<select onmousedown="saveSelectionBeforeAction()" onchange="applyWordFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного слова" style="width:auto; min-width:65px; height:32px; padding:0 4px; font-size:12px; background:#2a2f3a; color:#e8e8e8; border:1px solid #2a2f3a; border-radius:6px; outline:none;">
-<option value="">🔤 Слово</option>
-<option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">📱 Системный (Стандарт)</option>
-<option value="'Times New Roman', Times, serif" style="font-family: 'Times New Roman', Times, serif">🏛️ Классический: Times New Roman</option>
-<option value="'Roboto', sans-serif" style="font-family: 'Roboto', sans-serif">🤖 Современный: Roboto</option>
-<option value="'Open Sans', sans-serif" style="font-family: 'Open Sans', sans-serif">📖 Открытый: Open Sans</option>
-<option value="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif">💎 Стильный: Montserrat</option>
-<option value="'Inter', sans-serif" style="font-family: 'Inter', sans-serif">✨ Чистый: Inter</option>
-<option value="'Oswald', sans-serif" style="font-family: 'Oswald', sans-serif">📏 Узкий: Oswald</option>
-<option value="'Raleway', sans-serif" style="font-family: 'Raleway', sans-serif">⚜️ Элегантный: Raleway</option>
-<option value="'Ubuntu', sans-serif" style="font-family: 'Ubuntu', sans-serif">🟢 Округлый: Ubuntu</option>
-<option value="'Nunito', sans-serif" style="font-family: 'Nunito', sans-serif">☁️ Мягкий: Nunito</option>
-<option value="'Rubik', sans-serif" style="font-family: 'Rubik', sans-serif">🟥 Плотный: Rubik</option>
-<option value="'Exo 2', sans-serif" style="font-family: 'Exo 2', sans-serif">⚡ Техно: Exo 2</option>
-<option value="'Merriweather', serif" style="font-family: 'Merriweather', serif">📚 Книжный: Merriweather</option>
-<option value="'Playfair Display', serif" style="font-family: 'Playfair Display', serif">📰 Журнальный: Playfair Display</option>
-<option value="'Lora', serif" style="font-family: 'Lora', serif">🪶 Поэтичный: Lora</option>
-<option value="'PT Serif', serif" style="font-family: 'PT Serif', serif">🏢 Официальный: PT Serif</option>
-<option value="'Cormorant Garamond', serif" style="font-family: 'Cormorant Garamond', serif">👑 Премиум: Cormorant Garamond</option>
-<option value="'Tenor Sans', sans-serif" style="font-family: 'Tenor Sans', sans-serif">🎨 Гротеск: Tenor Sans</option>
-<option value="'Alice', serif" style="font-family: 'Alice', serif">📜 Винтаж: Alice</option>
-<option value="'Comfortaa', cursive" style="font-family: 'Comfortaa', cursive">🎈 Пузырьковый: Comfortaa</option>
-<option value="'Caveat', cursive" style="font-family: 'Caveat', cursive">🖋️ Рукописный: Caveat</option>
-<option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif">📢 ТИТУЛ: Bebas Neue</option>
-<option value="'Russo One', sans-serif" style="font-family: 'Russo One', sans-serif">🔥 Мощный: Russo One</option>
-<option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">🌊 Летний: Pacifico</option>
-<option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">💻 Киберпанк: Kelly Slab</option>
-<option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">✍️ Маркер: Neucha</option>
-<option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">🎬 Кино: Amatic SC</option>
-<option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">☕ Кофейня: Marck Script</option>
-<option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">📝 Записки: Bad Script</option>
-<option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">🌸 Салон: Yeseva One</option>
-<option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">🕊️ Изящный: Philosopher</option>
-<option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">🏛️ Антиква: Oranienbaum</option>
+<select id="wordFontSelect" onmousedown="saveSelectionBeforeAction()" onchange="applyWordFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного слова" style="width:auto; min-width:65px; height:32px; padding:0 4px; font-size:12px; background:#2a2f3a; color:#e8e8e8; border:1px solid #2a2f3a; border-radius:6px; outline:none;">
 </select>
 <button onclick="deleteSelection()" title="Удалить выделенное">❌</button>
 <button onclick="cleanFormat()" title="Сбросить стили выделенного (Метёлка)">🧹</button>
@@ -506,8 +437,7 @@ cursor: pointer; overflow: hidden;
   <label>🔄 Поворот: <span id="impRotLabel">0</span>°</label>
   <div class="imp-rot-row">
     <button onclick="miniRotate(-90)">↺</button>
-    <button id="impRotLock" onclick="toggleRotLock()" title="Включить/выключить плавный поворот" style="flex:0 0 auto; width:34px; height:32px; background:#2a2f3a; color:#fff;">🔒</button>
-    <input type="range" id="impRotRange" min="-180" max="180" value="0" step="1" oninput="setImgRot(this.value)" style="flex:1; opacity:0.4; pointer-events:none;">
+    <input type="range" id="impRotRange" min="-180" max="180" value="0" step="1" oninput="setImgRot(this.value)" style="flex:1;">
     <button onclick="miniRotate(90)">↻</button>
   </div>
   <div class="imp-btns">
@@ -534,38 +464,6 @@ cursor: pointer; overflow: hidden;
 <button onmousedown="qbLink(event)">🔗</button>
 <button onmousedown="qbClean(event)" title="Сбросить стили">🧹</button>
 <select id="qbFontSelect" ontouchstart="saveSelectionBeforeAction(); event.stopPropagation();" onmousedown="saveSelectionBeforeAction(); event.stopPropagation();" onchange="qbFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного слова" style="flex:0 0 auto; width:auto; min-width:90px; height:42px; padding:0 6px; border-radius:10px; background:#2a2f3a; color:#e6ebf2; border:1px solid #3a4150; font-size:13px;">
-<option value="">🔤 Шрифт</option>
-<option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">📱 Системный (Стандарт)</option>
-<option value="'Times New Roman', Times, serif" style="font-family: 'Times New Roman', Times, serif">🏛️ Классический: Times New Roman</option>
-<option value="'Roboto', sans-serif" style="font-family: 'Roboto', sans-serif">🤖 Современный: Roboto</option>
-<option value="'Open Sans', sans-serif" style="font-family: 'Open Sans', sans-serif">📖 Открытый: Open Sans</option>
-<option value="'Montserrat', sans-serif" style="font-family: 'Montserrat', sans-serif">💎 Стильный: Montserrat</option>
-<option value="'Inter', sans-serif" style="font-family: 'Inter', sans-serif">✨ Чистый: Inter</option>
-<option value="'Oswald', sans-serif" style="font-family: 'Oswald', sans-serif">📏 Узкий: Oswald</option>
-<option value="'Raleway', sans-serif" style="font-family: 'Raleway', sans-serif">⚜️ Элегантный: Raleway</option>
-<option value="'Ubuntu', sans-serif" style="font-family: 'Ubuntu', sans-serif">🟢 Округлый: Ubuntu</option>
-<option value="'Nunito', sans-serif" style="font-family: 'Nunito', sans-serif">☁️ Мягкий: Nunito</option>
-<option value="'Rubik', sans-serif" style="font-family: 'Rubik', sans-serif">🟥 Плотный: Rubik</option>
-<option value="'Exo 2', sans-serif" style="font-family: 'Exo 2', sans-serif">⚡ Техно: Exo 2</option>
-<option value="'Merriweather', serif" style="font-family: 'Merriweather', serif">📚 Книжный: Merriweather</option>
-<option value="'Playfair Display', serif" style="font-family: 'Playfair Display', serif">📰 Журнальный: Playfair Display</option>
-<option value="'Lora', serif" style="font-family: 'Lora', serif">🪶 Поэтичный: Lora</option>
-<option value="'PT Serif', serif" style="font-family: 'PT Serif', serif">🏢 Официальный: PT Serif</option>
-<option value="'Cormorant Garamond', serif" style="font-family: 'Cormorant Garamond', serif">👑 Премиум: Cormorant Garamond</option>
-<option value="'Tenor Sans', sans-serif" style="font-family: 'Tenor Sans', sans-serif">🎨 Гротеск: Tenor Sans</option>
-<option value="'Alice', serif" style="font-family: 'Alice', serif">📜 Винтаж: Alice</option>
-<option value="'Comfortaa', cursive" style="font-family: 'Comfortaa', cursive">🎈 Пузырьковый: Comfortaa</option>
-<option value="'Caveat', cursive" style="font-family: 'Caveat', cursive">🖋️ Рукописный: Caveat</option>
-<option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif">📢 ТИТУЛ: Bebas Neue</option>
-<option value="'Russo One', sans-serif" style="font-family: 'Russo One', sans-serif">🔥 Мощный: Russo One</option>
-<option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">🌊 Летний: Pacifico</option>
-<option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">💻 Киберпанк: Kelly Slab</option>
-<option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">✍️ Маркер: Neucha</option>
-<option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">🎬 Кино: Amatic SC</option>
-<option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">📝 Записки: Bad Script</option>
-<option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">🌸 Салон: Yeseva One</option>
-<option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">🕊️ Изящный: Philosopher</option>
-<option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">🏛️ Антиква: Oranienbaum</option>
 </select>
 <button onmousedown="qbImage(event)" title="Добавить картинку">🖼️</button>
 <input type="file" id="qbImageInput" accept="image/*" multiple style="display:none;" onchange="insertMultipleImages(event)">
@@ -581,8 +479,55 @@ const lineHeightSlider = document.getElementById('lineHeightSlider');
 const fontFamilySelector = document.getElementById('fontFamilySelector');
 let savedSelection = null;
 let currentImgBox = null;
+let imgClip = null;
 let historyStack = [];
 let historyIndex = -1;
+
+const FONTS = [
+{ v: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif", l: "📱 Системный (Стандарт)" },
+{ v: "'Times New Roman', Times, serif", l: "🏛️ Классический: Times New Roman" },
+{ v: "'Roboto', sans-serif", l: "🤖 Современный: Roboto" },
+{ v: "'Open Sans', sans-serif", l: "📖 Открытый: Open Sans" },
+{ v: "'Montserrat', sans-serif", l: "💎 Стильный: Montserrat" },
+{ v: "'Inter', sans-serif", l: "✨ Чистый: Inter" },
+{ v: "'Oswald', sans-serif", l: "📏 Узкий: Oswald" },
+{ v: "'Raleway', sans-serif", l: "⚜️ Элегантный: Raleway" },
+{ v: "'Ubuntu', sans-serif", l: "🟢 Округлый: Ubuntu" },
+{ v: "'Nunito', sans-serif", l: "☁️ Мягкий: Nunito" },
+{ v: "'Rubik', sans-serif", l: "🟥 Плотный: Rubik" },
+{ v: "'Exo 2', sans-serif", l: "⚡ Техно: Exo 2" },
+{ v: "'Merriweather', serif", l: "📚 Книжный: Merriweather" },
+{ v: "'Playfair Display', serif", l: "📰 Журнальный: Playfair Display" },
+{ v: "'Lora', serif", l: "🪶 Поэтичный: Lora" },
+{ v: "'PT Serif', serif", l: "🏢 Официальный: PT Serif" },
+{ v: "'Cormorant Garamond', serif", l: "👑 Премиум: Cormorant Garamond" },
+{ v: "'Tenor Sans', sans-serif", l: "🎨 Гротеск: Tenor Sans" },
+{ v: "'Alice', serif", l: "📜 Винтаж: Alice" },
+{ v: "'Comfortaa', cursive", l: "🎈 Пузырьковый: Comfortaa" },
+{ v: "'Caveat', cursive", l: "🖋️ Рукописный: Caveat" },
+{ v: "'Bebas Neue', sans-serif", l: "📢 ТИТУЛ: Bebas Neue" },
+{ v: "'Russo One', sans-serif", l: "🔥 Мощный: Russo One" },
+{ v: "'Pacifico', cursive", l: "🌊 Летний: Pacifico" },
+{ v: "'Kelly Slab', cursive", l: "💻 Киберпанк: Kelly Slab" },
+{ v: "'Neucha', cursive", l: "✍️ Маркер: Neucha" },
+{ v: "'Amatic SC', cursive", l: "🎬 Кино: Amatic SC" },
+{ v: "'Marck Script', cursive", l: "☕ Кофейня: Marck Script" },
+{ v: "'Bad Script', cursive", l: "📝 Записки: Bad Script" },
+{ v: "'Yeseva One', serif", l: "🌸 Салон: Yeseva One" },
+{ v: "'Philosopher', sans-serif", l: "🕊️ Изящный: Philosopher" },
+{ v: "'Oranienbaum', serif", l: "🏛️ Антиква: Oranienbaum" }
+];
+
+function fillFontSelect(sel, firstLabel) {
+if (!sel) return;
+sel.innerHTML = '';
+if (firstLabel) sel.add(new Option(firstLabel, ''));
+FONTS.forEach(function(f) {
+const opt = new Option(f.l, f.v);
+opt.style.fontFamily = f.v;
+sel.add(opt);
+});
+}
 
 function isMobile() { return window.innerWidth <= 820; }
 function focusEditor() { if (!isMobile()) editor.focus(); }
@@ -655,10 +600,14 @@ resizer = document.createElement('span');
 resizer.className = 'img-resizer';
 resizer.contentEditable = 'false';
 box.appendChild(resizer);
+box._resizerBound = false;
 }
 ensureRotor(box);
 applyImgStyles(box);
+if (!box._resizerBound) {
 bindResizer(box);
+box._resizerBound = true;
+}
 });
 }
 
@@ -862,7 +811,12 @@ zoomWrapper.classList.remove('dragging');
 }
 }, { passive: false });
 
-window.onload = () => { saveHistory(); focusEditor(); setRealVH(); updateRatio(); autoScreenFit(); };
+window.onload = () => {
+fillFontSelect(document.getElementById('fontFamilySelector'), null);
+fillFontSelect(document.getElementById('wordFontSelect'), '🔤 Слово');
+fillFontSelect(document.getElementById('qbFontSelect'), '🔤 Шрифт');
+saveHistory(); focusEditor(); setRealVH(); updateRatio(); autoScreenFit();
+};
 
 function updateBgColor(color) { exportNode.style.setProperty('--bg-color', color); }
 function updateMainTextColor(color) { exportNode.style.setProperty('--text-color', color); }
@@ -1097,6 +1051,16 @@ el.setAttribute('data-custom-size', 'true');
 }
 scaleEl(wrapper);
 wrapper.querySelectorAll('*').forEach(function(child) { if (child.style && child.style.fontSize) scaleEl(child); });
+
+wrapper.querySelectorAll('span[data-custom-size]').forEach(function(inner) {
+const parent = inner.parentNode;
+if (parent && parent.hasAttribute && parent.hasAttribute('data-custom-size') && parent.tagName === 'SPAN') {
+while (inner.firstChild) parent.insertBefore(inner.firstChild, inner);
+parent.removeChild(inner);
+}
+});
+editor.normalize();
+
 exitSelectionFromFormatting();
 updateRatio();
 saveHistory();
@@ -1395,6 +1359,7 @@ editor.querySelectorAll('.img-box').forEach(function(b) { b.classList.remove('se
 currentImgBox = null;
 hideMiniBar();
 closeImgMobilePanel();
+// Панель настроек боковая не прячется
 }
 });
 
@@ -1545,36 +1510,11 @@ zoomWrapper.style.transform = 'scale(1)';
 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 const isAndroid = /Android/i.test(navigator.userAgent);
 
+const fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+
+fontsReady.then(function() {
 setTimeout(function() {
-html2canvas(exportNode, {
-  backgroundColor: null,
-  scale: 2,
-  useCORS: true,
-  width: exportNode.offsetWidth,
-  windowWidth: exportNode.offsetWidth,
-  scrollX: 0,
-  scrollY: 0,
-  x: 0,
-  y: 0,
-  onclone: function(clonedDoc) {
-    var ed = clonedDoc.getElementById('editor');
-    if (ed) {
-      ed.style.setProperty('-webkit-hyphens', 'none');
-      ed.style.setProperty('-moz-hyphens', 'none');
-      ed.style.setProperty('-ms-hyphens', 'none');
-      ed.style.setProperty('hyphens', 'none');
-      ed.style.setProperty('word-break', 'normal');
-      ed.style.setProperty('overflow-wrap', 'break-word');
-      ed.style.setProperty('text-align', 'justify');
-      ed.querySelectorAll('*').forEach(function(el){
-        el.style.setProperty('-webkit-hyphens', 'none');
-        el.style.setProperty('hyphens', 'none');
-      });
-    }
-    var cn = clonedDoc.documentElement;
-    if (cn) cn.setAttribute('lang', 'ru');
-  }
-}).then(function(canvas) {
+html2canvas(exportNode, { backgroundColor: null, scale: 2, useCORS: true }).then(function(canvas) {
 const dataUrl = canvas.toDataURL('image/png');
 
 let imgPreview = document.getElementById('previewImage');
@@ -1586,7 +1526,6 @@ const modalTextarea = document.getElementById('markdownOutput');
 modalTextarea.parentNode.insertBefore(imgPreview, modalTextarea);
 }
 imgPreview.src = dataUrl;
-imgPreview.style.display = 'block';
 
 function finish() {
 document.getElementById('markdownOutput').value = generatePlainText();
@@ -1636,11 +1575,14 @@ finish();
 }
 
 }).catch(function(err) {
+console.error('Ошибка экспорта PNG:', err);
+alert('Не удалось создать картинку 😕\nПопробуй ещё раз или уменьши количество фото.');
 btn.innerHTML = originalText;
 btn.disabled = false;
 zoomWrapper.style.transform = savedTransform;
 });
 }, 100);
+});
 }
 
 /* ОБНОВЛЕННАЯ НОРМАЛИЗАЦИЯ И СБОРКА ТЕКСТА (АВТО-ОЧИСТКА ДЛЯ TELEGRAM И MAX) */
@@ -1728,6 +1670,7 @@ let ok = false;
 const btn = btnId ? document.getElementById(btnId) : null;
 const original = btn ? btn.innerHTML : '';
 
+// Оборачиваем HTML в стандартный контейнер, чтобы MAX идеально считывал его как Rich Text
 const richHtml = '<div>' + html + '</div>';
 
 try {
@@ -1768,6 +1711,7 @@ setTimeout(function() { btn.innerHTML = original; }, 2000);
 restoreSelection();
 }
 
+/* КОПИРОВАНИЕ: слово-ссылка. В plain (запасной) — слово + адрес с новой строки */
 async function copyForTelegram() {
 if (!editor.innerText.trim()) return;
 const lines = getEditorLines();
@@ -1843,14 +1787,6 @@ e.preventDefault();
 editor.addEventListener('keydown', function(e) {
 const sel = window.getSelection();
 
-if (e.key === 'Enter') {
-e.preventDefault();
-document.execCommand('insertLineBreak');
-updateRatio();
-saveHistory();
-return;
-}
-
 if (e.key === ' ' || e.code === 'Space') {
 if (handleSpaceFormattingReset()) {
 e.preventDefault();
@@ -1919,8 +1855,8 @@ sel.addRange(range);
 }
 
 if (e.ctrlKey || e.metaKey) {
-if (currentImgBox && e.key === 'c') { e.preventDefault(); window._imgClip = currentImgBox; return; }
-if (window._imgClip && e.key === 'v') { e.preventDefault(); const save=currentImgBox; currentImgBox=window._imgClip; miniDuplicate(); currentImgBox=save; return; }
+if (currentImgBox && e.key === 'c') { e.preventDefault(); imgClip = currentImgBox; return; }
+if (imgClip && e.key === 'v') { e.preventDefault(); const save=currentImgBox; currentImgBox=imgClip; miniDuplicate(); currentImgBox=save; return; }
 if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoAction(e); }
 else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redoAction(e); }
 else if (e.key === 'b') { e.preventDefault(); format('bold'); }
@@ -2083,20 +2019,10 @@ function applyImgStyles(box) {
   const brd = parseInt(box.dataset.border || '0', 10);
   const col = box.dataset.borderColor || '#000000';
   const rot = parseInt(box.dataset.rot || '0', 10);
-
   box.style.setProperty('--img-radius', rad + 'px');
   box.style.setProperty('--img-border', brd + 'px');
   box.style.setProperty('--img-border-color', col);
   box.style.setProperty('--img-rot', rot + 'deg');
-
-  const rotor = box.querySelector('.img-rotor');
-  const img = box.querySelector('img');
-  if (rotor) rotor.style.transform = 'rotate(' + rot + 'deg)';
-  if (img) {
-    img.style.borderRadius = rad + 'px';
-    img.style.boxShadow = brd > 0 ? '0 0 0 ' + brd + 'px ' + col : 'none';
-  }
-
   const isRight = box.classList.contains('align-right');
   const isCenter = box.classList.contains('align-center');
 
@@ -2105,8 +2031,8 @@ function applyImgStyles(box) {
     updateCenterSpacers(box, gap);
   } else {
     removeCenterSpacers(box);
-    if (isRight) box.style.margin = '0 0 8px ' + gap + 'px';
-    else box.style.margin = '0 ' + gap + 'px 8px 0';
+    if (isRight) box.style.margin = '8px 0 8px ' + gap + 'px';
+    else box.style.margin = '8px ' + gap + 'px 8px 0';
     box.style.removeProperty('--side-space');
   }
 }
@@ -2264,52 +2190,19 @@ function miniDuplicate() {
 
 /* ===== ТЕЛЕФОННАЯ ПЛАВАЮЩАЯ МЕНЮ КАРТИНКИ ===== */
 let impPos = null;
-let rotUnlocked = false;
-
-function setRotLock(unlocked) {
-  rotUnlocked = unlocked;
-  const btn = document.getElementById('impRotLock');
-  const slider = document.getElementById('impRotRange');
-  if (!btn || !slider) return;
-  if (unlocked) {
-    btn.textContent = '🔓';
-    slider.style.opacity = '1';
-    slider.style.pointerEvents = 'auto';
-  } else {
-    btn.textContent = '🔒';
-    slider.style.opacity = '0.4';
-    slider.style.pointerEvents = 'none';
-  }
-}
-
-function toggleRotLock() {
-  setRotLock(!rotUnlocked);
-}
 
 function openImgMobilePanel() {
   const p = document.getElementById('imgMobilePanel');
   if (!p || !currentImgBox) return;
   syncImgMobilePanel();
-  setRotLock(false);
   p.classList.add('visible');
-  requestAnimationFrame(function(){
-    const pw = p.offsetWidth || 270;
-    const ph = p.offsetHeight || 300;
-    const peek = 40;
-    const minL = peek - pw, maxL = window.innerWidth - peek;
-    const minT = peek - ph, maxT = window.innerHeight - peek;
-    let left, top;
-    if (impPos) {
-      left = Math.max(minL, Math.min(impPos.left, maxL));
-      top  = Math.max(minT, Math.min(impPos.top, maxT));
-    } else {
-      left = Math.max(0, (window.innerWidth - pw) / 2);
-      top  = 80;
-    }
-    p.style.left = left + 'px';
-    p.style.top = top + 'px';
-    impPos = { left: left, top: top };
-  });
+  if (impPos) {
+    p.style.left = impPos.left + 'px';
+    p.style.top = impPos.top + 'px';
+  } else {
+    p.style.left = Math.max(10, (window.innerWidth / 2 - p.offsetWidth / 2)) + 'px';
+    p.style.top = '80px';
+  }
 }
 
 function closeImgMobilePanel() {
@@ -2336,42 +2229,40 @@ function syncImgMobilePanel() {
   const irlRot = document.getElementById('impRotLabel'); if (irlRot) irlRot.textContent = rot;
 }
 
-// УЛУЧШЕННОЕ ПЛАВНОЕ ПЕРЕТАСКИВАНИЕ МЕНЮ ЗА ЗАГОЛОВОК
+// ПЕРЕТАСКИВАНИЕ МЕНЮ ЗА ЗАГОЛОВОК
 (function(){
   const head = document.getElementById('impHead');
   const panel = document.getElementById('imgMobilePanel');
   if (!head || !panel) return;
   let dragging = false, sx = 0, sy = 0, ox = 0, oy = 0;
   
-  function start(x, y) {
-    dragging = true; head.classList.add('grabbing');
-    sx = x; sy = y;
-    ox = panel.offsetLeft; oy = panel.offsetTop;
-  }
   function move(x, y) {
-    if (!dragging) return;
     let nl = ox + (x - sx), nt = oy + (y - sy);
-    const peek = 40;
-    const pw = panel.offsetWidth;
-    const ph = panel.offsetHeight;
-    const minL = peek - pw;
-    const maxL = window.innerWidth - peek;
-    const minT = peek - ph;
-    const maxT = window.innerHeight - peek;
-    nl = Math.max(minL, Math.min(nl, maxL));
-    nt = Math.max(minT, Math.min(nt, maxT));
+    nl = Math.max(0, Math.min(nl, window.innerWidth - panel.offsetWidth));
+    nt = Math.max(0, Math.min(nt, window.innerHeight - panel.offsetHeight));
     panel.style.left = nl + 'px';
     panel.style.top = nt + 'px';
     impPos = { left: nl, top: nt };
   }
-  function end() { dragging = false; head.classList.remove('grabbing'); }
+  function onMouseMove(e){ move(e.clientX, e.clientY); }
+  function onMouseUp(){ end(); }
+
+  function start(x, y) {
+    dragging = true; head.classList.add('grabbing');
+    sx = x; sy = y; ox = panel.offsetLeft; oy = panel.offsetTop;
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }
+  function end() {
+    dragging = false; head.classList.remove('grabbing');
+    document.removeEventListener('mousemove', onMouseMove);
+    document.removeEventListener('mouseup', onMouseUp);
+  }
   
   head.addEventListener('touchstart', e => { const t = e.touches[0]; start(t.clientX, t.clientY); }, {passive:true});
-  head.addEventListener('touchmove', e => { e.preventDefault(); const t = e.touches[0]; move(t.clientX, t.clientY); }, {passive:false});
+  head.addEventListener('touchmove', e => { if(!dragging) return; e.preventDefault(); const t = e.touches[0]; move(t.clientX, t.clientY); }, {passive:false});
   head.addEventListener('touchend', end);
   head.addEventListener('mousedown', e => start(e.clientX, e.clientY));
-  document.addEventListener('mousemove', e => move(e.clientX, e.clientY));
-  document.addEventListener('mouseup', end);
 })();
 
 stageArea.addEventListener('scroll', () => currentImgBox && positionMiniBar());
