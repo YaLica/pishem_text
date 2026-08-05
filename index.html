@@ -181,6 +181,7 @@ transition: left 0.3s ease;
 
 /* iPhone: разрешить курсор внутрь слова */
 #editor { word-break: break-word; }
+#editor .img-box.align-right, #editor .img-box:not(.align-center):not(.align-right) { clear: both; }
 }
 
 #quickBar {
@@ -562,6 +563,7 @@ cursor: pointer; overflow: hidden;
 <option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">💻 Киберпанк: Kelly Slab</option>
 <option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">✍️ Маркер: Neucha</option>
 <option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">🎬 Кино: Amatic SC</option>
+<option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">☕ Кофейня: Marck Script</option>
 <option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">📝 Записки: Bad Script</option>
 <option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">🌸 Салон: Yeseva One</option>
 <option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">🕊️ Изящный: Philosopher</option>
@@ -688,17 +690,25 @@ box.parentNode.insertBefore(document.createTextNode('\u200B'), box);
 
 function snapImageToLineStart(box) {
   if (!box) return;
-  let prev = box.previousSibling;
-  while (prev) {
-    if (prev.nodeType === Node.ELEMENT_NODE && prev.tagName === 'BR') break;
-    if (prev.nodeType === Node.TEXT_NODE && prev.textContent === '\u200B') { prev = prev.previousSibling; continue; }
-    if (prev.nodeType === Node.TEXT_NODE) {
-      box.parentNode.insertBefore(box, prev);
-      prev = box.previousSibling;
-      continue;
+  const parent = box.parentNode;
+  if (!parent) return;
+  let anchor = box.previousSibling;
+  while (anchor) {
+    if (anchor.nodeType === Node.ELEMENT_NODE && anchor.tagName === 'BR') {
+      parent.insertBefore(box, anchor.nextSibling);
+      return;
     }
-    break;
+    if (anchor.nodeType === Node.ELEMENT_NODE && anchor.classList && anchor.classList.contains('img-box')) {
+      let after = anchor.nextSibling;
+      if (after && after.nodeType === Node.TEXT_NODE && after.textContent === '\u200B') {
+        after = after.nextSibling;
+      }
+      parent.insertBefore(box, after);
+      return;
+    }
+    anchor = anchor.previousSibling;
   }
+  parent.insertBefore(box, parent.firstChild);
 }
 
 const SAFE_RATIO = 1.25;
