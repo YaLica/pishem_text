@@ -81,6 +81,7 @@ font-weight: 400;
 #editor a { color: #3d7eff; text-decoration: underline; cursor: pointer; }
 .img-box { position: relative; float: left; margin: 0 20px 8px 0; width: 50%; max-width: 95%; cursor: grab; user-select: none; -webkit-user-select: none; border-radius: 12px; }
 .img-box.align-right { float: right; margin: 0 0 8px 20px; }
+/* ПРАВКА 0: Убрали clear: both из .align-center */
 .img-box.align-center { float: none; display: block; margin: 10px auto; }
 .img-spacer-left { float: left; height: 10px; width: var(--side-space, 0px); }
 .img-spacer-right { float: right; height: 10px; width: var(--side-space, 0px); }
@@ -139,6 +140,7 @@ font-size: 18px; padding: 0; display: flex; align-items: center; justify-content
 min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: #e8e8e8; user-select: none;
 }
 
+/* ПРАВКА 4: CSS Кнопки "Поделиться" */
 #shareAppBtn {
   position: fixed; top: 15px; right: 15px; z-index: 1500;
   width: 42px; height: 42px; padding: 0;
@@ -166,6 +168,7 @@ box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer;
 }
 #mobileToolsBtn:active { background: #2a2f3a; }
 
+/* ПРАВКА 2: Полупрозрачная панель на телефоне */
 .panel {
 position: fixed; top: 0; left: -320px; width: 320px; height: 100%;
 z-index: 2000; transition: left 0.3s ease; box-shadow: 5px 0 20px rgba(0,0,0,0.8);
@@ -364,7 +367,53 @@ cursor: pointer; overflow: hidden;
 <option value="'Ubuntu', sans-serif" style="font-family: 'Ubuntu', sans-serif">🟢 Округлый: Ubuntu</option>
 <option value="'Nunito', sans-serif" style="font-family: 'Nunito', sans-serif">☁️ Мягкий: Nunito</option>
 <option value="'Rubik', sans-serif" style="font-family: 'Rubik', sans-serif">🟥 Плотный: Rubik</option>
-<option value="'Exo 2', sans-serif>🖼️ Рамка: <span id="imgBorderLabel">0</span> px</label>
+<option value="'Exo 2', sans-serif" style="font-family: 'Exo 2', sans-serif">⚡ Техно: Exo 2</option>
+<option value="'Merriweather', serif" style="font-family: 'Merriweather', serif">📚 Книжный: Merriweather</option>
+<option value="'Playfair Display', serif" style="font-family: 'Playfair Display', serif">📰 Журнальный: Playfair Display</option>
+<option value="'Lora', serif" style="font-family: 'Lora', serif">🪶 Поэтичный: Lora</option>
+<option value="'PT Serif', serif" style="font-family: 'PT Serif', serif">🏢 Официальный: PT Serif</option>
+<option value="'Cormorant Garamond', serif" style="font-family: 'Cormorant Garamond', serif">👑 Премиум: Cormorant Garamond</option>
+<option value="'Tenor Sans', sans-serif" style="font-family: 'Tenor Sans', sans-serif">🎨 Гротеск: Tenor Sans</option>
+<option value="'Alice', serif" style="font-family: 'Alice', serif">📜 Винтаж: Alice</option>
+<option value="'Comfortaa', cursive" style="font-family: 'Comfortaa', cursive">🎈 Пузырьковый: Comfortaa</option>
+<option value="'Caveat', cursive" style="font-family: 'Caveat', cursive">🖋️ Рукописный: Caveat</option>
+<option value="'Bebas Neue', sans-serif" style="font-family: 'Bebas Neue', sans-serif">📢 ТИТУЛ: Bebas Neue</option>
+<option value="'Russo One', sans-serif" style="font-family: 'Russo One', sans-serif">🔥 Мощный: Russo One</option>
+<option value="'Pacifico', cursive" style="font-family: 'Pacifico', cursive">🌊 Летний: Pacifico</option>
+<option value="'Kelly Slab', cursive" style="font-family: 'Kelly Slab', cursive">💻 Киберпанк: Kelly Slab</option>
+<option value="'Neucha', cursive" style="font-family: 'Neucha', cursive">✍️ Маркер: Neucha</option>
+<option value="'Amatic SC', cursive" style="font-family: 'Amatic SC', cursive">🎬 Кино: Amatic SC</option>
+<option value="'Marck Script', cursive" style="font-family: 'Marck Script', cursive">☕ Кофейня: Marck Script</option>
+<option value="'Bad Script', cursive" style="font-family: 'Bad Script', cursive">📝 Записки: Bad Script</option>
+<option value="'Yeseva One', serif" style="font-family: 'Yeseva One', serif">🌸 Салон: Yeseva One</option>
+<option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">🕊️ Изящный: Philosopher</option>
+<option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">🏛️ Антиква: Oranienbaum</option>
+</select>
+<button onclick="deleteSelection()" title="Удалить выделенное">❌</button>
+<button onclick="cleanFormat()" title="Сбросить стили выделенного (Метёлка)">🧹</button>
+</div>
+
+<label style="color: #fff;">😀 Эмодзи для постов</label>
+<div class="emoji-wrap" id="emojiWrap"></div>
+
+<hr style="border-color: #2a2f3a; margin: 15px 0;">
+
+<div style="background: #2a2f3a50; padding: 15px; border-radius: 8px;">
+<label style="color: #4ade80;">🖼️ КАРТИНКИ</label>
+<input type="file" accept="image/*" multiple onchange="insertMultipleImages(event)">
+<div style="font-size: 11px; color: #9aa4b2; margin-top: 6px;">
+<b>Мультивыбор:</b> можешь выбрать сразу несколько картинок.<br>
+<b>Перемещение:</b> зажми картинку мышью и тащи. Кинешь вправо — встанет справа.<br>
+<b>Размер:</b> кликни и потяни за правый нижний угол ⇲.
+</div>
+<button id="btnDeleteImg" class="danger" onclick="deleteSelectedImage()" style="margin-top: 12px; padding: 8px; display: block;">🗑️ Удалить выбранную картинку</button>
+<div id="imgSettings">
+  <label style="color:#4ade80; margin-top:0;">🎛️ Настройки выбранной картинки</label>
+  <label>↔️ Отступ текста: <span id="imgGapLabel">20</span> px</label>
+  <input type="range" id="imgGapRange" min="0" max="60" value="20" oninput="setImgGap(this.value)">
+  <label>⬜ Скругление углов: <span id="imgRadiusLabel">12</span> px</label>
+  <input type="range" id="imgRadiusRange" min="0" max="60" value="12" oninput="setImgRadius(this.value)">
+  <label>🖼️ Рамка: <span id="imgBorderLabel">0</span> px</label>
   <input type="range" id="imgBorderRange" min="0" max="12" value="0" oninput="setImgBorder(this.value)">
   <label>🎨 Цвет рамки</label>
   <input type="color" id="imgBorderColor" value="#000000" oninput="setImgBorderColor(this.value)">
@@ -407,7 +456,10 @@ cursor: pointer; overflow: hidden;
 <button id="panelHandle" onclick="togglePanel()">›</button>
 
 <div class="stage" id="stageArea">
+<!-- ПРАВКА 1: Кнопка Инструментов скрывается после нажатия -->
 <button id="mobileToolsBtn" onclick="togglePanel(); this.style.display='none';">⚙️ Инструменты</button>
+
+<!-- ПРАВКА 4: Кнопка Поделиться приложением -->
 <button id="shareAppBtn" onclick="shareApp()" title="Поделиться приложением" aria-label="Поделиться">
   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="18" cy="5" r="3"></circle>
@@ -562,7 +614,7 @@ let savedSelection = null;
 let currentImgBox = null;
 let historyStack = [];
 let historyIndex = -1;
-let imgPanelHintShown = false;
+let imgPanelHintShown = false; // ПРАВКА 3: флаг обучения
 
 function isMobile() { return window.innerWidth <= 820; }
 function focusEditor() { if (!isMobile()) editor.focus(); }
@@ -629,6 +681,7 @@ editor.querySelectorAll('.img-box').forEach(function(box) {
 box.setAttribute('draggable', 'true');
 box.contentEditable = 'false';
 box.onclick = function(e) { e.stopPropagation(); selectImgBox(box); };
+// ПРАВКА 3: двойной тап открывает панель вручную
 box.ondblclick = function(e) { e.stopPropagation(); e.preventDefault(); selectImgBox(box); if (isMobile()) openImgMobilePanel(); };
 let resizer = box.querySelector('.img-resizer');
 if (!resizer) {
@@ -1305,6 +1358,7 @@ box.appendChild(img);
 box.appendChild(resizer);
 ensureRotor(box);
 box.addEventListener('click', function(e) { e.stopPropagation(); selectImgBox(box); });
+// ПРАВКА 3: двойной тап/клик по картинке — открыть мини-панель вручную
 box.addEventListener('dblclick', function(e) {
   e.stopPropagation(); e.preventDefault();
   selectImgBox(box);
@@ -1364,6 +1418,7 @@ currentImgBox = box;
 ensureRotor(box);
 applyImgStyles(box);
 positionMiniBar(); syncImgSettings();
+// ПРАВКА 3: на телефоне панель авто-открывается только ПЕРВЫЙ раз за сессию
 if (isMobile() && !imgPanelHintShown) {
   imgPanelHintShown = true;
   openImgMobilePanel();
@@ -1374,494 +1429,7 @@ function deleteSelectedImage() {
 if (!currentImgBox) return;
 removeCenterSpacers(currentImgBox);
 currentImgBox.remove();
-currentImgBox = null;
-closeImgMobilePanel();
-updateImgCounter();
-document.getElementById('charCount').textContent = editor.innerText.replace(/\u200B/g, '').trim().length;
-updateRatio();
-saveHistory();
-focusEditor();
-}
-
-document.addEventListener('click', function(e) {
-if (e.target.closest('#btnDeleteImg')) return;
-if (e.target.closest('#imgSettings')) return;
-if (e.target.closest('#imgMobilePanel')) return;
-if (!e.target.closest('.img-box') && !e.target.closest('#imgMiniBar')) {
-editor.querySelectorAll('.img-box').forEach(function(b) { b.classList.remove('selected'); });
-currentImgBox = null;
-hideMiniBar();
-closeImgMobilePanel();
-}
-});
-
-let dragBox = null;
-let isTouchDraggingImg = false;
-let imgGhost = null;
-
-editor.addEventListener('dragstart', function(e) { const box = e.target.closest('.img-box'); if (box) dragBox = box; });
-editor.addEventListener('dragover', function(e) { if (dragBox) e.preventDefault(); });
-editor.addEventListener('drop', function(e) {
-if (!dragBox) return;
-e.preventDefault();
-let range;
-if (document.caretRangeFromPoint) range = document.caretRangeFromPoint(e.clientX, e.clientY);
-else if (document.caretPositionFromPoint) {
-const pos = document.caretPositionFromPoint(e.clientX, e.clientY);
-range = document.createRange();
-range.setStart(pos.offsetNode, pos.offset);
-}
-if (range && editor.contains(range.startContainer)) {
-removeCenterSpacers(dragBox);
-dragBox.remove();
-const editorRect = editor.getBoundingClientRect();
-const dropX = e.clientX - editorRect.left;
-dragBox.classList.remove('align-right', 'align-center');
-if (dropX > editorRect.width / 2) dragBox.classList.add('align-right');
-range.insertNode(dragBox);
-snapImageToLineStart(dragBox);
-const zwsp = document.createTextNode('\u200B');
-dragBox.parentNode.insertBefore(zwsp, dragBox.nextSibling);
-ensureAnchorBeforeImages();
-applyImgStyles(dragBox);
-}
-dragBox = null;
-updateRatio();
-saveHistory();
-});
-editor.addEventListener('dragend', function() { dragBox = null; });
-
-editor.addEventListener('touchstart', function(e) {
-const box = e.target.closest('.img-box');
-if (box && !e.target.closest('.img-resizer')) {
-dragBox = box;
-}
-}, {passive: true});
-
-editor.addEventListener('touchmove', function(e) {
-if (dragBox && !isTouchDraggingImg) {
-isTouchDraggingImg = true;
-imgGhost = dragBox.cloneNode(true);
-imgGhost.style.position = 'fixed';
-imgGhost.style.opacity = '0.75';
-imgGhost.style.pointerEvents = 'none';
-imgGhost.style.zIndex = '99999';
-imgGhost.style.width = '90px';
-imgGhost.style.maxWidth = '90px';
-imgGhost.style.margin = '0';
-imgGhost.style.borderRadius = '10px';
-imgGhost.style.boxShadow = '0 4px 14px rgba(0,0,0,.5)';
-const gImg = imgGhost.querySelector('img');
-if (gImg) { gImg.style.width = '90px'; gImg.style.height = 'auto'; }
-const gRes = imgGhost.querySelector('.img-resizer'); if (gRes) gRes.remove();
-document.body.appendChild(imgGhost);
-}
-if (isTouchDraggingImg) {
-e.preventDefault();
-const touch = e.touches[0];
-imgGhost.style.left = (touch.clientX - 45) + 'px';
-imgGhost.style.top = (touch.clientY - 45) + 'px';
-}
-}, {passive: false});
-
-editor.addEventListener('touchend', function(e) {
-if (isTouchDraggingImg && dragBox && imgGhost) {
-e.preventDefault();
-const touch = e.changedTouches[0];
-let range = null;
-if (document.caretRangeFromPoint) {
-range = document.caretRangeFromPoint(touch.clientX, touch.clientY);
-} else if (document.caretPositionFromPoint) {
-const pos = document.caretPositionFromPoint(touch.clientX, touch.clientY);
-if (pos) {
-range = document.createRange();
-range.setStart(pos.offsetNode, pos.offset);
-}
-}
-if (range && editor.contains(range.startContainer)) {
-removeCenterSpacers(dragBox);
-dragBox.remove();
-const editorRect = editor.getBoundingClientRect();
-const dropX = touch.clientX - editorRect.left;
-dragBox.classList.remove('align-right', 'align-center');
-if (dropX > editorRect.width / 2) dragBox.classList.add('align-right');
-range.insertNode(dragBox);
-snapImageToLineStart(dragBox);
-const zwsp = document.createTextNode('\u200B');
-dragBox.parentNode.insertBefore(zwsp, dragBox.nextSibling);
-ensureAnchorBeforeImages();
-applyImgStyles(dragBox);
-}
-imgGhost.remove();
-imgGhost = null;
-isTouchDraggingImg = false;
-dragBox = null;
-updateRatio();
-saveHistory();
-} else {
-dragBox = null;
-}
-});
-
-const emojiGroups = {
-'😀 Эмоции': ['😊','😂','🤣','🥰','😍','😎','🤩','😉','🙂','😌','🤔','😏','😢','😭','😤','😡','🥺','😱','🤯','😴','🤗','😇','🥳','😜','🤪','🙄','😬','😐'],
-'👍 Жесты': ['👍','👎','👏','🙌','🙏','🤝','✌️','🤞','👌','🤙','💪','👋','🫶','☝️','👇','👆','👉','👈','🤟','✊'],
-'❤️ Символы': ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','💔','💕','💯','✨','⭐','🌟','💫','⚡','🔥','💥','🎉','🎊','🎁','🏆','🥇','👑','💎','🔔'],
-'💼 Бизнес': ['📌','📍','✅','☑️','❌','⛔','⚠️','❗','❓','💡','📝','✍️','📢','📣','📊','📈','📉','💰','💸','🎯','🔑','🔒','📅','⏰','⏳','🚀','🛒','📦','🔗','💬','👀','🧠','📖'],
-'➡️ Стрелки': ['➡️','⬅️','⬆️','⬇️','↗️','↘️','🔄','▶️','🔽','🔼','1️⃣','2️⃣','3️⃣','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣','9️⃣','🔟'],
-'🌿 Разное': ['🌿','🌸','🌹','🌻','🌈','☀️','🌙','❄️','🍀','☕','🍰','🥂','⚽','🎵','📷','🎬','✈️','🚗','🏠','🌍']
-};
-const emojiWrap = document.getElementById('emojiWrap');
-Object.keys(emojiGroups).forEach(function(g) {
-const t = document.createElement('div'); t.className = 'emoji-section-title'; t.textContent = g; emojiWrap.appendChild(t);
-const bar = document.createElement('div'); bar.className = 'emoji-bar';
-emojiGroups[g].forEach(function(e) {
-const span = document.createElement('span'); span.textContent = e;
-span.onclick = function() { restoreSelection(); document.execCommand('insertText', false, e); updateRatio(); saveHistory(); focusEditor(); };
-bar.appendChild(span);
-});
-emojiWrap.appendChild(bar);
-});
-
-function generatePlainText() {
-const clone = editor.cloneNode(true);
-clone.querySelectorAll('.img-box, .img-spacer-left, .img-spacer-right').forEach(el => el.remove());
-return clone.innerText.replace(/\u200B/g, '').trim();
-}
-
-function processExport() {
-const btn = document.getElementById('exportBtn');
-const originalText = btn.innerHTML;
-btn.innerHTML = '⏳ Рисую...';
-btn.disabled = true;
-editor.querySelectorAll('.img-box').forEach(function(i) { i.classList.remove('selected'); });
-currentImgBox = null;
-const savedTransform = zoomWrapper.style.transform;
-zoomWrapper.style.transform = 'scale(1)';
-
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-const isAndroid = /Android/i.test(navigator.userAgent);
-
-setTimeout(function() {
-html2canvas(exportNode, {
-  backgroundColor: null,
-  scale: 2,
-  useCORS: true,
-  imageTimeout: 0,
-  foreignObjectRendering: false,
-  width: exportNode.offsetWidth,
-  windowWidth: exportNode.offsetWidth,
-  scrollX: 0,
-  scrollY: 0,
-  x: 0,
-  y: 0,
-  onclone: function(clonedDoc) {
-    var srcEditor = document.getElementById('editor');
-    var ed = clonedDoc.getElementById('editor');
-    if (ed) {
-      ed.style.setProperty('-webkit-hyphens', 'none');
-      ed.style.setProperty('-moz-hyphens', 'none');
-      ed.style.setProperty('-ms-hyphens', 'none');
-      ed.style.setProperty('hyphens', 'none');
-      ed.style.setProperty('word-break', 'normal');
-      ed.style.setProperty('overflow-wrap', 'break-word');
-      ed.style.setProperty('text-align', 'justify');
-      ed.style.setProperty('text-align-last', 'left');
-      // фиксируем реальную ширину редактора, чтобы текст не «раздувался»
-      ed.style.setProperty('width', srcEditor.offsetWidth + 'px');
-      ed.style.setProperty('display', 'flow-root');
-
-      ed.querySelectorAll('*').forEach(function(el){
-        el.style.setProperty('-webkit-hyphens', 'none');
-        el.style.setProperty('hyphens', 'none');
-      });
-
-      // жёстко копируем раскладку каждой картинки 1:1 из живого редактора
-      var srcBoxes = srcEditor.querySelectorAll('.img-box');
-      var dstBoxes = ed.querySelectorAll('.img-box');
-      srcBoxes.forEach(function(sBox, i){
-        var dBox = dstBoxes[i];
-        if (!dBox) return;
-        var cs = getComputedStyle(sBox);
-        dBox.style.setProperty('float', cs.float);
-        dBox.style.setProperty('clear', cs.clear);
-        dBox.style.setProperty('width', sBox.offsetWidth + 'px');
-        dBox.style.setProperty('max-width', cs.maxWidth);
-        dBox.style.setProperty('margin', cs.margin);
-        var sImg = sBox.querySelector('img');
-        var dImg = dBox.querySelector('img');
-        if (sImg && dImg) {
-          dImg.style.setProperty('width', sImg.offsetWidth + 'px');
-          dImg.style.setProperty('height', sImg.offsetHeight + 'px');
-        }
-      });
-    }
-    var cn = clonedDoc.documentElement;
-    if (cn) cn.setAttribute('lang', 'ru');
-  }
-}).then(function(canvas) {
-const dataUrl = canvas.toDataURL('image/png');
-
-let imgPreview = document.getElementById('previewImage');
-if (!imgPreview) {
-imgPreview = document.createElement('img');
-imgPreview.id = 'previewImage';
-imgPreview.style.cssText = 'width:100%; max-height:250px; object-fit:contain; border-radius:8px; border:1px solid #2a2f3a; margin-bottom:10px;';
-const modalTextarea = document.getElementById('markdownOutput');
-modalTextarea.parentNode.insertBefore(imgPreview, modalTextarea);
-}
-imgPreview.src = dataUrl;
-imgPreview.style.display = 'block';
-
-function finish() {
-document.getElementById('markdownOutput').value = generatePlainText();
-document.getElementById('textModal').style.display = 'flex';
-btn.innerHTML = originalText;
-btn.disabled = false;
-zoomWrapper.style.transform = savedTransform;
-updateRatio();
-}
-
-if (isIOS) {
-canvas.toBlob(function(blob) {
-if (blob) {
-const file = new File([blob], 'texter-post.png', { type: 'image/png' });
-if (navigator.canShare && navigator.canShare({ files: [file] })) {
-navigator.share({ files: [file] }).then(finish).catch(finish);
-return;
-}
-}
-finish();
-}, 'image/png');
-} else if (isAndroid) {
-canvas.toBlob(function(blob) {
-if (blob && navigator.canShare) {
-const file = new File([blob], 'texter-post.png', { type: 'image/png' });
-if (navigator.canShare({ files: [file] })) {
-navigator.share({ files: [file] }).then(finish).catch(finish);
-return;
-}
-}
-const link = document.createElement('a');
-link.download = 'texter-post.png';
-link.href = dataUrl;
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
-finish();
-}, 'image/png');
-} else {
-const link = document.createElement('a');
-link.download = 'texter-post.png';
-link.href = dataUrl;
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
-finish();
-}
-
-}).catch(function(err) {
-btn.innerHTML = originalText;
-btn.disabled = false;
-zoomWrapper.style.transform = savedTransform;
-});
-}, 100);
-}
-
-/* ОБНОВЛЕННАЯ НОРМАЛИЗАЦИЯ И СБОРКА ТЕКСТА (АВТО-ОЧИСТКА ДЛЯ TELEGRAM И MAX) */
-function getEditorLines() {
-const src = document.createElement('div');
-src.innerHTML = editor.innerHTML;
-src.querySelectorAll('.img-box, .img-spacer-left, .img-spacer-right').forEach(el => el.remove());
-
-// Удаляем стилистические спаны (размер, шрифт и т.д.), но оставляем форматирование
-src.querySelectorAll('span, font').forEach(function(el) {
-const parent = el.parentNode;
-while (el.firstChild) parent.insertBefore(el.firstChild, el);
-parent.removeChild(el);
-});
-
-// Заменяем устаревшие теги strong/em на b/i для универсальности
-src.querySelectorAll('strong').forEach(el => {
-const b = document.createElement('b');
-b.innerHTML = el.innerHTML;
-el.parentNode.replaceChild(b, el);
-});
-src.querySelectorAll('em').forEach(el => {
-const i = document.createElement('i');
-i.innerHTML = el.innerHTML;
-el.parentNode.replaceChild(i, el);
-});
-
-src.querySelectorAll('b,i,u,s,strike,del,a,code,div,p').forEach(function(el) {
-el.removeAttribute('style');
-el.removeAttribute('class');
-el.removeAttribute('data-custom-size');
-if (el.tagName === 'A') {
-Array.from(el.attributes).forEach();
-    newRange.collapse(true);
-    sel.removeAllRanges();
-    sel.addRange(newRange);
-    updateRatio();
-    saveHistory();
-    return true;
-  }
-}
-
-}
-return false;
-}
-
-editor.addEventListener('beforeinput', function(e) {
-if (e.data === ' ' || e.inputType === 'insertText' && e.data === ' ') {
-if (handleSpaceFormattingReset()) {
-e.preventDefault();
-}
-}
-});
-
-editor.addEventListener('keydown', function(e) {
-const sel = window.getSelection();
-
-if (e.key === 'Enter') {
-e.preventDefault();
-document.execCommand('insertLineBreak');
-updateRatio();
-saveHistory();
-return;
-}
-
-if (e.key === ' ' || e.code === 'Space') {
-if (handleSpaceFormattingReset()) {
-e.preventDefault();
-return;
-}
-}
-
-function imgNextTo(direction) {
-if (!sel || !sel.rangeCount) return null;
-const r = sel.getRangeAt(0);
-if (!r.collapsed) return null;
-let node = r.startContainer;
-let offset = r.startOffset;
-
-if (direction === 'back') {
-if (node.nodeType === Node.TEXT_NODE) {
-if (offset > 0) return null;
-let prev = node.previousSibling;
-while (prev && prev.nodeType === Node.TEXT_NODE && prev.textContent === '\u200B') prev = prev.previousSibling;
-if (prev && prev.classList && prev.classList.contains('img-box')) return prev;
-} else {
-let child = node.childNodes[offset - 1];
-while (child && child.nodeType === Node.TEXT_NODE && child.textContent === '\u200B') child = child.previousSibling;
-if (child && child.classList && child.classList.contains('img-box')) return child;
-}
-} else {
-if (node.nodeType === Node.TEXT_NODE) {
-if (offset < node.textContent.length) return null;
-let next = node.nextSibling;
-while (next && next.nodeType === Node.TEXT_NODE && next.textContent === '\u200B') next = next.nextSibling;
-if (next && next.classList && next.classList.contains('img-box')) return next;
-} else {
-let child = node.childNodes[offset];
-while (child && child.nodeType === Node.TEXT_NODE && child.textContent === '\u200B') child = child.nextSibling;
-if (child && child.classList && child.classList.contains('img-box')) return child;
-}
-}
-return null;
-
-}
-
-if (e.key === 'Backspace') {
-const box = imgNextTo('back');
-if (box) { e.preventDefault(); selectImgBox(box); return; }
-}
-if (e.key === 'Delete') {
-const box = imgNextTo('forward');
-if (box) { e.preventDefault(); selectImgBox(box); return; }
-}
-
-if (currentImgBox && (e.key === 'Delete' || e.key === 'Backspace')) {
-e.preventDefault();
-deleteSelectedImage();
-return;
-}
-
-if (currentImgBox && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
-const box = currentImgBox;
-box.classList.remove('selected');
-currentImgBox = null;
-const range = document.createRange();
-range.setStartAfter(box);
-range.collapse(true);
-sel.removeAllRanges();
-sel.addRange(range);
-}
-
-if (e.ctrlKey || e.metaKey) {
-if (currentImgBox && e.key === 'c') { e.preventDefault(); window._imgClip = currentImgBox; return; }
-if (window._imgClip && e.key === 'v') { e.preventDefault(); const save=currentImgBox; currentImgBox=window._imgClip; miniDuplicate(); currentImgBox=save; return; }
-if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undoAction(e); }
-else if (e.key === 'y' || (e.key === 'z' && e.shiftKey)) { e.preventDefault(); redoAction(e); }
-else if (e.key === 'b') { e.preventDefault(); format('bold'); }
-else if (e.key === 'i') { e.preventDefault(); format('italic'); }
-else if (e.key === 'u') { e.preventDefault(); format('underline'); }
-}
-});
-
-const panelEl = document.querySelector('.panel');
-panelEl.addEventListener('mousedown', function(e) {
-if (e.target.closest('button') || e.target.closest('.emoji-bar span')) {
-e.preventDefault();
-}
-});
-
-const quickBar = document.getElementById('quickBar');
-const qbWordColor = document.getElementById('qbWordColor');
-
-editor.addEventListener('focus', function() {
-if (isMobile()) quickBar.classList.add('visible');
-});
-
-editor.addEventListener('blur', function() {
-setTimeout(function() {
-const active = document.activeElement;
-if (!editor.matches(':focus')
-&& active !== qbWordColor
-&& active !== document.getElementById('qbFontSelect')
-&& active !== document.getElementById('qbImageInput')) {
-quickBar.classList.remove('visible');
-}
-}, 300);
-});
-
-qbWordColor.addEventListener('focus', function() {
-if (isMobile()) quickBar.classList.add('visible');
-});
-
-if (window.visualViewport) {
-window.visualViewport.addEventListener('resize', positionQuickBar);
-window.visualViewport.addEventListener('scroll', positionQuickBar);
-}
-function positionQuickBar() {
-if (!quickBar.classList.contains('visible')) return;
-const vv = window.visualViewport;
-const bottomGap = window.innerHeight - (vv.height + vv.offsetTop);
-quickBar.style.bottom = bottomGap + 'px';
-}
-
-function qb(e, command) {
-if(e && e.preventDefault) e.preventDefault();
-document.execCommand(command, false, null);
-exitSelectionFromFormatting();
-saveHistory();
-}
-
-function qbSize(e, factor) {
-if(e && e.preventDefault) e.preventDefault();
-changeWordSize(factor);
-}
-function qbLink(e) {
+currentImg {
 if(e && e.preventDefault) e.preventDefault();
 insertLink();
 }
@@ -1879,14 +1447,6 @@ function qbImage(e) {
 if(e && e.preventDefault) e.preventDefault();
 saveSelectionBeforeAction();
 document.getElementById('qbImageInput').click();
-}
-
-function togglePanel() {
-const panel = document.querySelector('.panel');
-const handle = document.getElementById('panelHandle');
-panel.classList.toggle('open');
-handle.classList.toggle('open');
-handle.textContent = panel.classList.contains('open') ? '‹' : '›';
 }
 
 /* ПРАВКА 4: Поделиться самим приложением (ссылкой) */
@@ -1922,6 +1482,14 @@ function showShareToast(msg) {
   t.style.opacity = '1';
   clearTimeout(t._timer);
   t._timer = setTimeout(function(){ t.style.opacity = '0'; }, 2000);
+}
+
+function togglePanel() {
+const panel = document.querySelector('.panel');
+const handle = document.getElementById('panelHandle');
+panel.classList.toggle('open');
+handle.classList.toggle('open');
+handle.textContent = panel.classList.contains('open') ? '‹' : '›';
 }
 
 /* ================= ЭТАП 1: РАСШИРЕННЫЕ КАРТИНКИ ================= */
