@@ -1052,15 +1052,6 @@ el.setAttribute('data-custom-size', 'true');
 scaleEl(wrapper);
 wrapper.querySelectorAll('*').forEach(function(child) { if (child.style && child.style.fontSize) scaleEl(child); });
 
-wrapper.querySelectorAll('span[data-custom-size]').forEach(function(inner) {
-const parent = inner.parentNode;
-if (parent && parent.hasAttribute && parent.hasAttribute('data-custom-size') && parent.tagName === 'SPAN') {
-while (inner.firstChild) parent.insertBefore(inner.firstChild, inner);
-parent.removeChild(inner);
-}
-});
-editor.normalize();
-
 exitSelectionFromFormatting();
 updateRatio();
 saveHistory();
