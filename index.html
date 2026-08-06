@@ -68,8 +68,8 @@ input[type="color"]::-webkit-color-swatch { border: none; }
 
 #editor {
 outline: none; font-size: 32px; line-height: 1.2; white-space: pre-wrap;
-word-break: normal; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto;
-min-height: 100px; text-align: justify; transition: font-size 0.2s; display: flow-root;
+word-break: normal; overflow-wrap: break-word; -webkit-hyphens: none; hyphens: none;
+min-height: 100px; text-align: justify; text-align-last: left; transition: font-size 0.2s; display: flow-root;
 cursor: text; -webkit-user-select: text; user-select: text; -webkit-touch-callout: default;
 caret-color: #000000;
 font-weight: 400;
@@ -79,8 +79,8 @@ font-weight: 400;
 #editor[placeholder]:empty:before { content: attr(placeholder); opacity: 0.5; }
 #editor code { background: rgba(128,128,128,0.2); padding: 4px 8px; border-radius: 6px; font-family: monospace; }
 #editor a { color: #3d7eff; text-decoration: underline; cursor: pointer; }
-.img-box { position: relative; float: left; margin: 8px 20px 8px 0; width: 50%; max-width: 95%; cursor: grab; user-select: none; -webkit-user-select: none; border-radius: 12px; }
-.img-box.align-right { float: right; margin: 8px 0 8px 20px; }
+.img-box { position: relative; float: left; margin: 0 20px 8px 0; width: 50%; max-width: 95%; cursor: grab; user-select: none; -webkit-user-select: none; border-radius: 12px; }
+.img-box.align-right { float: right; margin: 0 0 8px 20px; }
 .img-box.align-center { float: none; display: block; margin: 10px auto; clear: both; }
 .img-spacer-left { float: left; height: 10px; width: var(--side-space, 0px); }
 .img-spacer-right { float: right; height: 10px; width: var(--side-space, 0px); }
@@ -178,6 +178,9 @@ transition: left 0.3s ease;
 .modal { width: 92%; max-width: 500px; }
 .emoji-wrap, label[style*="😀 Эмодзи"] { display: none !important; }
 #imgMiniBar { display: none !important; }
+
+/* iPhone: разрешить курсор внутрь слова */
+#editor { word-break: break-word; }
 }
 
 #quickBar {
@@ -207,16 +210,17 @@ cursor: pointer; overflow: hidden;
 #imgMobilePanel {
   position: fixed; z-index: 6000; display: none;
   width: 270px; max-width: 90vw;
-  background: rgba(23, 26, 33, 0.92); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  background: rgba(23, 26, 33, 0.78);
   border: 1px solid #3d7eff; border-radius: 14px;
   box-shadow: 0 8px 30px rgba(0,0,0,.6);
   padding: 0 12px 12px; color: #e8e8e8;
+  touch-action: none;
 }
 #imgMobilePanel.visible { display: block; }
 #imgMobilePanel .imp-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 10px 0 8px; cursor: grab; user-select: none; touch-action: none;
-  border-bottom: 1px solid #2a2f3a; margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 8px;
 }
 #imgMobilePanel .imp-head.grabbing { cursor: grabbing; }
 #imgMobilePanel .imp-title { font-size: 13px; font-weight: bold; color: #4ade80; }
@@ -502,7 +506,8 @@ cursor: pointer; overflow: hidden;
   <label>🔄 Поворот: <span id="impRotLabel">0</span>°</label>
   <div class="imp-rot-row">
     <button onclick="miniRotate(-90)">↺</button>
-    <input type="range" id="impRotRange" min="-180" max="180" value="0" step="1" oninput="setImgRot(this.value)" style="flex:1;">
+    <button id="impRotLock" onclick="toggleRotLock()" title="Включить/выключить плавный поворот" style="flex:0 0 auto; width:34px; height:32px; background:#2a2f3a; color:#fff;">🔒</button>
+    <input type="range" id="impRotRange" min="-180" max="180" value="0" step="1" oninput="setImgRot(this.value)" style="flex:1; opacity:0.4; pointer-events:none;">
     <button onclick="miniRotate(90)">↻</button>
   </div>
   <div class="imp-btns">
@@ -1390,7 +1395,6 @@ editor.querySelectorAll('.img-box').forEach(function(b) { b.classList.remove('se
 currentImgBox = null;
 hideMiniBar();
 closeImgMobilePanel();
-// Панель настроек боковая не прячется
 }
 });
 
@@ -1542,7 +1546,35 @@ const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platfor
 const isAndroid = /Android/i.test(navigator.userAgent);
 
 setTimeout(function() {
-html2canvas(exportNode, { backgroundColor: null, scale: 2, useCORS: true }).then(function(canvas) {
+html2canvas(exportNode, {
+  backgroundColor: null,
+  scale: 2,
+  useCORS: true,
+  width: exportNode.offsetWidth,
+  windowWidth: exportNode.offsetWidth,
+  scrollX: 0,
+  scrollY: 0,
+  x: 0,
+  y: 0,
+  onclone: function(clonedDoc) {
+    var ed = clonedDoc.getElementById('editor');
+    if (ed) {
+      ed.style.setProperty('-webkit-hyphens', 'none');
+      ed.style.setProperty('-moz-hyphens', 'none');
+      ed.style.setProperty('-ms-hyphens', 'none');
+      ed.style.setProperty('hyphens', 'none');
+      ed.style.setProperty('word-break', 'normal');
+      ed.style.setProperty('overflow-wrap', 'break-word');
+      ed.style.setProperty('text-align', 'justify');
+      ed.querySelectorAll('*').forEach(function(el){
+        el.style.setProperty('-webkit-hyphens', 'none');
+        el.style.setProperty('hyphens', 'none');
+      });
+    }
+    var cn = clonedDoc.documentElement;
+    if (cn) cn.setAttribute('lang', 'ru');
+  }
+}).then(function(canvas) {
 const dataUrl = canvas.toDataURL('image/png');
 
 let imgPreview = document.getElementById('previewImage');
@@ -1554,6 +1586,7 @@ const modalTextarea = document.getElementById('markdownOutput');
 modalTextarea.parentNode.insertBefore(imgPreview, modalTextarea);
 }
 imgPreview.src = dataUrl;
+imgPreview.style.display = 'block';
 
 function finish() {
 document.getElementById('markdownOutput').value = generatePlainText();
@@ -1695,7 +1728,6 @@ let ok = false;
 const btn = btnId ? document.getElementById(btnId) : null;
 const original = btn ? btn.innerHTML : '';
 
-// Оборачиваем HTML в стандартный контейнер, чтобы MAX идеально считывал его как Rich Text
 const richHtml = '<div>' + html + '</div>';
 
 try {
@@ -1736,7 +1768,6 @@ setTimeout(function() { btn.innerHTML = original; }, 2000);
 restoreSelection();
 }
 
-/* КОПИРОВАНИЕ: слово-ссылка. В plain (запасной) — слово + адрес с новой строки */
 async function copyForTelegram() {
 if (!editor.innerText.trim()) return;
 const lines = getEditorLines();
@@ -1811,6 +1842,14 @@ e.preventDefault();
 
 editor.addEventListener('keydown', function(e) {
 const sel = window.getSelection();
+
+if (e.key === 'Enter') {
+e.preventDefault();
+document.execCommand('insertLineBreak');
+updateRatio();
+saveHistory();
+return;
+}
 
 if (e.key === ' ' || e.code === 'Space') {
 if (handleSpaceFormattingReset()) {
@@ -2044,10 +2083,20 @@ function applyImgStyles(box) {
   const brd = parseInt(box.dataset.border || '0', 10);
   const col = box.dataset.borderColor || '#000000';
   const rot = parseInt(box.dataset.rot || '0', 10);
+
   box.style.setProperty('--img-radius', rad + 'px');
   box.style.setProperty('--img-border', brd + 'px');
   box.style.setProperty('--img-border-color', col);
   box.style.setProperty('--img-rot', rot + 'deg');
+
+  const rotor = box.querySelector('.img-rotor');
+  const img = box.querySelector('img');
+  if (rotor) rotor.style.transform = 'rotate(' + rot + 'deg)';
+  if (img) {
+    img.style.borderRadius = rad + 'px';
+    img.style.boxShadow = brd > 0 ? '0 0 0 ' + brd + 'px ' + col : 'none';
+  }
+
   const isRight = box.classList.contains('align-right');
   const isCenter = box.classList.contains('align-center');
 
@@ -2056,8 +2105,8 @@ function applyImgStyles(box) {
     updateCenterSpacers(box, gap);
   } else {
     removeCenterSpacers(box);
-    if (isRight) box.style.margin = '8px 0 8px ' + gap + 'px';
-    else box.style.margin = '8px ' + gap + 'px 8px 0';
+    if (isRight) box.style.margin = '0 0 8px ' + gap + 'px';
+    else box.style.margin = '0 ' + gap + 'px 8px 0';
     box.style.removeProperty('--side-space');
   }
 }
@@ -2215,19 +2264,52 @@ function miniDuplicate() {
 
 /* ===== ТЕЛЕФОННАЯ ПЛАВАЮЩАЯ МЕНЮ КАРТИНКИ ===== */
 let impPos = null;
+let rotUnlocked = false;
+
+function setRotLock(unlocked) {
+  rotUnlocked = unlocked;
+  const btn = document.getElementById('impRotLock');
+  const slider = document.getElementById('impRotRange');
+  if (!btn || !slider) return;
+  if (unlocked) {
+    btn.textContent = '🔓';
+    slider.style.opacity = '1';
+    slider.style.pointerEvents = 'auto';
+  } else {
+    btn.textContent = '🔒';
+    slider.style.opacity = '0.4';
+    slider.style.pointerEvents = 'none';
+  }
+}
+
+function toggleRotLock() {
+  setRotLock(!rotUnlocked);
+}
 
 function openImgMobilePanel() {
   const p = document.getElementById('imgMobilePanel');
   if (!p || !currentImgBox) return;
   syncImgMobilePanel();
+  setRotLock(false);
   p.classList.add('visible');
-  if (impPos) {
-    p.style.left = impPos.left + 'px';
-    p.style.top = impPos.top + 'px';
-  } else {
-    p.style.left = Math.max(10, (window.innerWidth / 2 - p.offsetWidth / 2)) + 'px';
-    p.style.top = '80px';
-  }
+  requestAnimationFrame(function(){
+    const pw = p.offsetWidth || 270;
+    const ph = p.offsetHeight || 300;
+    const peek = 40;
+    const minL = peek - pw, maxL = window.innerWidth - peek;
+    const minT = peek - ph, maxT = window.innerHeight - peek;
+    let left, top;
+    if (impPos) {
+      left = Math.max(minL, Math.min(impPos.left, maxL));
+      top  = Math.max(minT, Math.min(impPos.top, maxT));
+    } else {
+      left = Math.max(0, (window.innerWidth - pw) / 2);
+      top  = 80;
+    }
+    p.style.left = left + 'px';
+    p.style.top = top + 'px';
+    impPos = { left: left, top: top };
+  });
 }
 
 function closeImgMobilePanel() {
@@ -2254,7 +2336,7 @@ function syncImgMobilePanel() {
   const irlRot = document.getElementById('impRotLabel'); if (irlRot) irlRot.textContent = rot;
 }
 
-// ПЕРЕТАСКИВАНИЕ МЕНЮ ЗА ЗАГОЛОВОК
+// УЛУЧШЕННОЕ ПЛАВНОЕ ПЕРЕТАСКИВАНИЕ МЕНЮ ЗА ЗАГОЛОВОК
 (function(){
   const head = document.getElementById('impHead');
   const panel = document.getElementById('imgMobilePanel');
@@ -2269,8 +2351,15 @@ function syncImgMobilePanel() {
   function move(x, y) {
     if (!dragging) return;
     let nl = ox + (x - sx), nt = oy + (y - sy);
-    nl = Math.max(0, Math.min(nl, window.innerWidth - panel.offsetWidth));
-    nt = Math.max(0, Math.min(nt, window.innerHeight - panel.offsetHeight));
+    const peek = 40;
+    const pw = panel.offsetWidth;
+    const ph = panel.offsetHeight;
+    const minL = peek - pw;
+    const maxL = window.innerWidth - peek;
+    const minT = peek - ph;
+    const maxT = window.innerHeight - peek;
+    nl = Math.max(minL, Math.min(nl, maxL));
+    nt = Math.max(minT, Math.min(nt, maxT));
     panel.style.left = nl + 'px';
     panel.style.top = nt + 'px';
     impPos = { left: nl, top: nt };
