@@ -179,19 +179,22 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 
 #panelHandle, #mobileToolsBtn { display: none; }
 
-/* ===== КНОПКА ПОДЕЛИТЬСЯ (комп + телефон) ===== */
-#shareBtn {
+/* ===== КНОПКИ В ПРАВОМ ВЕРХНЕМ УГЛУ (ПНГ-пост + МАХ/Телеграм) ===== */
+#topShareGroup {
   position: fixed; top: 20px; right: 20px; z-index: 4500;
-  width: 44px; height: 44px; padding: 0;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; gap: 8px; align-items: center;
+}
+.top-share-btn {
+  height: 44px; padding: 0 14px;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
   background: rgba(23, 26, 33, 0.95); color: #e8e8e8;
   border: 1px solid #2a2f3a; border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.4); cursor: pointer;
-  transition: 0.2s;
+  transition: 0.2s; font-size: 13px; font-weight: 600; white-space: nowrap;
 }
-#shareBtn:hover { background: #3d7eff; color: #fff; }
-#shareBtn:active { transform: scale(0.94); }
-#shareBtn svg { width: 20px; height: 20px; display: block; }
+.top-share-btn:hover { background: #3d7eff; color: #fff; }
+.top-share-btn:active { transform: scale(0.94); }
+.top-share-btn svg { width: 18px; height: 18px; display: block; }
 
 #shareToast {
   position: fixed; top: 74px; right: 20px;
@@ -216,10 +219,13 @@ box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer;
 }
 #mobileToolsBtn:active { background: #2a2f3a; }
 
-#shareBtn {
-top: 15px; right: 15px; width: 42px; height: 42px; z-index: 1500;
+#topShareGroup {
+  top: 15px; right: 15px; z-index: 1500; gap: 6px;
 }
-#shareToast { top: 66px; right: 15px; }
+.top-share-btn {
+  height: 40px; padding: 0 10px; font-size: 12px;
+}
+#shareToast { top: 62px; right: 15px; }
 
 .panel {
 position: fixed; top: 0; left: -320px; width: 320px; height: 100%;
@@ -334,8 +340,8 @@ cursor: pointer; overflow: hidden;
 <h1>🎨 Текстер PRO</h1>
 <label>📏 Платформа (Размер холста)</label>
 <div class="row" style="margin-bottom: 10px;">
-<button class="preset active" onclick="setPreset('telegram', this)" style="flex: 1 1 60%;">💬 Редактор Telegram / MAX</button>
-<button class="preset" onclick="setPreset('custom', this)" style="flex: 1 1 30%;">⚙️ Свой размер PNG-текст</button>
+<button class="preset active" onclick="setPreset('telegram', this)" style="flex: 1 1 60%;">💬 Редактор MAX / Telegram</button>
+<button class="preset" onclick="setPreset('custom', this)" style="flex: 1 1 30%;">⚙️ Свой размер PNG-пост</button>
 </div>
 <div id="widthControl" style="display: none; background: #2a2f3a50; padding: 10px; border-radius: 8px; margin-top: 10px;">
 <label>Своя ширина: <span id="wLabel">800</span> px</label>
@@ -513,10 +519,10 @@ cursor: pointer; overflow: hidden;
 </div>
 </div>
 
-<button class="primary" id="exportBtn" onclick="processExport()">⬇️ Скачать текст (PNG)</button>
+<button class="primary" id="exportBtn" onclick="processExport()">⬇️ Скачать PNG-пост</button>
 
 <div style="display: flex; gap: 8px; margin-top: 10px; flex-direction: column;">
-<button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">⧉ Скопировать для Telegram / MAX</button>
+<button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">⧉ Скопировать для MAX / Telegram</button>
 </div>
 
 <button class="danger" onclick="clearEditor()">🗑️ Очистить холст</button>
@@ -527,15 +533,14 @@ cursor: pointer; overflow: hidden;
 <div class="stage" id="stageArea">
 <button id="mobileToolsBtn" onclick="onMobileToolsClick()">⚙️ Инструменты</button>
 
-<button id="shareBtn" onclick="shareApp()" title="Поделиться приложением">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="18" cy="5" r="3"></circle>
-    <circle cx="6" cy="12" r="3"></circle>
-    <circle cx="18" cy="19" r="3"></circle>
-    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-  </svg>
-</button>
+<div id="topShareGroup">
+  <button class="top-share-btn" onclick="processExport()" title="Скачать / поделиться картинкой PNG">
+    <span style="font-size:16px;">🖼️</span> ПНГ-пост
+  </button>
+  <button class="top-share-btn" onclick="copyForTelegram()" title="Скопировать текст для МАХ / Телеграм">
+    <span style="font-size:16px;">💬</span> МАХ/Телеграм
+  </button>
+</div>
 
 <div id="zoomControls">
 <button id="modeBtn" onclick="toggleMode()" title="Режим: Текст / Рука" style="min-width:auto; padding:0 8px; width:auto;">✍️</button>
@@ -561,7 +566,7 @@ cursor: pointer; overflow: hidden;
 <textarea id="markdownOutput" readonly></textarea>
 <div style="display: flex; gap: 8px; flex-direction: column;">
 <div style="display: flex; gap: 8px;">
-<button class="primary" style="margin-top:0; background:#2481cc; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForTelegram()">⧉ Скопировать<br>для Telegram / MAX</button>
+<button class="primary" style="margin-top:0; background:#2481cc; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForTelegram()">⧉ Скопировать<br>для MAX / Telegram</button>
 </div>
 <button class="danger" style="margin-top:0; padding: 10px; font-size: 14px;" onclick="document.getElementById('textModal').style.display='none'">Закрыть</button>
 </div>
@@ -2767,7 +2772,7 @@ function showTbToast() {
 
 /* ===== ПОДЕЛИТЬСЯ ПРИЛОЖЕНИЕМ (№4 ПО ТЗ) ===== */
 const APP_SHARE_URL = 'https://yalica.github.io/pishem_text/';
-const APP_SHARE_TEXT = '✍️ Текстер PRO — красивые посты для Telegram и MAX. Попробуй бесплатно:';
+const APP_SHARE_TEXT = '✍️ Текстер PRO — красивые посты для MAX и Telegram. Попробуй бесплатно:';
 
 async function shareApp() {
   if (navigator.share) {
