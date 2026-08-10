@@ -217,6 +217,11 @@ transition: left 0.3s ease;
 .emoji-wrap, label[style*="😀 Эмодзи"] { display: none !important; }
 #imgMiniBar { display: none !important; }
 
+/* ЭТАП 2: на телефоне плашки не создаём и не управляем */
+.tb-hide-mobile { display: none !important; }
+.text-box .tb-handle,
+.text-box .tb-drag-frame { display: none !important; }
+
 /* iPhone: разрешить курсор внутрь слова */
 #editor { word-break: break-word; }
 }
@@ -278,6 +283,17 @@ cursor: pointer; overflow: hidden;
 #imgMobilePanel .imp-btns button:active { background: #3d7eff; }
 #imgMobilePanel .imp-rot-row { display: flex; gap: 6px; align-items: center; }
 #imgMobilePanel .imp-rot-row button { flex: 0 0 auto; width: 34px; height: 32px; background:#2a2f3a; color:#fff; }
+
+/* ЭТАП 2: тост-подсказка для плашек на телефоне */
+#tbToast {
+  position: fixed; left: 50%; bottom: 90px; transform: translateX(-50%) translateY(20px);
+  background: rgba(23,26,33,0.96); color: #fff; border: 1px solid #10b981;
+  padding: 12px 18px; border-radius: 12px; font-size: 14px; font-weight: 600;
+  box-shadow: 0 6px 24px rgba(0,0,0,.5); z-index: 100000;
+  opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
+  max-width: 80vw; text-align: center;
+}
+#tbToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -427,7 +443,7 @@ cursor: pointer; overflow: hidden;
 <b>Размер:</b> кликни и потяни за правый нижний угол ⇲.
 </div>
 <button id="btnDeleteImg" class="danger" onclick="deleteSelectedImage()" style="margin-top: 12px; padding: 8px; display: block;">🗑️ Удалить выбранную картинку</button>
-<button class="primary" onclick="addTextBox()" style="margin-top: 12px; padding: 10px; background:#10b981;">➕ Добавить надпись (плашку)</button>
+<button class="primary tb-hide-mobile" onclick="addTextBox()" style="margin-top: 12px; padding: 10px; background:#10b981;">➕ Добавить надпись (плашку)</button>
 <div id="imgSettings">
   <label style="color:#4ade80; margin-top:0;">🎛️ Настройки выбранной картинки</label>
   <label>↔️ Отступ текста: <span id="imgGapLabel">20</span> px</label>
@@ -608,7 +624,7 @@ cursor: pointer; overflow: hidden;
 <option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">🏛️ Антиква: Oranienbaum</option>
 </select>
 <button onmousedown="qbImage(event)" title="Добавить картинку">🖼️</button>
-<button onmousedown="event.preventDefault(); addTextBox();" title="Добавить надпись">📝</button>
+<button class="tb-hide-mobile" onmousedown="event.preventDefault(); addTextBox();" title="Добавить надпись">📝</button>
 <input type="file" id="qbImageInput" accept="image/*" multiple style="display:none;" onchange="insertMultipleImages(event)">
 </div>
 
@@ -2129,6 +2145,7 @@ handle.textContent = panel.classList.contains('open') ? '‹' : '›';
 let currentTextBox = null;
 
 function addTextBox() {
+  if (isMobile()) { showTbToast(); return; }
   const count = exportNode.querySelectorAll('.text-box').length;
   if (count >= 10) { alert('Максимум 10 надписей'); return; }
   const box = document.createElement('div');
@@ -2145,6 +2162,15 @@ function addTextBox() {
 }
 
 function bindTextBox(box) {
+  // ТЕЛЕФОН: плашка стоит мёртво. Не выделяем, не двигаем, не ставим каретку.
+  // По тапу — только подсказка "управляется с компьютера".
+  if (isMobile()) {
+    box.setAttribute('contenteditable', 'false');
+    box.addEventListener('click', function(e){ e.stopPropagation(); showTbToast(); });
+    box.addEventListener('touchstart', function(e){ e.stopPropagation(); showTbToast(); }, {passive: true});
+    return;
+  }
+
   box.addEventListener('click', function(e){
     if (e.target.closest('.tb-edge')) return;
     e.stopPropagation();
@@ -2656,6 +2682,21 @@ function syncImgMobilePanel() {
 
 stageArea.addEventListener('scroll', () => currentImgBox && positionMiniBar());
 window.addEventListener('scroll', () => currentImgBox && positionMiniBar());
+
+/* ЭТАП 2: тост-подсказка "плашки только с компьютера" */
+let _tbToastTimer = null;
+function showTbToast() {
+  let t = document.getElementById('tbToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'tbToast';
+    t.textContent = '📝 Надписи управляются только с компьютера';
+    document.body.appendChild(t);
+  }
+  t.classList.add('show');
+  clearTimeout(_tbToastTimer);
+  _tbToastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+}
 
 </script>
 </body>
