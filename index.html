@@ -179,25 +179,25 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 
 #panelHandle, #mobileToolsBtn { display: none; }
 
-/* ===== КНОПКИ В ПРАВОМ ВЕРХНЕМ УГЛУ (ПНГ-пост + МАХ/Телеграм) ===== */
+/* ===== КНОПКИ В ПРАВОМ ВЕРХНЕМ УГЛУ (ПНГ-пост + MAX/Telegram) ===== */
 #topShareGroup {
-  position: fixed; top: 20px; right: 20px; z-index: 4500;
-  display: flex; gap: 8px; align-items: center;
+  position: fixed; top: 15px; right: 15px; z-index: 4500;
+  display: flex; gap: 6px; align-items: center;
 }
 .top-share-btn {
-  height: 44px; padding: 0 14px;
-  display: flex; align-items: center; justify-content: center; gap: 6px;
+  height: 38px; padding: 0 11px;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
   background: rgba(23, 26, 33, 0.95); color: #e8e8e8;
-  border: 1px solid #2a2f3a; border-radius: 12px;
+  border: 1px solid #2a2f3a; border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.4); cursor: pointer;
-  transition: 0.2s; font-size: 13px; font-weight: 600; white-space: nowrap;
+  transition: 0.2s; font-size: 12px; font-weight: 600; white-space: nowrap;
 }
 .top-share-btn:hover { background: #3d7eff; color: #fff; }
 .top-share-btn:active { transform: scale(0.94); }
-.top-share-btn svg { width: 18px; height: 18px; display: block; }
+.top-share-btn svg { width: 15px; height: 15px; display: block; flex-shrink: 0; }
 
 #shareToast {
-  position: fixed; top: 74px; right: 20px;
+  position: fixed; top: 62px; right: 15px;
   background: rgba(23,26,33,0.96); color: #fff; border: 1px solid #3d7eff;
   padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 600;
   box-shadow: 0 6px 24px rgba(0,0,0,.5); z-index: 100000;
@@ -212,20 +212,21 @@ body { display: block; height: 100vh; overflow: hidden; }
 
 #mobileToolsBtn {
 display: flex; align-items: center; justify-content: center;
-position: absolute; top: 15px; left: 15px; z-index: 1000;
+position: absolute; top: 12px; left: 10px; z-index: 1000;
 background: #171a21; color: #fff; border: 1px solid #2a2f3a;
-padding: 10px 14px; border-radius: 8px; font-size: 14px; font-weight: bold;
+padding: 0 10px; height: 36px; border-radius: 10px; font-size: 12px; font-weight: bold;
 box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer;
 }
 #mobileToolsBtn:active { background: #2a2f3a; }
 
 #topShareGroup {
-  top: 15px; right: 15px; z-index: 1500; gap: 6px;
+top: 12px; right: 10px; z-index: 1500; gap: 4px;
 }
 .top-share-btn {
-  height: 40px; padding: 0 10px; font-size: 12px;
+height: 36px; padding: 0 8px; font-size: 11px; border-radius: 10px;
 }
-#shareToast { top: 62px; right: 15px; }
+.top-share-btn svg { width: 13px; height: 13px; }
+#shareToast { top: 56px; right: 10px; }
 
 .panel {
 position: fixed; top: 0; left: -320px; width: 320px; height: 100%;
@@ -535,10 +536,12 @@ cursor: pointer; overflow: hidden;
 
 <div id="topShareGroup">
   <button class="top-share-btn" onclick="processExport()" title="Скачать / поделиться картинкой PNG">
-    <span style="font-size:16px;">🖼️</span> ПНГ-пост
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+    ПНГ-пост
   </button>
-  <button class="top-share-btn" onclick="copyForTelegram()" title="Скопировать текст для МАХ / Телеграм">
-    <span style="font-size:16px;">💬</span> МАХ/Телеграм
+  <button class="top-share-btn" onclick="copyForTelegram()" title="Скопировать текст для MAX / Telegram">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+    MAX/Telegram
   </button>
 </div>
 
@@ -1910,25 +1913,13 @@ let ok = false;
 const btn = btnId ? document.getElementById(btnId) : null;
 const original = btn ? btn.innerHTML : '';
 
-const richHtml = '<div>' + html + '</div>';
-
-try {
-if (navigator.clipboard && window.ClipboardItem) {
-const item = new ClipboardItem({
-'text/html': new Blob([richHtml], { type: 'text/html' }),
-'text/plain': new Blob([plain], { type: 'text/plain' })
-});
-await navigator.clipboard.write([item]);
-ok = true;
-}
-} catch (err) { ok = false; }
-
-if (!ok) {
+// Копируем через выделение временного элемента — гарантирует, что Telegram не посчитает это файл-блобом!
 const temp = document.createElement('div');
 temp.contentEditable = 'true';
 temp.style.position = 'fixed';
 temp.style.left = '-9999px';
-temp.innerHTML = richHtml;
+temp.style.top = '-9999px';
+temp.innerHTML = '<div>' + html + '</div>';
 document.body.appendChild(temp);
 
 const range = document.createRange();
@@ -1937,14 +1928,21 @@ const sel = window.getSelection();
 sel.removeAllRanges();
 sel.addRange(range);
 
-try { document.execCommand('copy'); ok = true; } catch (e) { ok = false; }
+try {
+  ok = document.execCommand('copy');
+} catch (e) { ok = false; }
 document.body.removeChild(temp);
 
+if (!ok && navigator.clipboard && navigator.clipboard.writeText) {
+  try {
+    await navigator.clipboard.writeText(plain);
+    ok = true;
+  } catch (err) { ok = false; }
 }
 
 if (ok && btn) {
-btn.innerHTML = '✅ Скопировано!';
-setTimeout(function() { btn.innerHTML = original; }, 2000);
+  btn.innerHTML = '✅ Скопировано!';
+  setTimeout(function() { btn.innerHTML = original; }, 2000);
 }
 
 restoreSelection();
