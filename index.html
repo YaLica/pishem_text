@@ -179,7 +179,7 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 
 #panelHandle, #mobileToolsBtn { display: none; }
 
-/* ===== КНОПКИ В ПРАВОМ ВЕРХНЕМ УГЛУ ===== */
+/* ===== КНОПКИ В ПРАВОМ ВЕРХНЕМ УГЛУ (ПНГ-пост + MAX/Telegram) ===== */
 #topShareGroup {
   position: fixed; top: 15px; right: 15px; z-index: 4500;
   display: flex; gap: 6px; align-items: center;
@@ -195,6 +195,16 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 .top-share-btn:hover { background: #3d7eff; color: #fff; }
 .top-share-btn:active { transform: scale(0.94); }
 .top-share-btn svg { width: 15px; height: 15px; display: block; flex-shrink: 0; }
+
+#shareToast {
+  position: fixed; top: 62px; right: 15px;
+  background: rgba(23,26,33,0.96); color: #fff; border: 1px solid #3d7eff;
+  padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  box-shadow: 0 6px 24px rgba(0,0,0,.5); z-index: 100000;
+  opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
+  transform: translateY(-8px);
+}
+#shareToast.show { opacity: 1; transform: translateY(0); }
 
 @media (max-width: 820px) {
 body { display: block; height: 100vh; overflow: hidden; }
@@ -216,11 +226,15 @@ top: 12px; right: 10px; z-index: 1500; gap: 4px;
 height: 36px; padding: 0 8px; font-size: 11px; border-radius: 10px;
 }
 .top-share-btn svg { width: 13px; height: 13px; }
+#shareToast { top: 56px; right: 10px; }
 
 .panel {
 position: fixed; top: 0; left: -320px; width: 320px; height: 100%;
 z-index: 2000; transition: left 0.3s ease; box-shadow: 5px 0 20px rgba(0,0,0,0.8);
 padding: 15px; border-right: none;
+background: rgba(23, 26, 33, 0.55) !important;
+-webkit-backdrop-filter: none !important;
+backdrop-filter: none !important;
 }
 .panel.open { left: 0; }
 #panelHandle {
@@ -464,7 +478,6 @@ cursor: pointer; overflow: hidden;
 <input type="file" accept="image/*" multiple onchange="insertMultipleImages(event)">
 <div style="font-size: 11px; color: #9aa4b2; margin-top: 6px;">
 <b>Мультивыбор:</b> можешь выбрать сразу несколько картинок.<br>
-<b>Перемещение:</b> зажми картинку мышью и тащи. Кинешь вправо — встанет справа.<br>
 <b>Размер:</b> кликни и потяни за правый нижний угол ⇲.
 </div>
 <button id="btnDeleteImg" class="danger" onclick="deleteSelectedImage()" style="margin-top: 12px; padding: 8px; display: block;">🗑️ Удалить выбранную картинку</button>
@@ -518,7 +531,7 @@ cursor: pointer; overflow: hidden;
 <button id="panelHandle" onclick="togglePanel()">›</button>
 
 <div class="stage" id="stageArea">
-<button id="mobileToolsBtn" onclick="togglePanel()">⚙️ Инструменты</button>
+<button id="mobileToolsBtn" onclick="onMobileToolsClick()">⚙️ Инструменты</button>
 
 <div id="topShareGroup">
   <button class="top-share-btn" onclick="processExport()" title="Скачать / поделиться картинкой PNG">
@@ -624,6 +637,7 @@ cursor: pointer; overflow: hidden;
 <input type="color" id="qbWordColor" value="#ff0000" oninput="applyTextColor(this.value)" onchange="applyTextColor(this.value)" title="Цвет выделенного текста">
 <button onmousedown="qbLink(event)">🔗</button>
 <button onmousedown="qbClean(event)" title="Сбросить стили">🧹</button>
+<button onmousedown="qbImage(event)" title="Добавить картинку">🖼️</button>
 <select id="qbFontSelect" ontouchstart="saveSelectionBeforeAction(); event.stopPropagation();" onmousedown="saveSelectionBeforeAction(); event.stopPropagation();" onchange="qbFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного слова" style="flex:0 0 auto; width:auto; min-width:90px; height:42px; padding:0 6px; border-radius:10px; background:#2a2f3a; color:#e6ebf2; border:1px solid #3a4150; font-size:13px;">
 <option value="">🔤 Шрифт</option>
 <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">📱 Системный (Стандарт)</option>
@@ -659,7 +673,6 @@ cursor: pointer; overflow: hidden;
 <option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">🕊️ Изящный: Philosopher</option>
 <option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">🏛️ Антиква: Oranienbaum</option>
 </select>
-<button onmousedown="qbImage(event)" title="Добавить картинку">🖼️</button>
 <button class="tb-hide-mobile" onmousedown="event.preventDefault(); addTextBox();" title="Добавить надпись">📝</button>
 <input type="file" id="qbImageInput" accept="image/*" multiple style="display:none;" onchange="insertMultipleImages(event)">
 </div>
@@ -1511,6 +1524,11 @@ newResizer.addEventListener('mousedown', startResize);
 newResizer.addEventListener('touchstart', startResize, {passive: false});
 }
 
+/* ФЛАГИ ДЛЯ ТЕЛЕФОННОЙ МИНИ-ПАНЕЛИ КАРТИНКИ (№3 ПО ТЗ) */
+let mobileImgPanelSessionFirst = true;
+let lastImgTapTime = 0;
+let lastImgTapBox = null;
+
 function selectImgBox(box) {
 if (isMobile()) { editor.blur(); if (document.activeElement) document.activeElement.blur(); }
 editor.querySelectorAll('.img-box').forEach(function(b) { b.classList.remove('selected'); });
@@ -1519,7 +1537,20 @@ currentImgBox = box;
 ensureRotor(box);
 applyImgStyles(box);
 positionMiniBar(); syncImgSettings();
-if (isMobile()) openImgMobilePanel();
+
+if (isMobile()) {
+  const now = Date.now();
+  if (mobileImgPanelSessionFirst) {
+    mobileImgPanelSessionFirst = false;
+    openImgMobilePanel();
+  } else {
+    if (lastImgTapBox === box && (now - lastImgTapTime) < 400) {
+      openImgMobilePanel();
+    }
+  }
+  lastImgTapTime = now;
+  lastImgTapBox = box;
+}
 }
 
 function deleteSelectedImage() {
@@ -1881,25 +1912,13 @@ let ok = false;
 const btn = btnId ? document.getElementById(btnId) : null;
 const original = btn ? btn.innerHTML : '';
 
-const richHtml = '<div>' + html + '</div>';
-
-try {
-if (navigator.clipboard && window.ClipboardItem) {
-const item = new ClipboardItem({
-'text/html': new Blob([richHtml], { type: 'text/html' }),
-'text/plain': new Blob([plain], { type: 'text/plain' })
-});
-await navigator.clipboard.write([item]);
-ok = true;
-}
-} catch (err) { ok = false; }
-
-if (!ok) {
+// Копируем через выделение временного элемента — гарантирует, что Telegram не посчитает это файл-блобом!
 const temp = document.createElement('div');
 temp.contentEditable = 'true';
 temp.style.position = 'fixed';
 temp.style.left = '-9999px';
-temp.innerHTML = richHtml;
+temp.style.top = '-9999px';
+temp.innerHTML = '<div>' + html + '</div>';
 document.body.appendChild(temp);
 
 const range = document.createRange();
@@ -1908,14 +1927,21 @@ const sel = window.getSelection();
 sel.removeAllRanges();
 sel.addRange(range);
 
-try { document.execCommand('copy'); ok = true; } catch (e) { ok = false; }
+try {
+  ok = document.execCommand('copy');
+} catch (e) { ok = false; }
 document.body.removeChild(temp);
 
+if (!ok && navigator.clipboard && navigator.clipboard.writeText) {
+  try {
+    await navigator.clipboard.writeText(plain);
+    ok = true;
+  } catch (err) { ok = false; }
 }
 
 if (ok && btn) {
-btn.innerHTML = '✅ Скопировано!';
-setTimeout(function() { btn.innerHTML = original; }, 2000);
+  btn.innerHTML = '✅ Скопировано!';
+  setTimeout(function() { btn.innerHTML = original; }, 2000);
 }
 
 restoreSelection();
@@ -2175,6 +2201,13 @@ const handle = document.getElementById('panelHandle');
 panel.classList.toggle('open');
 handle.classList.toggle('open');
 handle.textContent = panel.classList.contains('open') ? '‹' : '›';
+}
+
+/* СКРЫТИЕ КНОПКИ ИНСТРУМЕНТЫ ПОСЛЕ ПЕРВОГО КЛИКА (№1 ПО ТЗ) */
+function onMobileToolsClick() {
+  togglePanel();
+  const btn = document.getElementById('mobileToolsBtn');
+  if (btn) btn.style.display = 'none';
 }
 
 /* ================= ЭТАП 2: ТЕКСТОВЫЕ ПЛАШКИ (ТЕКСТ-БЛОКИ) ================= */
@@ -2579,7 +2612,7 @@ function miniToBottom() {
 
 function miniDelete() {
   if (!currentImgBox) return;
-  removeCenterSpacers(currentImgBox);
+  removeCenterSpacers(box);
   currentImgBox.remove();
   currentImgBox = null;
   hideMiniBar();
@@ -2732,6 +2765,56 @@ function showTbToast() {
   t.classList.add('show');
   clearTimeout(_tbToastTimer);
   _tbToastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+}
+
+/* ===== ПОДЕЛИТЬСЯ ПРИЛОЖЕНИЕМ (№4 ПО ТЗ) ===== */
+const APP_SHARE_URL = 'https://yalica.github.io/pishem_text/';
+const APP_SHARE_TEXT = '✍️ Текстер PRO — красивые посты для MAX и Telegram. Попробуй бесплатно:';
+
+async function shareApp() {
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Текстер PRO',
+        text: APP_SHARE_TEXT,
+        url: APP_SHARE_URL
+      });
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+    }
+  }
+  const shareStr = APP_SHARE_TEXT + ' ' + APP_SHARE_URL;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(shareStr);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = shareStr;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    showShareToast();
+  } catch (e) {
+    prompt('Скопируй ссылку на приложение:', APP_SHARE_URL);
+  }
+}
+
+function showShareToast() {
+  let t = document.getElementById('shareToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'shareToast';
+    t.textContent = '✅ Ссылка скопирована!';
+    document.body.appendChild(t);
+  }
+  t.classList.add('show');
+  clearTimeout(window._shareToastTimer);
+  window._shareToastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2000);
 }
 
 </script>
