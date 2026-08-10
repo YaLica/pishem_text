@@ -179,62 +179,23 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 
 #panelHandle, #mobileToolsBtn { display: none; }
 
-/* ===== КНОПКИ В ПРАВОМ ВЕРХНЕМ УГЛУ (ПНГ-пост + MAX/Telegram) ===== */
-#topShareGroup {
-  position: fixed; top: 15px; right: 15px; z-index: 4500;
-  display: flex; gap: 6px; align-items: center;
-}
-.top-share-btn {
-  height: 38px; padding: 0 11px;
-  display: flex; align-items: center; justify-content: center; gap: 5px;
-  background: rgba(23, 26, 33, 0.95); color: #e8e8e8;
-  border: 1px solid #2a2f3a; border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4); cursor: pointer;
-  transition: 0.2s; font-size: 12px; font-weight: 600; white-space: nowrap;
-}
-.top-share-btn:hover { background: #3d7eff; color: #fff; }
-.top-share-btn:active { transform: scale(0.94); }
-.top-share-btn svg { width: 15px; height: 15px; display: block; flex-shrink: 0; }
-
-#shareToast {
-  position: fixed; top: 62px; right: 15px;
-  background: rgba(23,26,33,0.96); color: #fff; border: 1px solid #3d7eff;
-  padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 600;
-  box-shadow: 0 6px 24px rgba(0,0,0,.5); z-index: 100000;
-  opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
-  transform: translateY(-8px);
-}
-#shareToast.show { opacity: 1; transform: translateY(0); }
-
 @media (max-width: 820px) {
 body { display: block; height: 100vh; overflow: hidden; }
 .stage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; }
 
 #mobileToolsBtn {
 display: flex; align-items: center; justify-content: center;
-position: absolute; top: 12px; left: 10px; z-index: 1000;
+position: absolute; top: 15px; left: 15px; z-index: 1000;
 background: #171a21; color: #fff; border: 1px solid #2a2f3a;
-padding: 0 10px; height: 36px; border-radius: 10px; font-size: 12px; font-weight: bold;
+padding: 10px 14px; border-radius: 8px; font-size: 14px; font-weight: bold;
 box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer;
 }
 #mobileToolsBtn:active { background: #2a2f3a; }
-
-#topShareGroup {
-top: 12px; right: 10px; z-index: 1500; gap: 4px;
-}
-.top-share-btn {
-height: 36px; padding: 0 8px; font-size: 11px; border-radius: 10px;
-}
-.top-share-btn svg { width: 13px; height: 13px; }
-#shareToast { top: 56px; right: 10px; }
 
 .panel {
 position: fixed; top: 0; left: -320px; width: 320px; height: 100%;
 z-index: 2000; transition: left 0.3s ease; box-shadow: 5px 0 20px rgba(0,0,0,0.8);
 padding: 15px; border-right: none;
-background: rgba(23, 26, 33, 0.55) !important;
--webkit-backdrop-filter: none !important;
-backdrop-filter: none !important;
 }
 .panel.open { left: 0; }
 #panelHandle {
@@ -333,38 +294,6 @@ cursor: pointer; overflow: hidden;
   max-width: 80vw; text-align: center;
 }
 #tbToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* ===== ЭТАП 2 (ТЕЛЕФОН): ПОДПИСИ КАРТИНКИ ===== */
-.img-caption {
-  display: none;
-  position: relative;
-  z-index: 5;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 6px 10px;
-  font-size: 18px;
-  line-height: 1.3;
-  color: #000000;
-  text-align: center;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  cursor: text;
-  -webkit-user-select: text !important;
-  user-select: text !important;
-  -webkit-touch-callout: default;
-  pointer-events: auto;
-  outline: none;
-}
-.img-caption.active { display: block; }
-.img-caption.cap-bottom { margin-top: 6px; }
-.img-caption:empty:before {
-  content: attr(data-ph);
-  opacity: 0.45;
-  font-style: italic;
-}
-
-/* кнопка "подпись снизу" в мобильной менюшке */
-#impCapBottomBtn.on { background: #10b981 !important; }
 </style>
 </head>
 <body>
@@ -373,8 +302,8 @@ cursor: pointer; overflow: hidden;
 <h1>🎨 Текстер PRO</h1>
 <label>📏 Платформа (Размер холста)</label>
 <div class="row" style="margin-bottom: 10px;">
-<button class="preset active" onclick="setPreset('telegram', this)" style="flex: 1 1 60%;">💬 Редактор MAX / Telegram</button>
-<button class="preset" onclick="setPreset('custom', this)" style="flex: 1 1 30%;">⚙️ Свой размер PNG-пост</button>
+<button class="preset active" onclick="setPreset('telegram', this)" style="flex: 1 1 60%;">💬 Редактор Telegram / MAX</button>
+<button class="preset" onclick="setPreset('custom', this)" style="flex: 1 1 30%;">⚙️ Свой размер PNG-текст</button>
 </div>
 <div id="widthControl" style="display: none; background: #2a2f3a50; padding: 10px; border-radius: 8px; margin-top: 10px;">
 <label>Своя ширина: <span id="wLabel">800</span> px</label>
@@ -510,6 +439,7 @@ cursor: pointer; overflow: hidden;
 <input type="file" accept="image/*" multiple onchange="insertMultipleImages(event)">
 <div style="font-size: 11px; color: #9aa4b2; margin-top: 6px;">
 <b>Мультивыбор:</b> можешь выбрать сразу несколько картинок.<br>
+<b>Перемещение:</b> зажми картинку мышью и тащи. Кинешь вправо — встанет справа.<br>
 <b>Размер:</b> кликни и потяни за правый нижний угол ⇲.
 </div>
 <button id="btnDeleteImg" class="danger" onclick="deleteSelectedImage()" style="margin-top: 12px; padding: 8px; display: block;">🗑️ Удалить выбранную картинку</button>
@@ -551,10 +481,10 @@ cursor: pointer; overflow: hidden;
 </div>
 </div>
 
-<button class="primary" id="exportBtn" onclick="processExport()">⬇️ Скачать PNG-пост</button>
+<button class="primary" id="exportBtn" onclick="processExport()">⬇️ Скачать текст (PNG)</button>
 
 <div style="display: flex; gap: 8px; margin-top: 10px; flex-direction: column;">
-<button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">⧉ Скопировать для MAX / Telegram</button>
+<button class="primary" id="copyTgBtn" onclick="copyForTelegram()" style="background:#2481cc; margin-top: 0; padding: 12px; font-size: 14px;">⧉ Скопировать для Telegram / MAX</button>
 </div>
 
 <button class="danger" onclick="clearEditor()">🗑️ Очистить холст</button>
@@ -563,18 +493,7 @@ cursor: pointer; overflow: hidden;
 <button id="panelHandle" onclick="togglePanel()">›</button>
 
 <div class="stage" id="stageArea">
-<button id="mobileToolsBtn" onclick="onMobileToolsClick()">⚙️ Инструменты</button>
-
-<div id="topShareGroup">
-  <button class="top-share-btn" onclick="processExport()" title="Скачать / поделиться картинкой PNG">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-    PNG-пост
-  </button>
-  <button class="top-share-btn" onclick="copyForTelegram()" title="Скопировать текст для MAX / Telegram">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-    MAX/Telegram
-  </button>
-</div>
+<button id="mobileToolsBtn" onclick="togglePanel()">⚙️ Инструменты</button>
 
 <div id="zoomControls">
 <button id="modeBtn" onclick="toggleMode()" title="Режим: Текст / Рука" style="min-width:auto; padding:0 8px; width:auto;">✍️</button>
@@ -600,7 +519,7 @@ cursor: pointer; overflow: hidden;
 <textarea id="markdownOutput" readonly></textarea>
 <div style="display: flex; gap: 8px; flex-direction: column;">
 <div style="display: flex; gap: 8px;">
-<button class="primary" style="margin-top:0; background:#2481cc; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForTelegram()">⧉ Скопировать<br>для MAX / Telegram</button>
+<button class="primary" style="margin-top:0; background:#2481cc; padding: 12px; flex: 1; font-size: 13px; line-height: 1.2;" onclick="copyForTelegram()">⧉ Скопировать<br>для Telegram / MAX</button>
 </div>
 <button class="danger" style="margin-top:0; padding: 10px; font-size: 14px;" onclick="document.getElementById('textModal').style.display='none'">Закрыть</button>
 </div>
@@ -655,14 +574,6 @@ cursor: pointer; overflow: hidden;
     <button onclick="miniToBottom()" title="В конец">⬇️</button>
     <button onclick="miniDelete()" title="Удалить">🗑️</button>
   </div>
-  <div style="border-top:1px solid rgba(255,255,255,0.1); margin-top:10px; padding-top:8px;">
-    <div style="display:flex; gap:6px; align-items:center;">
-      <button id="impCapBottomBtn" onclick="toggleCaption('bottom')"
-        style="flex:1; height:34px; background:#2a2f3a; color:#fff; border-radius:7px; font-size:13px;">
-        📝 Подпись снизу
-      </button>
-    </div>
-  </div>
 </div>
 
 <!-- QUICKBAR -->
@@ -677,7 +588,6 @@ cursor: pointer; overflow: hidden;
 <input type="color" id="qbWordColor" value="#ff0000" oninput="applyTextColor(this.value)" onchange="applyTextColor(this.value)" title="Цвет выделенного текста">
 <button onmousedown="qbLink(event)">🔗</button>
 <button onmousedown="qbClean(event)" title="Сбросить стили">🧹</button>
-<button onmousedown="qbImage(event)" title="Добавить картинку">🖼️</button>
 <select id="qbFontSelect" ontouchstart="saveSelectionBeforeAction(); event.stopPropagation();" onmousedown="saveSelectionBeforeAction(); event.stopPropagation();" onchange="qbFont(this.value); this.selectedIndex=0;" title="Шрифт выделенного слова" style="flex:0 0 auto; width:auto; min-width:90px; height:42px; padding:0 6px; border-radius:10px; background:#2a2f3a; color:#e6ebf2; border:1px solid #3a4150; font-size:13px;">
 <option value="">🔤 Шрифт</option>
 <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif">📱 Системный (Стандарт)</option>
@@ -713,6 +623,7 @@ cursor: pointer; overflow: hidden;
 <option value="'Philosopher', sans-serif" style="font-family: 'Philosopher', sans-serif">🕊️ Изящный: Philosopher</option>
 <option value="'Oranienbaum', serif" style="font-family: 'Oranienbaum', serif">🏛️ Антиква: Oranienbaum</option>
 </select>
+<button onmousedown="qbImage(event)" title="Добавить картинку">🖼️</button>
 <button class="tb-hide-mobile" onmousedown="event.preventDefault(); addTextBox();" title="Добавить надпись">📝</button>
 <input type="file" id="qbImageInput" accept="image/*" multiple style="display:none;" onchange="insertMultipleImages(event)">
 </div>
@@ -1155,9 +1066,9 @@ if (sel && sel.rangeCount > 0) {
   const inBox = currentTextBox && currentTextBox.contains(anchor);
   if (inEditor || inBox) {
     const range = sel.getRangeAt(0);
-    // Сохраняем и выделение, и простую каретку (курсор) —
-    // чтобы картинка вставлялась строго по курсору.
-    savedSelection = range.cloneRange();
+    if (!range.collapsed) {
+      savedSelection = range.cloneRange();
+    }
   }
 }
 }
@@ -1564,11 +1475,6 @@ newResizer.addEventListener('mousedown', startResize);
 newResizer.addEventListener('touchstart', startResize, {passive: false});
 }
 
-/* ФЛАГИ ДЛЯ ТЕЛЕФОННОЙ МИНИ-ПАНЕЛИ КАРТИНКИ (№3 ПО ТЗ) */
-let mobileImgPanelSessionFirst = true;
-let lastImgTapTime = 0;
-let lastImgTapBox = null;
-
 function selectImgBox(box) {
 if (isMobile()) { editor.blur(); if (document.activeElement) document.activeElement.blur(); }
 editor.querySelectorAll('.img-box').forEach(function(b) { b.classList.remove('selected'); });
@@ -1577,20 +1483,7 @@ currentImgBox = box;
 ensureRotor(box);
 applyImgStyles(box);
 positionMiniBar(); syncImgSettings();
-
-if (isMobile()) {
-  const now = Date.now();
-  if (mobileImgPanelSessionFirst) {
-    mobileImgPanelSessionFirst = false;
-    openImgMobilePanel();
-  } else {
-    if (lastImgTapBox === box && (now - lastImgTapTime) < 400) {
-      openImgMobilePanel();
-    }
-  }
-  lastImgTapTime = now;
-  lastImgTapBox = box;
-}
+if (isMobile()) openImgMobilePanel();
 }
 
 function deleteSelectedImage() {
@@ -1610,7 +1503,6 @@ document.addEventListener('click', function(e) {
 if (e.target.closest('#btnDeleteImg')) return;
 if (e.target.closest('#imgSettings')) return;
 if (e.target.closest('#imgMobilePanel')) return;
-if (e.target.closest('.img-caption')) return;
 if (!e.target.closest('.img-box') && !e.target.closest('#imgMiniBar')) {
 editor.querySelectorAll('.img-box').forEach(function(b) { b.classList.remove('selected'); });
 currentImgBox = null;
@@ -1953,13 +1845,25 @@ let ok = false;
 const btn = btnId ? document.getElementById(btnId) : null;
 const original = btn ? btn.innerHTML : '';
 
-// Копируем через выделение временного элемента — гарантирует, что Telegram не посчитает это файл-блобом!
+const richHtml = '<div>' + html + '</div>';
+
+try {
+if (navigator.clipboard && window.ClipboardItem) {
+const item = new ClipboardItem({
+'text/html': new Blob([richHtml], { type: 'text/html' }),
+'text/plain': new Blob([plain], { type: 'text/plain' })
+});
+await navigator.clipboard.write([item]);
+ok = true;
+}
+} catch (err) { ok = false; }
+
+if (!ok) {
 const temp = document.createElement('div');
 temp.contentEditable = 'true';
 temp.style.position = 'fixed';
 temp.style.left = '-9999px';
-temp.style.top = '-9999px';
-temp.innerHTML = '<div>' + html + '</div>';
+temp.innerHTML = richHtml;
 document.body.appendChild(temp);
 
 const range = document.createRange();
@@ -1968,21 +1872,14 @@ const sel = window.getSelection();
 sel.removeAllRanges();
 sel.addRange(range);
 
-try {
-  ok = document.execCommand('copy');
-} catch (e) { ok = false; }
+try { document.execCommand('copy'); ok = true; } catch (e) { ok = false; }
 document.body.removeChild(temp);
 
-if (!ok && navigator.clipboard && navigator.clipboard.writeText) {
-  try {
-    await navigator.clipboard.writeText(plain);
-    ok = true;
-  } catch (err) { ok = false; }
 }
 
 if (ok && btn) {
-  btn.innerHTML = '✅ Скопировано!';
-  setTimeout(function() { btn.innerHTML = original; }, 2000);
+btn.innerHTML = '✅ Скопировано!';
+setTimeout(function() { btn.innerHTML = original; }, 2000);
 }
 
 restoreSelection();
@@ -2242,13 +2139,6 @@ const handle = document.getElementById('panelHandle');
 panel.classList.toggle('open');
 handle.classList.toggle('open');
 handle.textContent = panel.classList.contains('open') ? '‹' : '›';
-}
-
-/* СКРЫТИЕ КНОПКИ ИНСТРУМЕНТЫ ПОСЛЕ ПЕРВОГО КЛИКА (№1 ПО ТЗ) */
-function onMobileToolsClick() {
-  togglePanel();
-  const btn = document.getElementById('mobileToolsBtn');
-  if (btn) btn.style.display = 'none';
 }
 
 /* ================= ЭТАП 2: ТЕКСТОВЫЕ ПЛАШКИ (ТЕКСТ-БЛОКИ) ================= */
@@ -2750,8 +2640,6 @@ function syncImgMobilePanel() {
   const ibc = document.getElementById('impBorderColor'); if (ibc) ibc.value = col;
   const irrRot = document.getElementById('impRotRange'); if (irrRot) irrRot.value = rot;
   const irlRot = document.getElementById('impRotLabel'); if (irlRot) irlRot.textContent = rot;
-
-  syncCaptionButtons();
 }
 
 // УЛУЧШЕННОЕ ПЛАВНОЕ ПЕРЕТАСКИВАНИЕ МЕНЮ ЗА ЗАГОЛОВОК
@@ -2810,136 +2698,6 @@ function showTbToast() {
   _tbToastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2200);
 }
 
-/* ===== ПОДЕЛИТЬСЯ ПРИЛОЖЕНИЕМ (№4 ПО ТЗ) ===== */
-const APP_SHARE_URL = 'https://yalica.github.io/pishem_text/';
-const APP_SHARE_TEXT = '✍️ Текстер PRO — красивые посты для MAX и Telegram. Попробуй бесплатно:';
-
-async function shareApp() {
-  if (navigator.share) {
-    try {
-      await navigator.share({
-        title: 'Текстер PRO',
-        text: APP_SHARE_TEXT,
-        url: APP_SHARE_URL
-      });
-      return;
-    } catch (e) {
-      if (e && e.name === 'AbortError') return;
-    }
-  }
-  const shareStr = APP_SHARE_TEXT + ' ' + APP_SHARE_URL;
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(shareStr);
-    } else {
-      const ta = document.createElement('textarea');
-      ta.value = shareStr;
-      ta.style.position = 'fixed';
-      ta.style.left = '-9999px';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    }
-    showShareToast();
-  } catch (e) {
-    prompt('Скопируй ссылку на приложение:', APP_SHARE_URL);
-  }
-}
-
-function showShareToast() {
-  let t = document.getElementById('shareToast');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = 'shareToast';
-    t.textContent = '✅ Ссылка скопирована!';
-    document.body.appendChild(t);
-  }
-  t.classList.add('show');
-  clearTimeout(window._shareToastTimer);
-  window._shareToastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2000);
-}
-
-/* ===== ЭТАП 2 (ТЕЛЕФОН): ПОДПИСЬ СНИЗУ ===== */
-
-// Гарантируем, что у картинки есть подпись-снизу (создаём при первом включении)
-function ensureCaptionBottom(box) {
-  if (!box) return null;
-  let cap = box.querySelector('.img-caption.cap-bottom');
-  if (!cap) {
-    cap = document.createElement('div');
-    cap.className = 'img-caption cap-bottom';
-    cap.contentEditable = 'true';
-    cap.setAttribute('data-ph', 'Подпись…');
-    box.appendChild(cap);
-    bindCaption(cap);
-  }
-  return cap;
-}
-
-function bindCaption(cap) {
-  ['click','mousedown','mouseup','touchend','pointerdown','pointerup','dragstart']
-    .forEach(function(ev){
-      cap.addEventListener(ev, function(e){ e.stopPropagation(); }, false);
-    });
-
-  cap.addEventListener('touchstart', function(e){
-    e.stopPropagation();
-  }, {passive: true});
-
-  cap.addEventListener('input', function(){
-    clearTimeout(typeTimer);
-    typeTimer = setTimeout(saveHistory, 400);
-    updateRatio();
-  });
-
-  cap.addEventListener('focus', function(){
-    if (isMobile()) document.getElementById('quickBar').classList.add('visible');
-  });
-
-  cap.addEventListener('keydown', function(e){
-    e.stopPropagation();
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      document.execCommand('insertLineBreak');
-    }
-  });
-
-  cap.addEventListener('keyup', function(e){ e.stopPropagation(); });
-}
-
-// Включить / выключить подпись снизу
-function toggleCaption(zone) {
-  if (!currentImgBox) return;
-  if (zone === 'bottom') {
-    const cap = ensureCaptionBottom(currentImgBox);
-    const btn = document.getElementById('impCapBottomBtn');
-    if (cap.classList.contains('active')) {
-      // выключаем: если пусто — удаляем совсем, если есть текст — просто прячем
-      if (cap.textContent.trim() === '') {
-        cap.remove();
-      } else {
-        cap.classList.remove('active');
-      }
-      if (btn) btn.classList.remove('on');
-    } else {
-      cap.classList.add('active');
-      if (btn) btn.classList.add('on');
-      setTimeout(function(){ cap.focus(); }, 30);
-    }
-    updateRatio();
-    saveHistory();
-  }
-}
-
-// Подсветка кнопки в зависимости от того, есть ли активная подпись у выбранной картинки
-function syncCaptionButtons() {
-  const btn = document.getElementById('impCapBottomBtn');
-  if (!btn || !currentImgBox) return;
-  const cap = currentImgBox.querySelector('.img-caption.cap-bottom.active');
-  if (cap) btn.classList.add('on');
-  else btn.classList.remove('on');
-}
 </script>
 </body>
 </html>
