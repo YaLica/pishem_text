@@ -2611,7 +2611,8 @@ function miniToBottom() {
 }
 
 function miniDelete() {
-  if (!currentImgBox) return;
+  if (!currentImgBox) { alert('ПУСТО: картинка не выбрана'); return; }
+  alert('СРАБОТАЛО: удаляю');
   removeCenterSpacers(currentImgBox);
   currentImgBox.remove();
   currentImgBox = null;
