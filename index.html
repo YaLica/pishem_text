@@ -333,6 +333,32 @@ cursor: pointer; overflow: hidden;
   max-width: 80vw; text-align: center;
 }
 #tbToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== ЭТАП 2 (ТЕЛЕФОН): ПОДПИСИ КАРТИНКИ ===== */
+.img-caption {
+  display: none;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  font-size: 18px;
+  line-height: 1.3;
+  color: #000000;
+  text-align: center;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  -webkit-user-select: text; user-select: text;
+  outline: none;
+}
+.img-caption.active { display: block; }
+.img-caption.cap-bottom { margin-top: 6px; }
+.img-caption:empty:before {
+  content: attr(data-ph);
+  opacity: 0.45;
+  font-style: italic;
+}
+
+/* кнопка "подпись снизу" в мобильной менюшке */
+#impCapBottomBtn.on { background: #10b981 !important; }
 </style>
 </head>
 <body>
@@ -622,6 +648,14 @@ cursor: pointer; overflow: hidden;
     <button onclick="miniToTop()" title="В начало">⬆️</button>
     <button onclick="miniToBottom()" title="В конец">⬇️</button>
     <button onclick="miniDelete()" title="Удалить">🗑️</button>
+  </div>
+  <div style="border-top:1px solid rgba(255,255,255,0.1); margin-top:10px; padding-top:8px;">
+    <div style="display:flex; gap:6px; align-items:center;">
+      <button id="impCapBottomBtn" onclick="toggleCaption('bottom')"
+        style="flex:1; height:34px; background:#2a2f3a; color:#fff; border-radius:7px; font-size:13px;">
+        📝 Подпись снизу
+      </button>
+    </div>
   </div>
 </div>
 
@@ -2709,6 +2743,8 @@ function syncImgMobilePanel() {
   const ibc = document.getElementById('impBorderColor'); if (ibc) ibc.value = col;
   const irrRot = document.getElementById('impRotRange'); if (irrRot) irrRot.value = rot;
   const irlRot = document.getElementById('impRotLabel'); if (irlRot) irlRot.textContent = rot;
+
+  syncCaptionButtons();
 }
 
 // УЛУЧШЕННОЕ ПЛАВНОЕ ПЕРЕТАСКИВАНИЕ МЕНЮ ЗА ЗАГОЛОВОК
@@ -2817,6 +2853,71 @@ function showShareToast() {
   window._shareToastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2000);
 }
 
+/* ===== ЭТАП 2 (ТЕЛЕФОН): ПОДПИСЬ СНИЗУ ===== */
+
+// Гарантируем, что у картинки есть подпись-снизу (создаём при первом включении)
+function ensureCaptionBottom(box) {
+  if (!box) return null;
+  let cap = box.querySelector('.img-caption.cap-bottom');
+  if (!cap) {
+    cap = document.createElement('span');
+    cap.className = 'img-caption cap-bottom';
+    cap.contentEditable = 'true';
+    cap.setAttribute('data-ph', 'Подпись…');
+    box.appendChild(cap); // внутри .img-box, под картинкой
+    bindCaption(cap);
+  }
+  return cap;
+}
+
+function bindCaption(cap) {
+  cap.addEventListener('input', function(){
+    clearTimeout(typeTimer);
+    typeTimer = setTimeout(saveHistory, 400);
+    updateRatio();
+  });
+  cap.addEventListener('focus', function(){
+    if (isMobile()) document.getElementById('quickBar').classList.add('visible');
+  });
+  cap.addEventListener('keyup', saveSelectionBeforeAction);
+  cap.addEventListener('touchend', saveSelectionBeforeAction);
+  // клик по подписи не должен снимать выделение картинки
+  cap.addEventListener('click', function(e){ e.stopPropagation(); });
+  cap.addEventListener('touchstart', function(e){ e.stopPropagation(); }, {passive:true});
+}
+
+// Включить / выключить подпись снизу
+function toggleCaption(zone) {
+  if (!currentImgBox) return;
+  if (zone === 'bottom') {
+    const cap = ensureCaptionBottom(currentImgBox);
+    const btn = document.getElementById('impCapBottomBtn');
+    if (cap.classList.contains('active')) {
+      // выключаем: если пусто — удаляем совсем, если есть текст — просто прячем
+      if (cap.textContent.trim() === '') {
+        cap.remove();
+      } else {
+        cap.classList.remove('active');
+      }
+      if (btn) btn.classList.remove('on');
+    } else {
+      cap.classList.add('active');
+      if (btn) btn.classList.add('on');
+      setTimeout(function(){ cap.focus(); }, 30);
+    }
+    updateRatio();
+    saveHistory();
+  }
+}
+
+// Подсветка кнопки в зависимости от того, есть ли активная подпись у выбранной картинки
+function syncCaptionButtons() {
+  const btn = document.getElementById('impCapBottomBtn');
+  if (!btn || !currentImgBox) return;
+  const cap = currentImgBox.querySelector('.img-caption.cap-bottom.active');
+  if (cap) btn.classList.add('on');
+  else btn.classList.remove('on');
+}
 </script>
 </body>
 </html>
