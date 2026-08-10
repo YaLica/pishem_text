@@ -2612,7 +2612,7 @@ function miniToBottom() {
 
 function miniDelete() {
   if (!currentImgBox) return;
-  removeCenterSpacers(box);
+  removeCenterSpacers(currentImgBox);
   currentImgBox.remove();
   currentImgBox = null;
   hideMiniBar();
