@@ -2611,9 +2611,8 @@ function miniToBottom() {
 }
 
 function miniDelete() {
-  if (!currentImgBox) { alert('ПУСТО: картинка не выбрана'); return; }
-  alert('СРАБОТАЛО: удаляю');
-  removeCenterSpacers(currentImgBox);
+  if (!currentImgBox) return;
+  try { removeCenterSpacers(currentImgBox); } catch(e) {}
   currentImgBox.remove();
   currentImgBox = null;
   hideMiniBar();
