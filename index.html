@@ -179,6 +179,30 @@ min-width: 52px; text-align: center; font-size: 14px; font-weight: bold; color: 
 
 #panelHandle, #mobileToolsBtn { display: none; }
 
+/* ===== КНОПКА ПОДЕЛИТЬСЯ (комп + телефон) ===== */
+#shareBtn {
+  position: fixed; top: 20px; right: 20px; z-index: 4500;
+  width: 44px; height: 44px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(23, 26, 33, 0.95); color: #e8e8e8;
+  border: 1px solid #2a2f3a; border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4); cursor: pointer;
+  transition: 0.2s;
+}
+#shareBtn:hover { background: #3d7eff; color: #fff; }
+#shareBtn:active { transform: scale(0.94); }
+#shareBtn svg { width: 20px; height: 20px; display: block; }
+
+#shareToast {
+  position: fixed; top: 74px; right: 20px;
+  background: rgba(23,26,33,0.96); color: #fff; border: 1px solid #3d7eff;
+  padding: 10px 16px; border-radius: 10px; font-size: 13px; font-weight: 600;
+  box-shadow: 0 6px 24px rgba(0,0,0,.5); z-index: 100000;
+  opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
+  transform: translateY(-8px);
+}
+#shareToast.show { opacity: 1; transform: translateY(0); }
+
 @media (max-width: 820px) {
 body { display: block; height: 100vh; overflow: hidden; }
 .stage { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 15px; }
@@ -192,10 +216,16 @@ box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer;
 }
 #mobileToolsBtn:active { background: #2a2f3a; }
 
+#shareBtn {
+top: 15px; right: 15px; width: 42px; height: 42px; z-index: 1500;
+}
+#shareToast { top: 66px; right: 15px; }
+
 .panel {
 position: fixed; top: 0; left: -320px; width: 320px; height: 100%;
 z-index: 2000; transition: left 0.3s ease; box-shadow: 5px 0 20px rgba(0,0,0,0.8);
 padding: 15px; border-right: none;
+background: rgba(23, 26, 33, 0.88); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
 }
 .panel.open { left: 0; }
 #panelHandle {
@@ -493,7 +523,17 @@ cursor: pointer; overflow: hidden;
 <button id="panelHandle" onclick="togglePanel()">›</button>
 
 <div class="stage" id="stageArea">
-<button id="mobileToolsBtn" onclick="togglePanel()">⚙️ Инструменты</button>
+<button id="mobileToolsBtn" onclick="onMobileToolsClick()">⚙️ Инструменты</button>
+
+<button id="shareBtn" onclick="shareApp()" title="Поделиться приложением">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="18" cy="5" r="3"></circle>
+    <circle cx="6" cy="12" r="3"></circle>
+    <circle cx="18" cy="19" r="3"></circle>
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+  </svg>
+</button>
 
 <div id="zoomControls">
 <button id="modeBtn" onclick="toggleMode()" title="Режим: Текст / Рука" style="min-width:auto; padding:0 8px; width:auto;">✍️</button>
@@ -1475,6 +1515,11 @@ newResizer.addEventListener('mousedown', startResize);
 newResizer.addEventListener('touchstart', startResize, {passive: false});
 }
 
+/* ФЛАГИ ДЛЯ ТЕЛЕФОННОЙ МИНИ-ПАНЕЛИ КАРТИНКИ (№3 ПО ТЗ) */
+let mobileImgPanelSessionFirst = true;
+let lastImgTapTime = 0;
+let lastImgTapBox = null;
+
 function selectImgBox(box) {
 if (isMobile()) { editor.blur(); if (document.activeElement) document.activeElement.blur(); }
 editor.querySelectorAll('.img-box').forEach(function(b) { b.classList.remove('selected'); });
@@ -1483,7 +1528,20 @@ currentImgBox = box;
 ensureRotor(box);
 applyImgStyles(box);
 positionMiniBar(); syncImgSettings();
-if (isMobile()) openImgMobilePanel();
+
+if (isMobile()) {
+  const now = Date.now();
+  if (mobileImgPanelSessionFirst) {
+    mobileImgPanelSessionFirst = false;
+    openImgMobilePanel();
+  } else {
+    if (lastImgTapBox === box && (now - lastImgTapTime) < 400) {
+      openImgMobilePanel();
+    }
+  }
+  lastImgTapTime = now;
+  lastImgTapBox = box;
+}
 }
 
 function deleteSelectedImage() {
@@ -2141,6 +2199,13 @@ handle.classList.toggle('open');
 handle.textContent = panel.classList.contains('open') ? '‹' : '›';
 }
 
+/* СКРЫТИЕ КНОПКИ ИНСТРУМЕНТЫ ПОСЛЕ ПЕРВОГО КЛИКА (№1 ПО ТЗ) */
+function onMobileToolsClick() {
+  togglePanel();
+  const btn = document.getElementById('mobileToolsBtn');
+  if (btn) btn.style.display = 'none';
+}
+
 /* ================= ЭТАП 2: ТЕКСТОВЫЕ ПЛАШКИ (ТЕКСТ-БЛОКИ) ================= */
 let currentTextBox = null;
 
@@ -2543,7 +2608,7 @@ function miniToBottom() {
 
 function miniDelete() {
   if (!currentImgBox) return;
-  removeCenterSpacers(currentImgBox);
+  removeCenterSpacers(box);
   currentImgBox.remove();
   currentImgBox = null;
   hideMiniBar();
@@ -2696,6 +2761,56 @@ function showTbToast() {
   t.classList.add('show');
   clearTimeout(_tbToastTimer);
   _tbToastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+}
+
+/* ===== ПОДЕЛИТЬСЯ ПРИЛОЖЕНИЕМ (№4 ПО ТЗ) ===== */
+const APP_SHARE_URL = 'https://yalica.github.io/pishem_text/';
+const APP_SHARE_TEXT = '✍️ Текстер PRO — красивые посты для Telegram и MAX. Попробуй бесплатно:';
+
+async function shareApp() {
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'Текстер PRO',
+        text: APP_SHARE_TEXT,
+        url: APP_SHARE_URL
+      });
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return;
+    }
+  }
+  const shareStr = APP_SHARE_TEXT + ' ' + APP_SHARE_URL;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(shareStr);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = shareStr;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    showShareToast();
+  } catch (e) {
+    prompt('Скопируй ссылку на приложение:', APP_SHARE_URL);
+  }
+}
+
+function showShareToast() {
+  let t = document.getElementById('shareToast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'shareToast';
+    t.textContent = '✅ Ссылка скопирована!';
+    document.body.appendChild(t);
+  }
+  t.classList.add('show');
+  clearTimeout(window._shareToastTimer);
+  window._shareToastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2000);
 }
 
 </script>
