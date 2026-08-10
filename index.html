@@ -337,6 +337,8 @@ cursor: pointer; overflow: hidden;
 /* ===== ЭТАП 2 (ТЕЛЕФОН): ПОДПИСИ КАРТИНКИ ===== */
 .img-caption {
   display: none;
+  position: relative;
+  z-index: 5;
   width: 100%;
   box-sizing: border-box;
   padding: 6px 10px;
@@ -346,7 +348,11 @@ cursor: pointer; overflow: hidden;
   text-align: center;
   word-break: break-word;
   overflow-wrap: break-word;
-  -webkit-user-select: text; user-select: text;
+  cursor: text;
+  -webkit-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default;
+  pointer-events: auto;
   outline: none;
 }
 .img-caption.active { display: block; }
@@ -1604,6 +1610,7 @@ document.addEventListener('click', function(e) {
 if (e.target.closest('#btnDeleteImg')) return;
 if (e.target.closest('#imgSettings')) return;
 if (e.target.closest('#imgMobilePanel')) return;
+if (e.target.closest('.img-caption')) return;
 if (!e.target.closest('.img-box') && !e.target.closest('#imgMiniBar')) {
 editor.querySelectorAll('.img-box').forEach(function(b) { b.classList.remove('selected'); });
 currentImgBox = null;
@@ -2860,30 +2867,45 @@ function ensureCaptionBottom(box) {
   if (!box) return null;
   let cap = box.querySelector('.img-caption.cap-bottom');
   if (!cap) {
-    cap = document.createElement('span');
+    cap = document.createElement('div');
     cap.className = 'img-caption cap-bottom';
     cap.contentEditable = 'true';
     cap.setAttribute('data-ph', 'Подпись…');
-    box.appendChild(cap); // внутри .img-box, под картинкой
+    box.appendChild(cap);
     bindCaption(cap);
   }
   return cap;
 }
 
 function bindCaption(cap) {
+  ['click','mousedown','mouseup','touchend','pointerdown','pointerup','dragstart']
+    .forEach(function(ev){
+      cap.addEventListener(ev, function(e){ e.stopPropagation(); }, false);
+    });
+
+  cap.addEventListener('touchstart', function(e){
+    e.stopPropagation();
+  }, {passive: true});
+
   cap.addEventListener('input', function(){
     clearTimeout(typeTimer);
     typeTimer = setTimeout(saveHistory, 400);
     updateRatio();
   });
+
   cap.addEventListener('focus', function(){
     if (isMobile()) document.getElementById('quickBar').classList.add('visible');
   });
-  cap.addEventListener('keyup', saveSelectionBeforeAction);
-  cap.addEventListener('touchend', saveSelectionBeforeAction);
-  // клик по подписи не должен снимать выделение картинки
-  cap.addEventListener('click', function(e){ e.stopPropagation(); });
-  cap.addEventListener('touchstart', function(e){ e.stopPropagation(); }, {passive:true});
+
+  cap.addEventListener('keydown', function(e){
+    e.stopPropagation();
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      document.execCommand('insertLineBreak');
+    }
+  });
+
+  cap.addEventListener('keyup', function(e){ e.stopPropagation(); });
 }
 
 // Включить / выключить подпись снизу
