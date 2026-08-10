@@ -1066,9 +1066,9 @@ if (sel && sel.rangeCount > 0) {
   const inBox = currentTextBox && currentTextBox.contains(anchor);
   if (inEditor || inBox) {
     const range = sel.getRangeAt(0);
-    if (!range.collapsed) {
-      savedSelection = range.cloneRange();
-    }
+    // Сохраняем и выделение, и простую каретку (курсор) —
+    // чтобы картинка вставлялась строго по курсору.
+    savedSelection = range.cloneRange();
   }
 }
 }
