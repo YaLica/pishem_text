@@ -1493,7 +1493,6 @@ if (percent < 15) percent = 15;
 if (percent > 100) percent = 100;
 box.style.width = percent + '%';
 applyImgStyles(box);
-updateRatio();
 }
 function stopDrag() {
 document.removeEventListener('mousemove', doDrag);
