@@ -1491,8 +1491,9 @@ let newW = startW + (currentX - startX);
 let percent = (newW / parentW) * 100;
 if (percent < 15) percent = 15;
 if (percent > 100) percent = 100;
-box.style.width = percent + '%';
-applyImgStyles(box);
+box.setAttribute('draggable', 'true');
+updateRatio();
+saveHistory();
 }
 function stopDrag() {
 document.removeEventListener('mousemove', doDrag);
