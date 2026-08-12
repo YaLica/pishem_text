@@ -2177,18 +2177,19 @@ cleanFormat();
 function qbFont(font) {
   if (!font) return;
 
-  // Проверяем: есть ли реальное выделение текста?
-  restoreSelection();
-  const sel = window.getSelection();
-  const hasSelection = sel && sel.rangeCount > 0 && sel.toString().trim().length > 0;
+  // На телефоне живое выделение сбрасывается при тыке в select,
+  // поэтому проверяем СОХРАНЁННОЕ выделение (savedSelection).
+  const hasSavedSelection =
+    savedSelection &&
+    !savedSelection.collapsed &&
+    savedSelection.toString().trim().length > 0;
 
-  if (hasSelection) {
-    // ЕСТЬ выделение → меняем шрифт выделенному (как было раньше)
+  if (hasSavedSelection) {
+    // ЕСТЬ выделение → меняем шрифт всему выделенному (как на компе)
     applyWordFont(font);
   } else {
     // НЕТ выделения → меняем шрифт всему тексту поста
     editor.style.fontFamily = font;
-    // синхронизируем выпадающий список "основной шрифт" в панели, если такой шрифт там есть
     if (fontFamilySelector) {
       const hasOption = Array.from(fontFamilySelector.options).some(o => o.value === font);
       if (hasOption) fontFamilySelector.value = font;
