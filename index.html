@@ -968,6 +968,11 @@ function updateBgColor(color) { exportNode.style.setProperty('--bg-color', color
 function updateMainTextColor(color) { exportNode.style.setProperty('--text-color', color); }
 function updateFontFamily(font) { editor.style.fontFamily = font; updateRatio(); saveHistory(); }
 
+  let _fitTimer = null;
+function scheduleScreenFit() {
+  clearTimeout(_fitTimer);
+  _fitTimer = setTimeout(autoScreenFit, 250);
+}
 function updateRatio() {
 const w = exportNode.offsetWidth;
 const h = exportNode.offsetHeight;
