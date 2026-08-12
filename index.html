@@ -1112,6 +1112,23 @@ if (sel && sel.rangeCount > 0) {
 }
 
 document.addEventListener('selectionchange', saveSelectionBeforeAction);
+  /* Замораживаем выделение для «умной кнопки шрифта» на quickBar.
+   selectionchange НЕ трогает savedSelectionForFont — она живёт своей жизнью. */
+function freezeSelectionForFont() {
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0) {
+    const anchor = sel.anchorNode;
+    const inEditor = editor.contains(anchor);
+    const inBox = currentTextBox && currentTextBox.contains(anchor);
+    if ((inEditor || inBox) && !sel.isCollapsed && sel.toString().trim().length > 0) {
+      savedSelectionForFont = sel.getRangeAt(0).cloneRange();
+    } else {
+      savedSelectionForFont = null;
+    }
+  } else {
+    savedSelectionForFont = null;
+  }
+}
 
 editor.addEventListener('keyup', saveSelectionBeforeAction);
 editor.addEventListener('mouseup', saveSelectionBeforeAction);
