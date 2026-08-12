@@ -2194,15 +2194,21 @@ cleanFormat();
 function qbFont(font) {
   if (!font) return;
 
-  // На телефоне живое выделение сбрасывается при тыке в select,
-  // поэтому проверяем СОХРАНЁННОЕ выделение (savedSelection).
-  const hasSavedSelection =
-    savedSelection &&
-    !savedSelection.collapsed &&
-    savedSelection.toString().trim().length > 0;
+  // Используем ЗАМОРОЖЕННОЕ выделение (savedSelectionForFont),
+  // которое НЕ затирается событием selectionchange при тапе в select.
+  const hasFrozen =
+    savedSelectionForFont &&
+    !savedSelectionForFont.collapsed &&
+    savedSelectionForFont.toString().trim().length > 0;
 
-  if (hasSavedSelection) {
-    // ЕСТЬ выделение → меняем шрифт всему выделенному (как на компе)
+  if (hasFrozen) {
+    // ЕСТЬ выделение → восстанавливаем его и меняем шрифт всему куску
+    const scope = currentTextBox || editor;
+    if (scope) scope.focus();
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedSelectionForFont);
+    savedSelection = savedSelectionForFont.cloneRange();
     applyWordFont(font);
   } else {
     // НЕТ выделения → меняем шрифт всему тексту поста
@@ -2214,6 +2220,8 @@ function qbFont(font) {
     updateRatio();
     saveHistory();
   }
+
+  savedSelectionForFont = null; // сбрасываем после применения
 }
 
 function qbImage(e) {
