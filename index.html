@@ -122,6 +122,16 @@ font-weight: 400;
 .text-box .tb-content:empty:before {
   content: attr(data-ph); opacity: 0.6; font-style: italic;
 }
+  /* ЭТАП 3: картинка внутри плашки */
+.text-box .tb-content img.tb-img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 4px auto;
+  border-radius: 6px;
+  pointer-events: none;
+  -webkit-user-select: none; user-select: none;
+}
 
 .text-box .tb-drag-frame {
   position: absolute; inset: -3px; z-index: 2;
