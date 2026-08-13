@@ -2535,6 +2535,14 @@ function ensureDragFrame(box) {
     rs.contentEditable = 'false';
     box.appendChild(rs);
   }
+  if (!box.querySelector('.tb-rotate')) {
+    const rot = document.createElement('div');
+    rot.className = 'tb-rotate';
+    rot.contentEditable = 'false';
+    rot.textContent = '🔄';
+    rot.title = 'Вращать плашку';
+    box.appendChild(rot);
+  }
 }
 
 function deleteTextBox(box) {
