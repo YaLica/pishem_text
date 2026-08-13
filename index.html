@@ -2674,6 +2674,50 @@ function makeTextBoxResizable(box) {
   rs.addEventListener('mousedown', onStart);
   rs.addEventListener('touchstart', onStart, {passive: false});
 }
+  function applyTbRotation(box) {
+  const rot = parseFloat(box.dataset.rot || '0');
+  box.style.transform = 'rotate(' + rot + 'deg)';
+  box.style.transformOrigin = 'center center';
+}
+
+function makeTextBoxRotatable(box) {
+  const handle = box.querySelector('.tb-rotate');
+  if (!handle) return;
+
+  function onStart(e) {
+    e.stopPropagation();
+    if (e.cancelable) e.preventDefault();
+    selectTextBox(box);
+
+    const rect = box.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+
+    function onMove(ev) {
+      if (ev.cancelable) ev.preventDefault();
+      const t = ev.touches ? ev.touches[0] : ev;
+      const angle = Math.atan2(t.clientY - cy, t.clientX - cx) * 180 / Math.PI + 90;
+      box.dataset.rot = angle;
+      applyTbRotation(box);
+    }
+
+    function onEnd() {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      saveHistory();
+    }
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchmove', onMove, {passive: false});
+    document.addEventListener('touchend', onEnd);
+  }
+
+  handle.addEventListener('mousedown', onStart);
+  handle.addEventListener('touchstart', onStart, {passive: false});
+}
 
 function selectTextBox(box) {
   editor.querySelectorAll('.img-box').forEach(function(b){ b.classList.remove('selected'); });
