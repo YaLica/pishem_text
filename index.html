@@ -497,8 +497,10 @@ cursor: pointer; overflow: hidden;
   <label style="color:#10b981; margin-top:0;">🎨 Настройки выбранной надписи</label>
   <label>🎨 Цвет фона плашки</label>
   <input type="color" id="tbBgColor" value="#000000" oninput="setTbBgColor(this.value)">
-  <label>👻 Прозрачность фона: <span id="tbBgOpacityLabel">55</span>%</label>
+    <label>👻 Прозрачность фона: <span id="tbBgOpacityLabel">55</span>%</label>
   <input type="range" id="tbBgOpacity" min="0" max="100" value="55" oninput="setTbBgOpacity(this.value)">
+  <button type="button" onclick="document.getElementById('tbImageInput').click()" style="width:100%; margin-top:10px; background:#10b981; color:#fff; padding:10px;">🖼️ Вставить картинку в плашку</button>
+  <input type="file" id="tbImageInput" accept="image/*" style="display:none;" onchange="insertImageIntoTextBox(event)">
 </div>
 <div id="imgSettings">
   <label style="color:#4ade80; margin-top:0;">🎛️ Настройки выбранной картинки</label>
