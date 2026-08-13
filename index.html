@@ -2366,6 +2366,18 @@ function syncTbSettings() {
   const opEl = document.getElementById('tbBgOpacity'); if (opEl) opEl.value = op;
   const opLbl = document.getElementById('tbBgOpacityLabel'); if (opLbl) opLbl.textContent = op;
 }
+  function handleTbPaste(e) {
+  const box = e.target.closest('.text-box');
+  if (!box) return;
+  e.preventDefault();
+  const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+  if (text) {
+    document.execCommand('insertText', false, text);
+  }
+  clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
+
+document.addEventListener('paste', handleTbPaste, true);
   function insertImageIntoTextBox(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
