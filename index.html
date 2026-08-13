@@ -751,12 +751,14 @@ document.getElementById('btnRedo').disabled = (historyIndex >= historyStack.leng
 function saveHistory() {
 const textBoxesData = Array.from(exportNode.querySelectorAll('.text-box')).map(b => {
   const contentEl = b.querySelector('.tb-content');
-  return {
+   return {
     html: contentEl ? contentEl.innerHTML : '',
     left: b.style.left,
     top: b.style.top,
+    width: b.style.width || '',
     bgColor: b.dataset.bgColor || '#000000',
-    bgOpacity: (b.dataset.bgOpacity !== undefined) ? b.dataset.bgOpacity : '55'
+    bgOpacity: (b.dataset.bgOpacity !== undefined) ? b.dataset.bgOpacity : '55',
+    rot: b.dataset.rot || '0'
   };
 });
 const snapshot = { 
