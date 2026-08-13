@@ -794,10 +794,12 @@ if (snapshot.textBoxes && Array.isArray(snapshot.textBoxes)) {
   snapshot.textBoxes.forEach(tb => {
     const box = document.createElement('div');
     box.className = 'text-box';
-    box.style.left = tb.left;
+      box.style.left = tb.left;
     box.style.top = tb.top;
+    if (tb.width) box.style.width = tb.width;
     if (tb.bgColor) box.dataset.bgColor = tb.bgColor;
     if (tb.bgOpacity !== undefined) box.dataset.bgOpacity = tb.bgOpacity;
+    if (tb.rot !== undefined) box.dataset.rot = tb.rot;
     
     const content = document.createElement('div');
     content.className = 'tb-content';
