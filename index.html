@@ -710,7 +710,9 @@ const textBoxesData = Array.from(exportNode.querySelectorAll('.text-box')).map(b
   return {
     html: contentEl ? contentEl.innerHTML : '',
     left: b.style.left,
-    top: b.style.top
+    top: b.style.top,
+    bgColor: b.dataset.bgColor || '#000000',
+    bgOpacity: (b.dataset.bgOpacity !== undefined) ? b.dataset.bgOpacity : '55'
   };
 });
 const snapshot = { 
@@ -748,6 +750,8 @@ if (snapshot.textBoxes && Array.isArray(snapshot.textBoxes)) {
     box.className = 'text-box';
     box.style.left = tb.left;
     box.style.top = tb.top;
+    if (tb.bgColor) box.dataset.bgColor = tb.bgColor;
+    if (tb.bgOpacity !== undefined) box.dataset.bgOpacity = tb.bgOpacity;
     
     const content = document.createElement('div');
     content.className = 'tb-content';
@@ -757,6 +761,7 @@ if (snapshot.textBoxes && Array.isArray(snapshot.textBoxes)) {
     box.appendChild(content);
 
     exportNode.appendChild(box);
+    applyTbBg(box);
     bindTextBox(box);
   });
 }
@@ -1605,9 +1610,11 @@ currentImgBox = null;
 hideMiniBar();
 closeImgMobilePanel();
 }
-if (!e.target.closest('.text-box') && !e.target.closest('.toolbar') && !e.target.closest('#quickBar') && !e.target.closest('#imgMiniBar')) {
+if (!e.target.closest('.text-box') && !e.target.closest('.toolbar') && !e.target.closest('#quickBar') && !e.target.closest('#imgMiniBar') && !e.target.closest('#tbSettings')) {
 document.querySelectorAll('.text-box').forEach(function(b) { b.classList.remove('selected'); });
 currentTextBox = null;
+const tbPanel = document.getElementById('tbSettings');
+if (tbPanel) tbPanel.style.display = 'none';
 }
 });
 
@@ -2291,6 +2298,63 @@ function onMobileToolsClick() {
 /* ================= ЭТАП 2: ТЕКСТОВЫЕ ПЛАШКИ (ТЕКСТ-БЛОКИ) ================= */
 let currentTextBox = null;
 
+/* ===== ЭТАП 2 (Часть Б): ФОН ПЛАШКИ (цвет + прозрачность) ===== */
+function hexToRgb(hex) {
+  hex = (hex || '#000000').replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+  const num = parseInt(hex, 16);
+  return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+}
+
+function getTbTargetBox() {
+  if (!currentTextBox) return null;
+  return currentTextBox.classList && currentTextBox.classList.contains('text-box')
+    ? currentTextBox
+    : currentTextBox.closest('.text-box');
+}
+
+function applyTbBg(box) {
+  if (!box) return;
+  const content = box.querySelector('.tb-content');
+  if (!content) return;
+  const hex = box.dataset.bgColor || '#000000';
+  const op = (box.dataset.bgOpacity !== undefined) ? parseInt(box.dataset.bgOpacity, 10) : 55;
+  const rgb = hexToRgb(hex);
+  content.style.background = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + (op / 100) + ')';
+}
+
+function setTbBgColor(v) {
+  const box = getTbTargetBox();
+  if (!box) return;
+  box.dataset.bgColor = v;
+  const el = document.getElementById('tbBgColor'); if (el) el.value = v;
+  applyTbBg(box);
+  clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
+
+function setTbBgOpacity(v) {
+  const box = getTbTargetBox();
+  if (!box) return;
+  box.dataset.bgOpacity = v;
+  const lbl = document.getElementById('tbBgOpacityLabel'); if (lbl) lbl.textContent = v;
+  const rng = document.getElementById('tbBgOpacity'); if (rng) rng.value = v;
+  applyTbBg(box);
+  clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
+
+function syncTbSettings() {
+  const panel = document.getElementById('tbSettings');
+  if (!panel) return;
+  const box = getTbTargetBox();
+  if (!box || isMobile()) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  const hex = box.dataset.bgColor || '#000000';
+  const op = (box.dataset.bgOpacity !== undefined) ? parseInt(box.dataset.bgOpacity, 10) : 55;
+  const colEl = document.getElementById('tbBgColor'); if (colEl) colEl.value = hex;
+  const opEl = document.getElementById('tbBgOpacity'); if (opEl) opEl.value = op;
+  const opLbl = document.getElementById('tbBgOpacityLabel'); if (opLbl) opLbl.textContent = op;
+}
+
 function addTextBox() {
   if (isMobile()) { showTbToast(); return; }
   const count = exportNode.querySelectorAll('.text-box').length;
@@ -2299,6 +2363,8 @@ function addTextBox() {
   box.className = 'text-box';
   box.style.left = (30 + count * 20) + 'px';
   box.style.top  = (30 + count * 20) + 'px';
+  box.dataset.bgColor = '#000000';
+  box.dataset.bgOpacity = '55';
 
   const content = document.createElement('div');
   content.className = 'tb-content';
@@ -2307,6 +2373,7 @@ function addTextBox() {
   box.appendChild(content);
 
   exportNode.appendChild(box);
+  applyTbBg(box);
   bindTextBox(box);
   selectTextBox(box);
   setTimeout(function(){ content.focus(); }, 30);
@@ -2389,6 +2456,7 @@ function deleteTextBox(box) {
     currentTextBox = null;
   }
   box.remove();
+  syncTbSettings();
   saveHistory();
 }
 
@@ -2475,6 +2543,7 @@ function selectTextBox(box) {
   box.classList.add('selected');
   currentTextBox = box.querySelector('.tb-content') || box;
   currentImgBox = null;
+  syncTbSettings();
 }
 
 /* ================= ЭТАП 1: РАСШИРЕННЫЕ КАРТИНКИ ================= */
