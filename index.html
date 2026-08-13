@@ -2484,9 +2484,11 @@ function bindTextBox(box) {
     content.addEventListener('touchend', saveSelectionBeforeAction);
   }
 
-  ensureDragFrame(box);
+   ensureDragFrame(box);
   makeTextBoxDraggable(box);
   makeTextBoxResizable(box);
+  makeTextBoxRotatable(box);
+  applyTbRotation(box);
 }
 
 function ensureDragFrame(box) {
