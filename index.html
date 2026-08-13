@@ -103,16 +103,26 @@ font-weight: 400;
 .text-box {
   position: absolute; left: 40px; top: 40px;
   min-width: 60px; max-width: 90%;
+  z-index: 20;
+  box-sizing: border-box;
+  user-select: none; -webkit-user-select: none;
+}
+.text-box.selected { outline: 3px solid #10b981; outline-offset: 4px; border-radius: 12px; }
+
+.text-box .tb-content {
   padding: 10px 14px;
   background: rgba(0,0,0,0.55); color: #ffffff;
   border-radius: 10px; font-size: 24px; line-height: 1.25;
-  text-align: center; z-index: 20; cursor: text;
+  text-align: center;
   word-break: break-word; overflow-wrap: break-word;
-  -webkit-user-select: text; user-select: text; box-sizing: border-box;
+  -webkit-user-select: text; user-select: text;
+  outline: none; cursor: text;
+  min-height: 1.25em;
 }
-.text-box:focus { outline: none; }
-.text-box.selected { outline: 3px solid #10b981; outline-offset: 2px; }
-.text-box:empty:before { content: attr(data-ph); opacity: 0.6; font-style: italic; }
+.text-box .tb-content:empty:before {
+  content: attr(data-ph); opacity: 0.6; font-style: italic;
+}
+
 .text-box .tb-drag-frame {
   position: absolute; inset: -3px; z-index: 2;
   display: none; pointer-events: none;
@@ -124,7 +134,7 @@ font-weight: 400;
 .text-box .tb-edge.left   { left: -3px; top: -3px; bottom: -3px; width: 12px; }
 .text-box .tb-edge.right  { right: -3px; top: -3px; bottom: -3px; width: 12px; }
 
-/* Хваталка перемещения (правый верхний угол, только при выделении) */
+/* Хваталка перемещения (правый верхний угол) */
 .text-box .tb-handle {
   position: absolute; top: -14px; right: -14px;
   width: 30px; height: 30px; z-index: 30;
@@ -136,6 +146,19 @@ font-weight: 400;
   pointer-events: auto;
 }
 .text-box.selected .tb-handle { display: flex; }
+
+/* ❌ Крестик удаления (левый верхний угол) */
+.text-box .tb-delete {
+  position: absolute; top: -14px; left: -14px;
+  width: 30px; height: 30px; z-index: 30;
+  display: none; align-items: center; justify-content: center;
+  background: #ef4444; color: #fff; border-radius: 50%;
+  font-size: 16px; line-height: 1; cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,.5);
+  user-select: none; -webkit-user-select: none;
+  pointer-events: auto;
+}
+.text-box.selected .tb-delete { display: flex; }
 
 #imgMiniBar {
   position: fixed; z-index: 5000; display: none;
@@ -236,6 +259,7 @@ transition: left 0.3s ease;
 /* ЭТАП 2: на телефоне плашки не создаём и не управляем */
 .tb-hide-mobile { display: none !important; }
 .text-box .tb-handle,
+.text-box .tb-delete,
 .text-box .tb-drag-frame { display: none !important; }
 
 /* iPhone: разрешить курсор внутрь слова */
@@ -674,11 +698,14 @@ document.getElementById('btnRedo').disabled = (historyIndex >= historyStack.leng
 }
 
 function saveHistory() {
-const textBoxesData = Array.from(exportNode.querySelectorAll('.text-box')).map(b => ({
-  html: b.innerHTML,
-  left: b.style.left,
-  top: b.style.top
-}));
+const textBoxesData = Array.from(exportNode.querySelectorAll('.text-box')).map(b => {
+  const contentEl = b.querySelector('.tb-content');
+  return {
+    html: contentEl ? contentEl.innerHTML : '',
+    left: b.style.left,
+    top: b.style.top
+  };
+});
 const snapshot = { 
   html: editor.innerHTML, 
   textBoxes: textBoxesData,
@@ -712,11 +739,16 @@ if (snapshot.textBoxes && Array.isArray(snapshot.textBoxes)) {
   snapshot.textBoxes.forEach(tb => {
     const box = document.createElement('div');
     box.className = 'text-box';
-    box.contentEditable = 'true';
-    box.setAttribute('data-ph', 'Твой текст…');
-    box.innerHTML = tb.html;
     box.style.left = tb.left;
     box.style.top = tb.top;
+    
+    const content = document.createElement('div');
+    content.className = 'tb-content';
+    content.contentEditable = 'true';
+    content.setAttribute('data-ph', 'Твой текст…');
+    content.innerHTML = tb.html;
+    box.appendChild(content);
+
     exportNode.appendChild(box);
     bindTextBox(box);
   });
@@ -1043,10 +1075,12 @@ saveHistory();
 
 function clearEditor() {
 editor.innerHTML = '';
+exportNode.querySelectorAll('.text-box').forEach(b => b.remove());
 updateImgCounter();
 document.getElementById('charCount').textContent = '0';
 updateRatio();
 currentImgBox = null;
+currentTextBox = null;
 saveHistory();
 focusEditor();
 }
@@ -2256,75 +2290,64 @@ function addTextBox() {
   if (count >= 10) { alert('Максимум 10 надписей'); return; }
   const box = document.createElement('div');
   box.className = 'text-box';
-  box.contentEditable = 'true';
-  box.setAttribute('data-ph', 'Твой текст…');
   box.style.left = (30 + count * 20) + 'px';
   box.style.top  = (30 + count * 20) + 'px';
+
+  const content = document.createElement('div');
+  content.className = 'tb-content';
+  content.contentEditable = 'true';
+  content.setAttribute('data-ph', 'Твой текст…');
+  box.appendChild(content);
+
   exportNode.appendChild(box);
   bindTextBox(box);
   selectTextBox(box);
-  setTimeout(function(){ box.focus(); }, 30);
+  setTimeout(function(){ content.focus(); }, 30);
   saveHistory();
 }
 
 function bindTextBox(box) {
+  const content = box.querySelector('.tb-content');
   // ТЕЛЕФОН: плашка стоит мёртво. Не выделяем, не двигаем, не ставим каретку.
   // По тапу — только подсказка "управляется с компьютера".
   if (isMobile()) {
-    box.setAttribute('contenteditable', 'false');
+    if (content) content.setAttribute('contenteditable', 'false');
     box.addEventListener('click', function(e){ e.stopPropagation(); showTbToast(); });
     box.addEventListener('touchstart', function(e){ e.stopPropagation(); showTbToast(); }, {passive: true});
     return;
   }
 
   box.addEventListener('click', function(e){
-    if (e.target.closest('.tb-edge')) return;
+    if (e.target.closest('.tb-edge') || e.target.closest('.tb-handle') || e.target.closest('.tb-delete')) return;
     e.stopPropagation();
     selectTextBox(box);
-    box.focus();
+    if (content) content.focus();
   });
 
-  box.addEventListener('touchstart', function(e){
-    if (e.target.closest('.tb-edge')) return;
-    e.stopPropagation();
-    selectTextBox(box);
-    box.focus();
-    const t = e.touches[0];
-    let range = null;
-    if (document.caretRangeFromPoint) {
-      range = document.caretRangeFromPoint(t.clientX, t.clientY);
-    } else if (document.caretPositionFromPoint) {
-      const pos = document.caretPositionFromPoint(t.clientX, t.clientY);
-      if (pos) { range = document.createRange(); range.setStart(pos.offsetNode, pos.offset); }
-    }
-    if (range && box.contains(range.startContainer)) {
-      range.collapse(true);
-      const sel = window.getSelection();
-      sel.removeAllRanges();
-      sel.addRange(range);
-    }
-  }, {passive: true});
+  if (content) {
+    content.addEventListener('input', function(){ clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); });
+    content.addEventListener('keyup', saveSelectionBeforeAction);
+    content.addEventListener('mouseup', saveSelectionBeforeAction);
+    content.addEventListener('touchend', saveSelectionBeforeAction);
+  }
 
-  box.addEventListener('input', function(){ clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400); });
-  box.addEventListener('keyup', saveSelectionBeforeAction);
-  box.addEventListener('mouseup', saveSelectionBeforeAction);
-  box.addEventListener('touchend', saveSelectionBeforeAction);
   ensureDragFrame(box);
   makeTextBoxDraggable(box);
 }
 
 function ensureDragFrame(box) {
-  if (box.querySelector('.tb-drag-frame')) return;
-  const frame = document.createElement('div');
-  frame.className = 'tb-drag-frame';
-  frame.contentEditable = 'false';
-  ['top','bottom','left','right'].forEach(function(side){
-    const edge = document.createElement('div');
-    edge.className = 'tb-edge ' + side;
-    edge.contentEditable = 'false';
-    frame.appendChild(edge);
-  });
-  box.appendChild(frame);
+  if (!box.querySelector('.tb-drag-frame')) {
+    const frame = document.createElement('div');
+    frame.className = 'tb-drag-frame';
+    frame.contentEditable = 'false';
+    ['top','bottom','left','right'].forEach(function(side){
+      const edge = document.createElement('div');
+      edge.className = 'tb-edge ' + side;
+      edge.contentEditable = 'false';
+      frame.appendChild(edge);
+    });
+    box.appendChild(frame);
+  }
 
   if (!box.querySelector('.tb-handle')) {
     const handle = document.createElement('div');
@@ -2333,6 +2356,33 @@ function ensureDragFrame(box) {
     handle.textContent = '✥';
     box.appendChild(handle);
   }
+
+  if (!box.querySelector('.tb-delete')) {
+    const delBtn = document.createElement('div');
+    delBtn.className = 'tb-delete';
+    delBtn.contentEditable = 'false';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Удалить плашку';
+    delBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      deleteTextBox(box);
+    });
+    delBtn.addEventListener('touchstart', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      deleteTextBox(box);
+    });
+    box.appendChild(delBtn);
+  }
+}
+
+function deleteTextBox(box) {
+  if (!box) return;
+  if (currentTextBox === box || (currentTextBox && box.contains(currentTextBox))) {
+    currentTextBox = null;
+  }
+  box.remove();
+  saveHistory();
 }
 
 function makeTextBoxDraggable(box) {
@@ -2399,7 +2449,6 @@ function makeTextBoxDraggable(box) {
   }
 
   // Драг вешаем ТОЛЬКО на хваталку и рёбра, НЕ на всё тело плашки.
-  // Иначе non-passive touchstart на теле блокирует установку каретки на iOS.
   const handle = box.querySelector('.tb-handle');
   const edges = box.querySelectorAll('.tb-edge');
 
@@ -2417,7 +2466,7 @@ function selectTextBox(box) {
   editor.querySelectorAll('.img-box').forEach(function(b){ b.classList.remove('selected'); });
   document.querySelectorAll('.text-box').forEach(function(b){ b.classList.remove('selected'); });
   box.classList.add('selected');
-  currentTextBox = box;
+  currentTextBox = box.querySelector('.tb-content') || box;
   currentImgBox = null;
 }
 
