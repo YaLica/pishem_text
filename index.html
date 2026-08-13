@@ -186,6 +186,19 @@ font-weight: 400;
   filter: drop-shadow(0 0 2px rgba(0,0,0,.6));
 }
 .text-box.selected .tb-resize { display: block; }
+  /* ЭТАП 6: ручка вращения плашки */
+.text-box .tb-rotate {
+  position: absolute; top: -40px; left: 50%;
+  transform: translateX(-50%);
+  width: 26px; height: 26px; z-index: 31;
+  display: none; align-items: center; justify-content: center;
+  background: #3b82f6; color: #fff; border-radius: 50%;
+  font-size: 14px; line-height: 1; cursor: grab;
+  box-shadow: 0 2px 6px rgba(0,0,0,.5);
+  touch-action: none; user-select: none; -webkit-user-select: none;
+  pointer-events: auto;
+}
+.text-box.selected .tb-rotate { display: flex; }
 
 #imgMiniBar {
   position: fixed; z-index: 5000; display: none;
