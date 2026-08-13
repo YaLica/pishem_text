@@ -2366,6 +2366,27 @@ function syncTbSettings() {
   const opEl = document.getElementById('tbBgOpacity'); if (opEl) opEl.value = op;
   const opLbl = document.getElementById('tbBgOpacityLabel'); if (opLbl) opLbl.textContent = op;
 }
+  function insertImageIntoTextBox(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const box = getTbTargetBox();
+  if (!box) { event.target.value = ''; return; }
+  const content = box.querySelector('.tb-content');
+  if (!content) { event.target.value = ''; return; }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = document.createElement('img');
+    img.className = 'tb-img';
+    img.src = e.target.result;
+    img.contentEditable = 'false';
+    content.appendChild(img);
+    clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+  };
+  reader.readAsDataURL(file);
+
+  event.target.value = '';
+}
 
 function addTextBox() {
   if (isMobile()) { showTbToast(); return; }
