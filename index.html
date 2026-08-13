@@ -2483,6 +2483,13 @@ function ensureDragFrame(box) {
     });
     box.appendChild(frame);
   }
+  if (!box.querySelector('.tb-resize')) {
+    const rs = document.createElement('div');
+    rs.className = 'tb-resize';
+    rs.contentEditable = 'false';
+    box.appendChild(rs);
+  }
+  }
 
   if (!box.querySelector('.tb-handle')) {
     const handle = document.createElement('div');
