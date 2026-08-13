@@ -2466,11 +2466,7 @@ function bindTextBox(box) {
     content.addEventListener('touchend', saveSelectionBeforeAction);
   }
 
-  ensureDragFrame(box);
-  makeTextBoxDraggable(box);
-}
-
-function ensureDragFrame(box) {
+  function ensureDragFrame(box) {
   if (!box.querySelector('.tb-drag-frame')) {
     const frame = document.createElement('div');
     frame.className = 'tb-drag-frame';
@@ -2483,14 +2479,41 @@ function ensureDragFrame(box) {
     });
     box.appendChild(frame);
   }
+
+  if (!box.querySelector('.tb-handle')) {
+    const handle = document.createElement('div');
+    handle.className = 'tb-handle';
+    handle.contentEditable = 'false';
+    handle.textContent = '✥';
+    box.appendChild(handle);
+  }
+
+  if (!box.querySelector('.tb-delete')) {
+    const delBtn = document.createElement('div');
+    delBtn.className = 'tb-delete';
+    delBtn.contentEditable = 'false';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Удалить плашку';
+    delBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      deleteTextBox(box);
+    });
+    delBtn.addEventListener('touchstart', function(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      deleteTextBox(box);
+    });
+    box.appendChild(delBtn);
+  }
+
   if (!box.querySelector('.tb-resize')) {
     const rs = document.createElement('div');
     rs.className = 'tb-resize';
     rs.contentEditable = 'false';
     box.appendChild(rs);
   }
-
-
+}
+  
   if (!box.querySelector('.tb-handle')) {
     const handle = document.createElement('div');
     handle.className = 'tb-handle';
