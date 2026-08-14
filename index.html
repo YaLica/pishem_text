@@ -2798,12 +2798,26 @@ function makeTextBoxDraggable(box) {
           showSnapGuideH(false);
         }
 
-        // === ШАГ 1: ПРИЛИПАНИЕ К ДРУГИМ ПЛАШКАМ ===
+               // === ШАГ 1: ПРИЛИПАНИЕ К ДРУГИМ ПЛАШКАМ ===
         // (только если не прилипли уже к центру холста по этой оси)
         const snapRes = snapToOtherBoxes(box, newLeft, newTop);
         if (!snappedToCanvasX && snapRes.snappedX) {
           newLeft = snapRes.left;
           showSnapGuideV(true);
+        }
+        if (!snappedToCanvasY && snapRes.snappedY) {
+          newTop = snapRes.top;
+          showSnapGuideH(true);
+        }
+
+        // === ШАГ 2: ЗЕРКАЛО ОТ ЦЕНТРА (по горизонтали) ===
+        // если ещё не прилипли по X ни к центру, ни к другой плашке
+        if (!snappedToCanvasX && !snapRes.snappedX) {
+          const mirror = snapMirror(box, newLeft);
+          if (mirror.snapped) {
+            newLeft = mirror.left;
+            showSnapGuideV(true); // подсветим центральную линию как ориентир
+          }
         }
         if (!snappedToCanvasY && snapRes.snappedY) {
           newTop = snapRes.top;
