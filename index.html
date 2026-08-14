@@ -2704,18 +2704,31 @@ function makeTextBoxResizable(box) {
     if (e.cancelable) e.preventDefault();
     selectTextBox(box);
 
+    const content = box.querySelector('.tb-content');
     const touch = e.touches ? e.touches[0] : e;
     const startX = touch.clientX;
+    const startY = touch.clientY;
     const startWidth = box.offsetWidth;
+    const startHeight = content ? content.offsetHeight : box.offsetHeight;
 
     function onMove(ev) {
       if (ev.cancelable) ev.preventDefault();
       const t = ev.touches ? ev.touches[0] : ev;
       const z = (typeof currentZoom === 'number' && currentZoom > 0) ? currentZoom : 1;
       const dx = (t.clientX - startX) / z;
+      const dy = (t.clientY - startY) / z;
+
+      // Ширина — как было
       let newW = startWidth + dx;
       if (newW < 60) newW = 60;
       box.style.width = newW + 'px';
+
+      // Высота — тянем у .tb-content (чтобы фон растягивался)
+      if (content) {
+        let newH = startHeight + dy;
+        if (newH < 30) newH = 30;
+        content.style.height = newH + 'px';
+      }
     }
 
     function onEnd() {
