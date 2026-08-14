@@ -768,6 +768,7 @@ const textBoxesData = Array.from(exportNode.querySelectorAll('.text-box')).map(b
     left: b.style.left,
     top: b.style.top,
     width: b.style.width || '',
+    height: (contentEl && contentEl.style.height) ? contentEl.style.height : '',
     bgColor: b.dataset.bgColor || '#000000',
     bgOpacity: (b.dataset.bgOpacity !== undefined) ? b.dataset.bgOpacity : '55',
     rot: b.dataset.rot || '0'
