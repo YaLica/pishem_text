@@ -387,7 +387,15 @@ cursor: pointer; overflow: hidden;
   opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
   max-width: 80vw; text-align: center;
 }
-#tbToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #tbToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* ПРИВЯЗКА: направляющие линии центра холста */
+.snap-guide {
+  position: absolute; z-index: 40; pointer-events: none;
+  background: #ff2d95; opacity: 0; transition: opacity .08s;
+}
+.snap-guide.visible { opacity: 0.9; }
+.snap-guide.vertical { width: 2px; top: 0; bottom: 0; }
+.snap-guide.horizontal { height: 2px; left: 0; right: 0; }
 </style>
 </head>
 <body>
