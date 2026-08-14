@@ -2560,6 +2560,35 @@ function deleteTextBox(box) {
   syncTbSettings();
   saveHistory();
 }
+  function duplicateTextBox(box) {
+  if (!box) return;
+  const count = exportNode.querySelectorAll('.text-box').length;
+  if (count >= 10) { alert('Максимум 10 надписей'); return; }
+
+  const srcContent = box.querySelector('.tb-content');
+
+  const clone = document.createElement('div');
+  clone.className = 'text-box';
+  clone.style.left = (box.offsetLeft + 20) + 'px';
+  clone.style.top  = (box.offsetTop + 20) + 'px';
+  if (box.style.width) clone.style.width = box.style.width;
+  clone.dataset.bgColor   = box.dataset.bgColor   || '#000000';
+  clone.dataset.bgOpacity = box.dataset.bgOpacity || '55';
+  clone.dataset.rot       = box.dataset.rot       || '0';
+
+  const content = document.createElement('div');
+  content.className = 'tb-content';
+  content.contentEditable = 'true';
+  content.setAttribute('data-ph', 'Твой текст…');
+  content.innerHTML = srcContent ? srcContent.innerHTML : '';
+  clone.appendChild(content);
+
+  exportNode.appendChild(clone);
+  applyTbBg(clone);
+  bindTextBox(clone);
+  selectTextBox(clone);
+  saveHistory();
+}
 
 function makeTextBoxDraggable(box) {
   let isDragging = false;
