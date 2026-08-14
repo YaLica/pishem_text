@@ -2736,16 +2736,20 @@ function makeTextBoxDraggable(box) {
         if (newLeft > maxLeft) newLeft = maxLeft;
         if (newTop > maxTop) newTop = maxTop;
 
-        // === ПРИВЯЗКА К ЦЕНТРУ ХОЛСТА (Путь А) ===
+                // === ПРИВЯЗКА К ЦЕНТРУ ХОЛСТА (Путь А) ===
         const canvasCX = exportNode.clientWidth / 2;
         const canvasCY = exportNode.clientHeight / 2;
         const boxCX = newLeft + box.offsetWidth / 2;
         const boxCY = newTop + box.offsetHeight / 2;
 
+        let snappedToCanvasX = false;
+        let snappedToCanvasY = false;
+
         // Центр по горизонтали (вертикальная линия)
         if (Math.abs(boxCX - canvasCX) <= SNAP_TOLERANCE) {
           newLeft = canvasCX - box.offsetWidth / 2;
           showSnapGuideV(true);
+          snappedToCanvasX = true;
         } else {
           showSnapGuideV(false);
         }
@@ -2754,8 +2758,21 @@ function makeTextBoxDraggable(box) {
         if (Math.abs(boxCY - canvasCY) <= SNAP_TOLERANCE) {
           newTop = canvasCY - box.offsetHeight / 2;
           showSnapGuideH(true);
+          snappedToCanvasY = true;
         } else {
           showSnapGuideH(false);
+        }
+
+        // === ШАГ 1: ПРИЛИПАНИЕ К ДРУГИМ ПЛАШКАМ ===
+        // (только если не прилипли уже к центру холста по этой оси)
+        const snapRes = snapToOtherBoxes(box, newLeft, newTop);
+        if (!snappedToCanvasX && snapRes.snappedX) {
+          newLeft = snapRes.left;
+          showSnapGuideV(true);
+        }
+        if (!snappedToCanvasY && snapRes.snappedY) {
+          newTop = snapRes.top;
+          showSnapGuideH(true);
         }
 
         box.style.left = newLeft + 'px';
