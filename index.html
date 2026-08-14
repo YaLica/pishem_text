@@ -819,6 +819,7 @@ if (snapshot.textBoxes && Array.isArray(snapshot.textBoxes)) {
     content.contentEditable = 'true';
     content.setAttribute('data-ph', 'Твой текст…');
     content.innerHTML = tb.html;
+    if (tb.height) content.style.height = tb.height;
     box.appendChild(content);
 
     exportNode.appendChild(box);
