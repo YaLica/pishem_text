@@ -2648,6 +2648,51 @@ function hideSnapGuides() {
   if (gv) gv.classList.remove('visible');
   if (gh) gh.classList.remove('visible');
 }
+  /* ===== ШАГ 1: ПРИЛИПАНИЕ ПЛАШЕК ДРУГ К ДРУГУ ===== */
+function snapToOtherBoxes(box, newLeft, newTop) {
+  const w = box.offsetWidth;
+  const h = box.offsetHeight;
+
+  // линии перетаскиваемой плашки
+  const myLeft = newLeft;
+  const myRight = newLeft + w;
+  const myCX = newLeft + w / 2;
+  const myTop = newTop;
+  const myBottom = newTop + h;
+  const myCY = newTop + h / 2;
+
+  let snappedX = false, snappedY = false;
+
+  const others = exportNode.querySelectorAll('.text-box');
+  others.forEach(function(other) {
+    if (other === box) return;
+
+    const oL = other.offsetLeft;
+    const oT = other.offsetTop;
+    const oW = other.offsetWidth;
+    const oH = other.offsetHeight;
+    const oRight = oL + oW;
+    const oCX = oL + oW / 2;
+    const oBottom = oT + oH;
+    const oCY = oT + oH / 2;
+
+    // --- По горизонтали (X) ---
+    if (!snappedX) {
+      if (Math.abs(myLeft - oL) <= SNAP_TOLERANCE) { newLeft = oL; snappedX = true; }
+      else if (Math.abs(myRight - oRight) <= SNAP_TOLERANCE) { newLeft = oRight - w; snappedX = true; }
+      else if (Math.abs(myCX - oCX) <= SNAP_TOLERANCE) { newLeft = oCX - w / 2; snappedX = true; }
+    }
+
+    // --- По вертикали (Y) ---
+    if (!snappedY) {
+      if (Math.abs(myTop - oT) <= SNAP_TOLERANCE) { newTop = oT; snappedY = true; }
+      else if (Math.abs(myBottom - oBottom) <= SNAP_TOLERANCE) { newTop = oBottom - h; snappedY = true; }
+      else if (Math.abs(myCY - oCY) <= SNAP_TOLERANCE) { newTop = oCY - h / 2; snappedY = true; }
+    }
+  });
+
+  return { left: newLeft, top: newTop, snappedX: snappedX, snappedY: snappedY };
+}
 
 function makeTextBoxDraggable(box) {
   let isDragging = false;
