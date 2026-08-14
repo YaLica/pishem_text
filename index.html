@@ -2516,6 +2516,22 @@ function ensureDragFrame(box) {
     handle.textContent = '✥';
     box.appendChild(handle);
   }
+    if (!box.querySelector('.tb-copy')) {
+    const cp = document.createElement('div');
+    cp.className = 'tb-copy';
+    cp.contentEditable = 'false';
+    cp.textContent = '📋';
+    cp.title = 'Дублировать плашку';
+    cp.addEventListener('click', function(e){
+      e.stopPropagation();
+      duplicateTextBox(box);
+    });
+    cp.addEventListener('touchstart', function(e){
+      e.stopPropagation(); e.preventDefault();
+      duplicateTextBox(box);
+    });
+    box.appendChild(cp);
+  }
 
   if (!box.querySelector('.tb-delete')) {
     const delBtn = document.createElement('div');
