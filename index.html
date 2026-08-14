@@ -387,7 +387,8 @@ cursor: pointer; overflow: hidden;
   opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
   max-width: 80vw; text-align: center;
 }
-  #tbToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+#tbToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
 /* ПРИВЯЗКА: направляющие линии центра холста */
 .snap-guide {
   position: absolute; z-index: 40; pointer-events: none;
@@ -1203,16 +1204,13 @@ if (sel && sel.rangeCount > 0) {
   const inBox = currentTextBox && currentTextBox.contains(anchor);
   if (inEditor || inBox) {
     const range = sel.getRangeAt(0);
-    // Сохраняем и выделение, и простую каретку (курсор) —
-    // чтобы картинка вставлялась строго по курсору.
     savedSelection = range.cloneRange();
   }
 }
 }
 
 document.addEventListener('selectionchange', saveSelectionBeforeAction);
-  /* Замораживаем выделение для «умной кнопки шрифта» на quickBar.
-   selectionchange НЕ трогает savedSelectionForFont — она живёт своей жизнью. */
+
 function freezeSelectionForFont() {
   const sel = window.getSelection();
   if (sel && sel.rangeCount > 0) {
@@ -1433,21 +1431,17 @@ saveHistory();
 if (!currentTextBox) focusEditor(); else currentTextBox.focus();
 }
 
-/* ФУНКЦИЯ ПОЛНОЙ ОЧИСТКИ И ВАЛИДАЦИИ ССЫЛОК */
 function sanitizeUrl(rawUrl) {
 if (!rawUrl) return '';
 let url = rawUrl.trim();
 
-// 1. Удаляем случайно продублированные протоколы (https://https:// или http://https://)
 url = url.replace(/^(https?:\/\/)+/gi, '');
 url = url.replace(/^(http:\/\/)+/gi, '');
 
-// 2. Ввод @username для Telegram
 if (/^@([a-zA-Z0-9_]{3,})$/.test(url)) {
 return 'https://t.me/' + url.slice(1);
 }
 
-// 3. Обработка e-mail и телефонов
 if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(url)) {
 return 'mailto:' + url;
 }
@@ -1455,18 +1449,15 @@ if (/^[\+]?[0-9\s\-\(\)]{7,}$/.test(url) && !url.includes('.')) {
 return 'tel:' + url.replace(/[\s\-\(\)]/g, '');
 }
 
-// 4. Добавляем https:// к обычным доменам
 if (!/^(https?:\/\/|mailto:|tel:)/i.test(url)) {
 url = 'https://' + url.replace(/^\/+/, '');
 }
 
-// 5. Вычищаем пробелы внутри адреса
 url = url.replace(/\s+/g, '');
 
 return url;
 }
 
-/* ССЫЛКА: и на ПК, и на телефоне — оборачиваем выделенное слово в ссылку */
 function insertLink() {
 restoreSelection();
 const sel = window.getSelection();
@@ -1628,7 +1619,6 @@ newResizer.addEventListener('mousedown', startResize);
 newResizer.addEventListener('touchstart', startResize, {passive: false});
 }
 
-/* ФЛАГИ ДЛЯ ТЕЛЕФОННОЙ МИНИ-ПАНЕЛИ КАРТИНКИ (№3 ПО ТЗ) */
 let mobileImgPanelSessionFirst = true;
 let lastImgTapTime = 0;
 let lastImgTapBox = null;
@@ -1933,20 +1923,17 @@ zoomWrapper.style.transform = savedTransform;
 }, 100);
 }
 
-/* ОБНОВЛЕННАЯ НОРМАЛИЗАЦИЯ И СБОРКА ТЕКСТА (АВТО-ОЧИСТКА ДЛЯ TELEGRAM И MAX) */
 function getEditorLines() {
 const src = document.createElement('div');
 src.innerHTML = editor.innerHTML;
 src.querySelectorAll('.img-box, .img-spacer-left, .img-spacer-right').forEach(el => el.remove());
 
-// Удаляем стилистические спаны (размер, шрифт и т.д.), но оставляем форматирование
 src.querySelectorAll('span, font').forEach(function(el) {
 const parent = el.parentNode;
 while (el.firstChild) parent.insertBefore(el.firstChild, el);
 parent.removeChild(el);
 });
 
-// Заменяем устаревшие теги strong/em на b/i для универсальности
 src.querySelectorAll('strong').forEach(el => {
 const b = document.createElement('b');
 b.innerHTML = el.innerHTML;
@@ -2018,7 +2005,6 @@ let ok = false;
 const btn = btnId ? document.getElementById(btnId) : null;
 const original = btn ? btn.innerHTML : '';
 
-// === СПОСОБ 1 (ГЛАВНЫЙ): современный API с ДВУМЯ форматами ===
 if (navigator.clipboard && window.ClipboardItem) {
   try {
     const fullHtml =
@@ -2035,7 +2021,6 @@ if (navigator.clipboard && window.ClipboardItem) {
   }
 }
 
-// === СПОСОБ 2 (ЗАПАСНОЙ): старый execCommand через выделение ===
 if (!ok) {
   const temp = document.createElement('div');
   temp.contentEditable = 'true';
@@ -2057,7 +2042,6 @@ if (!ok) {
   document.body.removeChild(temp);
 }
 
-// === СПОСОБ 3 (АВАРИЙНЫЙ): хотя бы plain-текст ===
 if (!ok && navigator.clipboard && navigator.clipboard.writeText) {
   try {
     await navigator.clipboard.writeText(plain);
@@ -2314,15 +2298,12 @@ cleanFormat();
 function qbFont(font) {
   if (!font) return;
 
-  // Используем ЗАМОРОЖЕННОЕ выделение (savedSelectionForFont),
-  // которое НЕ затирается событием selectionchange при тапе в select.
   const hasFrozen =
     savedSelectionForFont &&
     !savedSelectionForFont.collapsed &&
     savedSelectionForFont.toString().trim().length > 0;
 
   if (hasFrozen) {
-    // ЕСТЬ выделение → восстанавливаем его и меняем шрифт всему куску
     const scope = currentTextBox || editor;
     if (scope) scope.focus();
     const sel = window.getSelection();
@@ -2331,7 +2312,6 @@ function qbFont(font) {
     savedSelection = savedSelectionForFont.cloneRange();
     applyWordFont(font);
   } else {
-    // НЕТ выделения → меняем шрифт всему тексту поста
     editor.style.fontFamily = font;
     if (fontFamilySelector) {
       const hasOption = Array.from(fontFamilySelector.options).some(o => o.value === font);
@@ -2341,7 +2321,7 @@ function qbFont(font) {
     saveHistory();
   }
 
-  savedSelectionForFont = null; // сбрасываем после применения
+  savedSelectionForFont = null;
 }
 
 function qbImage(e) {
@@ -2358,7 +2338,6 @@ handle.classList.toggle('open');
 handle.textContent = panel.classList.contains('open') ? '‹' : '›';
 }
 
-/* СКРЫТИЕ КНОПКИ ИНСТРУМЕНТЫ ПОСЛЕ ПЕРВОГО КЛИКА (№1 ПО ТЗ) */
 function onMobileToolsClick() {
   togglePanel();
   const btn = document.getElementById('mobileToolsBtn');
@@ -2487,8 +2466,6 @@ function addTextBox() {
 
 function bindTextBox(box) {
   const content = box.querySelector('.tb-content');
-  // ТЕЛЕФОН: плашка стоит мёртво. Не выделяем, не двигаем, не ставим каретку.
-  // По тапу — только подсказка "управляется с компьютера".
   if (isMobile()) {
     if (content) content.setAttribute('contenteditable', 'false');
     box.addEventListener('click', function(e){ e.stopPropagation(); showTbToast(); });
@@ -2510,7 +2487,7 @@ function bindTextBox(box) {
     content.addEventListener('touchend', saveSelectionBeforeAction);
   }
 
-   ensureDragFrame(box);
+  ensureDragFrame(box);
   makeTextBoxDraggable(box);
   makeTextBoxResizable(box);
   makeTextBoxRotatable(box);
@@ -2538,7 +2515,7 @@ function ensureDragFrame(box) {
     handle.textContent = '✥';
     box.appendChild(handle);
   }
-    if (!box.querySelector('.tb-copy')) {
+  if (!box.querySelector('.tb-copy')) {
     const cp = document.createElement('div');
     cp.className = 'tb-copy';
     cp.contentEditable = 'false';
@@ -2598,7 +2575,8 @@ function deleteTextBox(box) {
   syncTbSettings();
   saveHistory();
 }
-  function duplicateTextBox(box) {
+
+function duplicateTextBox(box) {
   if (!box) return;
   const count = exportNode.querySelectorAll('.text-box').length;
   if (count >= 10) { alert('Максимум 10 надписей'); return; }
@@ -2614,7 +2592,7 @@ function deleteTextBox(box) {
   clone.dataset.bgOpacity = box.dataset.bgOpacity || '55';
   clone.dataset.rot       = box.dataset.rot       || '0';
 
-    const content = document.createElement('div');
+  const content = document.createElement('div');
   content.className = 'tb-content';
   content.contentEditable = 'true';
   content.setAttribute('data-ph', 'Твой текст…');
@@ -2670,6 +2648,7 @@ function hideSnapGuides() {
   if (gv) gv.classList.remove('visible');
   if (gh) gh.classList.remove('visible');
 }
+
 function makeTextBoxDraggable(box) {
   let isDragging = false;
   let startX, startY, origLeft, origTop;
@@ -2712,6 +2691,28 @@ function makeTextBoxDraggable(box) {
         if (newLeft > maxLeft) newLeft = maxLeft;
         if (newTop > maxTop) newTop = maxTop;
 
+        // === ПРИВЯЗКА К ЦЕНТРУ ХОЛСТА (Путь А) ===
+        const canvasCX = exportNode.clientWidth / 2;
+        const canvasCY = exportNode.clientHeight / 2;
+        const boxCX = newLeft + box.offsetWidth / 2;
+        const boxCY = newTop + box.offsetHeight / 2;
+
+        // Центр по горизонтали (вертикальная линия)
+        if (Math.abs(boxCX - canvasCX) <= SNAP_TOLERANCE) {
+          newLeft = canvasCX - box.offsetWidth / 2;
+          showSnapGuideV(true);
+        } else {
+          showSnapGuideV(false);
+        }
+
+        // Центр по вертикали (горизонтальная линия)
+        if (Math.abs(boxCY - canvasCY) <= SNAP_TOLERANCE) {
+          newTop = canvasCY - box.offsetHeight / 2;
+          showSnapGuideH(true);
+        } else {
+          showSnapGuideH(false);
+        }
+
         box.style.left = newLeft + 'px';
         box.style.top = newTop + 'px';
       }
@@ -2722,6 +2723,7 @@ function makeTextBoxDraggable(box) {
       document.removeEventListener('mouseup', onEnd);
       document.removeEventListener('touchmove', onMove);
       document.removeEventListener('touchend', onEnd);
+      hideSnapGuides();
       if (isDragging) {
         saveHistory();
       }
@@ -2733,7 +2735,6 @@ function makeTextBoxDraggable(box) {
     document.addEventListener('touchend', onEnd);
   }
 
-  // Драг вешаем ТОЛЬКО на хваталку и рёбра, НЕ на всё тело плашки.
   const handle = box.querySelector('.tb-handle');
   const edges = box.querySelectorAll('.tb-edge');
 
@@ -2770,12 +2771,10 @@ function makeTextBoxResizable(box) {
       const dx = (t.clientX - startX) / z;
       const dy = (t.clientY - startY) / z;
 
-      // Ширина — как было
       let newW = startWidth + dx;
       if (newW < 60) newW = 60;
       box.style.width = newW + 'px';
 
-      // Высота — тянем у .tb-content (чтобы фон растягивался)
       if (content) {
         let newH = startHeight + dy;
         if (newH < 30) newH = 30;
@@ -2800,7 +2799,8 @@ function makeTextBoxResizable(box) {
   rs.addEventListener('mousedown', onStart);
   rs.addEventListener('touchstart', onStart, {passive: false});
 }
-  function applyTbRotation(box) {
+
+function applyTbRotation(box) {
   const rot = parseFloat(box.dataset.rot || '0');
   box.style.transform = 'rotate(' + rot + 'deg)';
   box.style.transformOrigin = 'center center';
@@ -3181,7 +3181,6 @@ function syncImgMobilePanel() {
   const irlRot = document.getElementById('impRotLabel'); if (irlRot) irlRot.textContent = rot;
 }
 
-// УЛУЧШЕННОЕ ПЛАВНОЕ ПЕРЕТАСКИВАНИЕ МЕНЮ ЗА ЗАГОЛОВОК
 (function(){
   const head = document.getElementById('impHead');
   const panel = document.getElementById('imgMobilePanel');
