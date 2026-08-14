@@ -2606,11 +2606,12 @@ function deleteTextBox(box) {
   clone.dataset.bgOpacity = box.dataset.bgOpacity || '55';
   clone.dataset.rot       = box.dataset.rot       || '0';
 
-  const content = document.createElement('div');
+    const content = document.createElement('div');
   content.className = 'tb-content';
   content.contentEditable = 'true';
   content.setAttribute('data-ph', 'Твой текст…');
   content.innerHTML = srcContent ? srcContent.innerHTML : '';
+  if (srcContent && srcContent.style.height) content.style.height = srcContent.style.height;
   clone.appendChild(content);
 
   exportNode.appendChild(clone);
