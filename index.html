@@ -1540,7 +1540,92 @@ if (range) {
   editor.appendChild(box);
   snapImageToLineStart(box);
   const zwspAfter = document.createTextNode('\u200B');
-('selected'); });
+  editor.appendChild(zwspAfter);
+  ensureAnchorBeforeImages();
+}
+added++;
+
+}
+
+if (range && sel) {
+sel.removeAllRanges();
+sel.addRange(range);
+}
+
+updateImgCounter();
+updateRatio();
+saveHistory();
+
+event.target.value = '';
+setTimeout(() => focusEditor(), 50);
+}
+
+function createImageBox(url) {
+const box = document.createElement('span');
+box.className = 'img-box';
+box.contentEditable = 'false';
+box.setAttribute('draggable', 'true');
+const img = document.createElement('img');
+img.src = url;
+const resizer = document.createElement('span');
+resizer.className = 'img-resizer';
+resizer.contentEditable = 'false';
+box.appendChild(img);
+box.appendChild(resizer);
+ensureRotor(box);
+box.addEventListener('click', function(e) { e.stopPropagation(); selectImgBox(box); });
+bindResizer(box);
+return box;
+}
+
+function bindResizer(box) {
+const resizer = box.querySelector('.img-resizer');
+if (!resizer) return;
+const newResizer = resizer.cloneNode(true);
+resizer.parentNode.replaceChild(newResizer, resizer);
+
+function startResize(e) {
+e.preventDefault();
+e.stopPropagation();
+box.setAttribute('draggable', 'false');
+let startX = e.clientX || e.touches[0].clientX;
+let startW = box.offsetWidth;
+let parentW = editor.offsetWidth - (isMobile() ? 30 : 80);
+
+function doDrag(ev) {
+let currentX = ev.clientX || (ev.touches && ev.touches[0].clientX);
+let newW = startW + (currentX - startX);
+let percent = (newW / parentW) * 100;
+if (percent < 15) percent = 15;
+if (percent > 100) percent = 100;
+box.style.width = percent + '%';
+applyImgStyles(box);
+}
+function stopDrag() {
+document.removeEventListener('mousemove', doDrag);
+document.removeEventListener('mouseup', stopDrag);
+document.removeEventListener('touchmove', doDrag);
+document.removeEventListener('touchend', stopDrag);
+box.setAttribute('draggable', 'true');
+saveHistory();
+}
+document.addEventListener('mousemove', doDrag);
+document.addEventListener('mouseup', stopDrag);
+document.addEventListener('touchmove', doDrag, {passive: false});
+document.addEventListener('touchend', stopDrag);
+}
+
+newResizer.addEventListener('mousedown', startResize);
+newResizer.addEventListener('touchstart', startResize, {passive: false});
+}
+
+let mobileImgPanelSessionFirst = true;
+let lastImgTapTime = 0;
+let lastImgTapBox = null;
+
+function selectImgBox(box) {
+if (isMobile()) { editor.blur(); if (document.activeElement) document.activeElement.blur(); }
+editor.querySelectorAll('.img-box').forEach(function(b) { b.classList.remove('selected'); });
 box.classList.add('selected');
 currentImgBox = box;
 ensureRotor(box);
@@ -2609,39 +2694,6 @@ function snapToOtherBoxes(box, newLeft, newTop) {
   return { left: newLeft, top: newTop, snappedX: snappedX, snappedY: snappedY };
 }
 
-/* ===== ЗЕРКАЛО ОТ ЦЕНТРА (по центрам плашек) ===== */
-function snapMirror(box, newLeft) {
-  const w = box.offsetWidth;
-  const canvasCX = exportNode.clientWidth / 2;
-  const myCX = newLeft + w / 2;
-  const myDist = myCX - canvasCX;
-
-  let resultLeft = newLeft;
-  let snapped = false;
-
-  const others = exportNode.querySelectorAll('.text-box');
-  for (let i = 0; i < others.length; i++) {
-    const other = others[i];
-    if (other === box) continue;
-
-    const oCX = other.offsetLeft + other.offsetWidth / 2;
-    const oDist = oCX - canvasCX;
-
-    if (oDist === 0) continue;
-    if ((myDist < 0 && oDist < 0) || (myDist > 0 && oDist > 0)) continue;
-
-    const targetCX = canvasCX - oDist;
-
-    if (Math.abs(myCX - targetCX) <= SNAP_TOLERANCE) {
-      resultLeft = targetCX - w / 2;
-      snapped = true;
-      break;
-    }
-  }
-
-  return { left: resultLeft, snapped: snapped };
-}
-
 function makeTextBoxDraggable(box) {
   let isDragging = false;
   let startX, startY, origLeft, origTop;
@@ -2721,15 +2773,6 @@ function makeTextBoxDraggable(box) {
         if (!snappedToCanvasY && snapRes.snappedY) {
           newTop = snapRes.top;
           showSnapGuideH(true);
-        }
-
-        // === ЗЕРКАЛО ОТ ЦЕНТРА ===
-        if (!snappedToCanvasX && !snapRes.snappedX) {
-          const mirror = snapMirror(box, newLeft);
-          if (mirror.snapped) {
-            newLeft = mirror.left;
-            showSnapGuideV(true);
-          }
         }
 
         box.style.left = newLeft + 'px';
