@@ -2629,6 +2629,47 @@ function deleteTextBox(box) {
   saveHistory();
 }
 
+/* ===== ПРИВЯЗКА К ЦЕНТРУ ХОЛСТА (Путь А) ===== */
+const SNAP_TOLERANCE = 8; // насколько близко поднести, чтобы "прилипло" (px)
+
+function ensureSnapGuides() {
+  let gv = document.getElementById('snapGuideV');
+  let gh = document.getElementById('snapGuideH');
+  if (!gv) {
+    gv = document.createElement('div');
+    gv.id = 'snapGuideV';
+    gv.className = 'snap-guide vertical';
+    gv.contentEditable = 'false';
+    exportNode.appendChild(gv);
+  }
+  if (!gh) {
+    gh = document.createElement('div');
+    gh.id = 'snapGuideH';
+    gh.className = 'snap-guide horizontal';
+    gh.contentEditable = 'false';
+    exportNode.appendChild(gh);
+  }
+  return { gv, gh };
+}
+
+function showSnapGuideV(on) {
+  const { gv } = ensureSnapGuides();
+  if (on) { gv.style.left = (exportNode.clientWidth / 2 - 1) + 'px'; gv.classList.add('visible'); }
+  else gv.classList.remove('visible');
+}
+
+function showSnapGuideH(on) {
+  const { gh } = ensureSnapGuides();
+  if (on) { gh.style.top = (exportNode.clientHeight / 2 - 1) + 'px'; gh.classList.add('visible'); }
+  else gh.classList.remove('visible');
+}
+
+function hideSnapGuides() {
+  const gv = document.getElementById('snapGuideV');
+  const gh = document.getElementById('snapGuideH');
+  if (gv) gv.classList.remove('visible');
+  if (gh) gh.classList.remove('visible');
+}
 function makeTextBoxDraggable(box) {
   let isDragging = false;
   let startX, startY, origLeft, origTop;
