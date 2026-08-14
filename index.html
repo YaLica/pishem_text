@@ -2692,41 +2692,6 @@ function snapToOtherBoxes(box, newLeft, newTop) {
   });
 
   return { left: newLeft, top: newTop, snappedX: snappedX, snappedY: snappedY };
-  /* ===== ШАГ 2: ЗЕРКАЛЬНОЕ ПРИЛИПАНИЕ ОТ ЦЕНТРА (по центрам плашек) ===== */
-function snapMirror(box, newLeft) {
-  const w = box.offsetWidth;
-  const canvasCX = exportNode.clientWidth / 2;
-
-  // центр перетаскиваемой плашки и её расстояние от центра холста
-  const myCX = newLeft + w / 2;
-  const myDist = myCX - canvasCX; // со знаком: минус = слева, плюс = справа
-
-  let snapped = false;
-
-  const others = exportNode.querySelectorAll('.text-box');
-  others.forEach(function(other) {
-    if (other === box) return;
-    if (snapped) return;
-
-    const oCX = other.offsetLeft + other.offsetWidth / 2;
-    const oDist = oCX - canvasCX; // расстояние другой плашки от центра
-
-    // Зеркалим только если она с ДРУГОЙ стороны центра
-    // (наша слева — ищем правую, и наоборот)
-    if (myDist === 0 || oDist === 0) return;
-    if ((myDist < 0 && oDist < 0) || (myDist > 0 && oDist > 0)) return;
-
-    // Целевое зеркальное положение центра: то же расстояние, но с нашей стороны
-    const targetCX = canvasCX - oDist; // зеркало относительно центра
-
-    if (Math.abs(myCX - targetCX) <= SNAP_TOLERANCE) {
-      newLeft = targetCX - w / 2;
-      snapped = true;
-    }
-  });
-
-  return { left: newLeft, snapped: snapped };
-}
 }
 
 function makeTextBoxDraggable(box) {
@@ -2798,26 +2763,12 @@ function makeTextBoxDraggable(box) {
           showSnapGuideH(false);
         }
 
-               // === ШАГ 1: ПРИЛИПАНИЕ К ДРУГИМ ПЛАШКАМ ===
+        // === ШАГ 1: ПРИЛИПАНИЕ К ДРУГИМ ПЛАШКАМ ===
         // (только если не прилипли уже к центру холста по этой оси)
         const snapRes = snapToOtherBoxes(box, newLeft, newTop);
         if (!snappedToCanvasX && snapRes.snappedX) {
           newLeft = snapRes.left;
           showSnapGuideV(true);
-        }
-        if (!snappedToCanvasY && snapRes.snappedY) {
-          newTop = snapRes.top;
-          showSnapGuideH(true);
-        }
-
-        // === ШАГ 2: ЗЕРКАЛО ОТ ЦЕНТРА (по горизонтали) ===
-        // если ещё не прилипли по X ни к центру, ни к другой плашке
-        if (!snappedToCanvasX && !snapRes.snappedX) {
-          const mirror = snapMirror(box, newLeft);
-          if (mirror.snapped) {
-            newLeft = mirror.left;
-            showSnapGuideV(true); // подсветим центральную линию как ориентир
-          }
         }
         if (!snappedToCanvasY && snapRes.snappedY) {
           newTop = snapRes.top;
