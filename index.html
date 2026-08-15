@@ -2560,15 +2560,33 @@ function syncTbSettings() {
   const colEl = document.getElementById('tbBgColor'); if (colEl) colEl.value = hex;
   const opEl = document.getElementById('tbBgOpacity'); if (opEl) opEl.value = op;
   const opLbl = document.getElementById('tbBgOpacityLabel'); if (opLbl) opLbl.textContent = op;
-  const lh = box.dataset.lineHeight || '1.25';
+   const lh = box.dataset.lineHeight || '1.25';
   const lhEl = document.getElementById('tbLineHeight'); if (lhEl) lhEl.value = lh;
   const lhLbl = document.getElementById('tbLineHeightLabel'); if (lhLbl) lhLbl.textContent = lh;
 
+  const fs = box.dataset.fontSize || '24';
+  const fsEl = document.getElementById('tbFontSize'); if (fsEl) fsEl.value = fs;
+  const fsLbl = document.getElementById('tbFontSizeLabel'); if (fsLbl) fsLbl.textContent = fs;
+
   const mode = box.dataset.mode || 'plate';
-  const btnP = document.getElementById('tbModePlate');
-  const btnR = document.getElementById('tbModeRibbon');
-  if (btnP) btnP.style.background = (mode === 'plate') ? '#3d7eff' : '#2a2f3a';
-  if (btnR) btnR.style.background = (mode === 'ribbon') ? '#3d7eff' : '#2a2f3a';
+  const isRibbon = (mode === 'ribbon');
+  const toggleBtn = document.getElementById('tbRibbonToggle');
+  const ribPanel = document.getElementById('tbRibbonSettings');
+  if (toggleBtn) toggleBtn.textContent = isRibbon ? '❌ Убрать подложку' : '🎀 Добавить подложку для текста';
+  if (toggleBtn) toggleBtn.style.background = isRibbon ? '#ef4444' : '#8b5cf6';
+  if (ribPanel) ribPanel.style.display = isRibbon ? 'block' : 'none';
+
+  const ribCol = box.dataset.ribbonColor || '#000000';
+  const ribColEl = document.getElementById('tbRibbonColor'); if (ribColEl) ribColEl.value = ribCol;
+  const ribRad = box.dataset.ribbonRadius || '6';
+  const ribRadEl = document.getElementById('tbRibbonRadius'); if (ribRadEl) ribRadEl.value = ribRad;
+  const ribRadLbl = document.getElementById('tbRibbonRadiusLabel'); if (ribRadLbl) ribRadLbl.textContent = ribRad;
+  const ribPH = box.dataset.ribbonPadH || '0.3';
+  const ribPHEl = document.getElementById('tbRibbonPadH'); if (ribPHEl) ribPHEl.value = ribPH;
+  const ribPHLbl = document.getElementById('tbRibbonPadHLabel'); if (ribPHLbl) ribPHLbl.textContent = ribPH;
+  const ribPV = box.dataset.ribbonPadV || '0.05';
+  const ribPVEl = document.getElementById('tbRibbonPadV'); if (ribPVEl) ribPVEl.value = ribPV;
+  const ribPVLbl = document.getElementById('tbRibbonPadVLabel'); if (ribPVLbl) ribPVLbl.textContent = ribPV;
 }
 
 function handleTbPaste(e) {
