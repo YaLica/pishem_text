@@ -2803,13 +2803,21 @@ function makeTextBoxDraggable(box) {
           newLeft = snapRes.left;
           showSnapGuideV(true);
         }
-        if (!snappedToCanvasY && snapRes.snappedY) {
+                if (!snappedToCanvasY && snapRes.snappedY) {
           newTop = snapRes.top;
           showSnapGuideH(true);
         }
 
+        // === ЗЕРКАЛО ОТ ЦЕНТРА ===
+        if (!snappedToCanvasX && !snapRes.snappedX) {
+          const mirror = snapMirror(box, newLeft);
+          if (mirror.snapped) {
+            newLeft = mirror.left;
+            showSnapGuideV(true);
+          }
+        }
+
         box.style.left = newLeft + 'px';
-        box.style.top = newTop + 'px';
       }
     }
 
