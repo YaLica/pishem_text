@@ -2413,7 +2413,10 @@ function applyTbBg(box) {
   if (mode === 'ribbon') {
     box.classList.add('mode-ribbon');
     content.style.background = 'transparent';
-    box.style.setProperty('--ribbon-bg', rgba);
+    const ribHex = box.dataset.ribbonColor || '#000000';
+    const ribRgb = hexToRgb(ribHex);
+    box.style.setProperty('--ribbon-bg', 'rgb(' + ribRgb.r + ',' + ribRgb.g + ',' + ribRgb.b + ')');
+    applyRibbonStyles(box);
     wrapTbRibbon(content);
   } else {
     box.classList.remove('mode-ribbon');
