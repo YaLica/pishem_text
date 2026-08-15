@@ -2477,6 +2477,12 @@ function syncTbSettings() {
   const lh = box.dataset.lineHeight || '1.25';
   const lhEl = document.getElementById('tbLineHeight'); if (lhEl) lhEl.value = lh;
   const lhLbl = document.getElementById('tbLineHeightLabel'); if (lhLbl) lhLbl.textContent = lh;
+
+  const mode = box.dataset.mode || 'plate';
+  const btnP = document.getElementById('tbModePlate');
+  const btnR = document.getElementById('tbModeRibbon');
+  if (btnP) btnP.style.background = (mode === 'plate') ? '#3d7eff' : '#2a2f3a';
+  if (btnR) btnR.style.background = (mode === 'ribbon') ? '#3d7eff' : '#2a2f3a';
 }
 
 function handleTbPaste(e) {
