@@ -2392,6 +2392,17 @@ function setTbBgOpacity(v) {
   applyTbBg(box);
   clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
 }
+  
+function setTbLineHeight(v) {
+  const box = getTbTargetBox();
+  if (!box) return;
+  box.dataset.lineHeight = v;
+  const content = box.querySelector('.tb-content');
+  if (content) content.style.lineHeight = v;
+  const lbl = document.getElementById('tbLineHeightLabel'); if (lbl) lbl.textContent = v;
+  const rng = document.getElementById('tbLineHeight'); if (rng) rng.value = v;
+  clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
 
 function syncTbSettings() {
   const panel = document.getElementById('tbSettings');
