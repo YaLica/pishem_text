@@ -2392,7 +2392,45 @@ function applyTbBg(box) {
   const hex = box.dataset.bgColor || '#000000';
   const op = (box.dataset.bgOpacity !== undefined) ? parseInt(box.dataset.bgOpacity, 10) : 55;
   const rgb = hexToRgb(hex);
-  content.style.background = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + (op / 100) + ')';
+  const rgba = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + (op / 100) + ')';
+  const mode = box.dataset.mode || 'plate';
+
+  if (mode === 'ribbon') {
+    box.classList.add('mode-ribbon');
+    content.style.background = 'transparent';
+    box.style.setProperty('--ribbon-bg', rgba);
+    wrapTbRibbon(content);
+  } else {
+    box.classList.remove('mode-ribbon');
+    unwrapTbRibbon(content);
+    content.style.background = rgba;
+  }
+}
+
+/* Оборачивает текст плашки в span.tb-ribbon (для режима лент) */
+function wrapTbRibbon(content) {
+  if (content.querySelector('.tb-ribbon')) return;
+  const span = document.createElement('span');
+  span.className = 'tb-ribbon';
+  while (content.firstChild) span.appendChild(content.firstChild);
+  content.appendChild(span);
+}
+
+/* Убирает обёртку span.tb-ribbon (возврат к плашке) */
+function unwrapTbRibbon(content) {
+  const span = content.querySelector('.tb-ribbon');
+  if (!span) return;
+  while (span.firstChild) content.insertBefore(span.firstChild, span);
+  span.remove();
+}
+
+function setTbMode(mode) {
+  const box = getTbTargetBox();
+  if (!box) return;
+  box.dataset.mode = mode;
+  applyTbBg(box);
+  syncTbSettings();
+  clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
 }
 
 function setTbBgColor(v) {
