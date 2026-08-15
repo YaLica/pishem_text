@@ -844,6 +844,7 @@ if (snapshot.textBoxes && Array.isArray(snapshot.textBoxes)) {
     if (tb.bgColor) box.dataset.bgColor = tb.bgColor;
     if (tb.bgOpacity !== undefined) box.dataset.bgOpacity = tb.bgOpacity;
     if (tb.lineHeight !== undefined) box.dataset.lineHeight = tb.lineHeight;
+    if (tb.mode !== undefined) box.dataset.mode = tb.mode;
     if (tb.rot !== undefined) box.dataset.rot = tb.rot;
     
     const content = document.createElement('div');
