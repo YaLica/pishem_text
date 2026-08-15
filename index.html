@@ -561,6 +561,11 @@ cursor: pointer; overflow: hidden;
 <button class="primary tb-hide-mobile" onclick="addTextBox()" style="margin-top: 12px; padding: 10px; background:#10b981;">➕ Добавить надпись (плашку)</button>
   <div id="tbSettings" class="tb-hide-mobile" style="display:none; background:#10b98120; padding:12px; border-radius:8px; margin-top:12px; border:1px solid #10b981;">
   <label style="color:#10b981; margin-top:0;">🎨 Настройки выбранной надписи</label>
+      <label>🎭 Стиль фона</label>
+  <div style="display:flex; gap:6px; margin-bottom:6px;">
+    <button type="button" id="tbModePlate" onclick="setTbMode('plate')" style="flex:1; background:#3d7eff; color:#fff; padding:8px;">▢ Плашка</button>
+    <button type="button" id="tbModeRibbon" onclick="setTbMode('ribbon')" style="flex:1; background:#2a2f3a; color:#fff; padding:8px;">▤ Ленты</button>
+  </div>
   <label>🎨 Цвет фона плашки</label>
   <input type="color" id="tbBgColor" value="#000000" oninput="setTbBgColor(this.value)">
     <label>👻 Прозрачность фона: <span id="tbBgOpacityLabel">55</span>%</label>
