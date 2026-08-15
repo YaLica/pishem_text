@@ -552,6 +552,8 @@ cursor: pointer; overflow: hidden;
   <input type="color" id="tbBgColor" value="#000000" oninput="setTbBgColor(this.value)">
     <label>👻 Прозрачность фона: <span id="tbBgOpacityLabel">55</span>%</label>
   <input type="range" id="tbBgOpacity" min="0" max="100" value="55" oninput="setTbBgOpacity(this.value)">
+    <label>↕️ Интервал строк: <span id="tbLineHeightLabel">1.25</span></label>
+  <input type="range" id="tbLineHeight" min="0.8" max="2.5" step="0.05" value="1.25" oninput="setTbLineHeight(this.value)"> 
   <button type="button" onclick="document.getElementById('tbImageInput').click()" style="width:100%; margin-top:10px; background:#10b981; color:#fff; padding:10px;">🖼️ Вставить картинку в плашку</button>
   <input type="file" id="tbImageInput" accept="image/*" style="display:none;" onchange="insertImageIntoTextBox(event)">
 </div>
