@@ -2693,6 +2693,39 @@ function snapToOtherBoxes(box, newLeft, newTop) {
 
   return { left: newLeft, top: newTop, snappedX: snappedX, snappedY: snappedY };
 }
+  
+/* ===== ЗЕРКАЛО ОТ ЦЕНТРА (по центрам плашек) ===== */
+function snapMirror(box, newLeft) {
+  const w = box.offsetWidth;
+  const canvasCX = exportNode.clientWidth / 2;
+  const myCX = newLeft + w / 2;
+  const myDist = myCX - canvasCX;
+
+  let resultLeft = newLeft;
+  let snapped = false;
+
+  const others = exportNode.querySelectorAll('.text-box');
+  for (let i = 0; i < others.length; i++) {
+    const other = others[i];
+    if (other === box) continue;
+
+    const oCX = other.offsetLeft + other.offsetWidth / 2;
+    const oDist = oCX - canvasCX;
+
+    if (oDist === 0) continue;
+    if ((myDist < 0 && oDist < 0) || (myDist > 0 && oDist > 0)) continue;
+
+    const targetCX = canvasCX - oDist;
+
+    if (Math.abs(myCX - targetCX) <= SNAP_TOLERANCE) {
+      resultLeft = targetCX - w / 2;
+      snapped = true;
+      break;
+    }
+  }
+
+  return { left: resultLeft, snapped: snapped };
+}
 
 function makeTextBoxDraggable(box) {
   let isDragging = false;
