@@ -861,8 +861,13 @@ if (snapshot.textBoxes && Array.isArray(snapshot.textBoxes)) {
     if (tb.width) box.style.width = tb.width;
     if (tb.bgColor) box.dataset.bgColor = tb.bgColor;
     if (tb.bgOpacity !== undefined) box.dataset.bgOpacity = tb.bgOpacity;
-    if (tb.lineHeight !== undefined) box.dataset.lineHeight = tb.lineHeight;
+        if (tb.lineHeight !== undefined) box.dataset.lineHeight = tb.lineHeight;
+    if (tb.fontSize) box.dataset.fontSize = tb.fontSize;
     if (tb.mode !== undefined) box.dataset.mode = tb.mode;
+    if (tb.ribbonColor !== undefined) box.dataset.ribbonColor = tb.ribbonColor;
+    if (tb.ribbonRadius !== undefined) box.dataset.ribbonRadius = tb.ribbonRadius;
+    if (tb.ribbonPadH !== undefined) box.dataset.ribbonPadH = tb.ribbonPadH;
+    if (tb.ribbonPadV !== undefined) box.dataset.ribbonPadV = tb.ribbonPadV;
     if (tb.rot !== undefined) box.dataset.rot = tb.rot;
     
     const content = document.createElement('div');
@@ -871,6 +876,7 @@ if (snapshot.textBoxes && Array.isArray(snapshot.textBoxes)) {
     content.setAttribute('data-ph', 'Твой текст…');
     content.innerHTML = tb.html;
     if (tb.lineHeight) content.style.lineHeight = tb.lineHeight;
+    if (tb.fontSize) content.style.fontSize = tb.fontSize + 'px';
     if (tb.height) content.style.height = tb.height;
     box.appendChild(content);
 
