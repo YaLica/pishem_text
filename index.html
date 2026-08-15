@@ -2477,6 +2477,74 @@ function setTbLineHeight(v) {
   const rng = document.getElementById('tbLineHeight'); if (rng) rng.value = v;
   clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
 }
+  
+function setTbFontSize(v) {
+  const box = getTbTargetBox();
+  if (!box) return;
+  box.dataset.fontSize = v;
+  const content = box.querySelector('.tb-content');
+  if (content) content.style.fontSize = v + 'px';
+  const lbl = document.getElementById('tbFontSizeLabel'); if (lbl) lbl.textContent = v;
+  const rng = document.getElementById('tbFontSize'); if (rng) rng.value = v;
+  clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
+
+/* ===== ПОДЛОЖКА (ЛЕНТЫ): вкл/выкл + настройки ===== */
+function toggleRibbonMode() {
+  const box = getTbTargetBox();
+  if (!box) return;
+  const isRibbon = box.dataset.mode === 'ribbon';
+  box.dataset.mode = isRibbon ? 'plate' : 'ribbon';
+  applyTbBg(box);
+  syncTbSettings();
+  clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
+
+function applyRibbonStyles(box) {
+  if (!box) return;
+  const rad = box.dataset.ribbonRadius || '6';
+  const padH = box.dataset.ribbonPadH || '0.3';
+  const padV = box.dataset.ribbonPadV || '0.05';
+  box.style.setProperty('--ribbon-radius', rad + 'px');
+  box.style.setProperty('--ribbon-pad-h', padH + 'em');
+  box.style.setProperty('--ribbon-pad-v', padV + 'em');
+}
+
+function setTbRibbonColor(v) {
+  const box = getTbTargetBox();
+  if (!box) return;
+  box.dataset.ribbonColor = v;
+  const el = document.getElementById('tbRibbonColor'); if (el) el.value = v;
+  applyTbBg(box);
+  clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
+
+function setTbRibbonRadius(v) {
+  const box = getTbTargetBox();
+  if (!box) return;
+  box.dataset.ribbonRadius = v;
+  const lbl = document.getElementById('tbRibbonRadiusLabel'); if (lbl) lbl.textContent = v;
+  applyRibbonStyles(box);
+  clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
+
+function setTbRibbonPadH(v) {
+  const box = getTbTargetBox();
+  if (!box) return;
+  box.dataset.ribbonPadH = v;
+  const lbl = document.getElementById('tbRibbonPadHLabel'); if (lbl) lbl.textContent = v;
+  applyRibbonStyles(box);
+  clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
+
+function setTbRibbonPadV(v) {
+  const box = getTbTargetBox();
+  if (!box) return;
+  box.dataset.ribbonPadV = v;
+  const lbl = document.getElementById('tbRibbonPadVLabel'); if (lbl) lbl.textContent = v;
+  applyRibbonStyles(box);
+  clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
 
 function syncTbSettings() {
   const panel = document.getElementById('tbSettings');
