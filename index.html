@@ -122,6 +122,19 @@ font-weight: 400;
 .text-box .tb-content:empty:before {
   content: attr(data-ph); opacity: 0.6; font-style: italic;
 }
+  /* Режим ЛЕНТЫ: фон обтекает строки по ширине букв */
+.text-box.mode-ribbon .tb-content {
+  background: transparent !important;
+  padding: 0;
+}
+.text-box.mode-ribbon .tb-content .tb-ribbon {
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding: 0.12em 0.4em;
+  border-radius: 8px;
+  line-height: 1.9;
+  background: var(--ribbon-bg, rgba(0,0,0,0.85));
+}
   /* ЭТАП 3: картинка внутри плашки */
 .text-box .tb-content img.tb-img {
   display: block;
