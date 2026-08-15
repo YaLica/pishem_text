@@ -813,8 +813,13 @@ const textBoxesData = Array.from(exportNode.querySelectorAll('.text-box')).map(b
     height: (contentEl && contentEl.style.height) ? contentEl.style.height : '',
     bgColor: b.dataset.bgColor || '#000000',
     bgOpacity: (b.dataset.bgOpacity !== undefined) ? b.dataset.bgOpacity : '55',
-    lineHeight: b.dataset.lineHeight || '1.25',
+        lineHeight: b.dataset.lineHeight || '1.25',
+    fontSize: b.dataset.fontSize || '',
     mode: b.dataset.mode || 'plate',
+    ribbonColor: b.dataset.ribbonColor || '#000000',
+    ribbonRadius: b.dataset.ribbonRadius || '6',
+    ribbonPadH: b.dataset.ribbonPadH || '0.3',
+    ribbonPadV: b.dataset.ribbonPadV || '0.05',
     rot: b.dataset.rot || '0'
   };
 });
