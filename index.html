@@ -2415,6 +2415,9 @@ function syncTbSettings() {
   const colEl = document.getElementById('tbBgColor'); if (colEl) colEl.value = hex;
   const opEl = document.getElementById('tbBgOpacity'); if (opEl) opEl.value = op;
   const opLbl = document.getElementById('tbBgOpacityLabel'); if (opLbl) opLbl.textContent = op;
+  const lh = box.dataset.lineHeight || '1.25';
+  const lhEl = document.getElementById('tbLineHeight'); if (lhEl) lhEl.value = lh;
+  const lhLbl = document.getElementById('tbLineHeightLabel'); if (lhLbl) lhLbl.textContent = lh;
 }
 
 function handleTbPaste(e) {
