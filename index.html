@@ -801,6 +801,7 @@ const textBoxesData = Array.from(exportNode.querySelectorAll('.text-box')).map(b
     bgColor: b.dataset.bgColor || '#000000',
     bgOpacity: (b.dataset.bgOpacity !== undefined) ? b.dataset.bgOpacity : '55',
     lineHeight: b.dataset.lineHeight || '1.25',
+    mode: b.dataset.mode || 'plate',
     rot: b.dataset.rot || '0'
   };
 });
