@@ -2557,7 +2557,7 @@ function setTbRibbonPadV(v) {
   if (!box) return;
   box.dataset.ribbonPadV = v;
   const lbl = document.getElementById('tbRibbonPadVLabel'); if (lbl) lbl.textContent = v;
-  applyRibbonStyles(box);
+  box.style.setProperty('--ribbon-lh', v);
   clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
 }
 
