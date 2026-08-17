@@ -821,6 +821,7 @@ const textBoxesData = Array.from(exportNode.querySelectorAll('.text-box')).map(b
     fontSize: b.dataset.fontSize || '',
     mode: b.dataset.mode || 'plate',
     ribbonColor: b.dataset.ribbonColor || '#000000',
+    ribbonOpacity: (b.dataset.ribbonOpacity !== undefined) ? b.dataset.ribbonOpacity : '85',
     ribbonRadius: b.dataset.ribbonRadius || '6',
     ribbonPadH: b.dataset.ribbonPadH || '0.3',
     ribbonPadV: b.dataset.ribbonPadV || '0.25',
