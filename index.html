@@ -1681,6 +1681,32 @@ if (percent > 100) percent = 100;
 box.style.width = percent + '%';
 applyImgStyles(box);
 }
+  
+function safeInsertBox(range, box) {
+  // Защита: если точка drop'а внутри другой картинки, вставляем рядом
+  let container = range.commonAncestorContainer;
+  let imgBox = null;
+  
+  // Проходим вверх по DOM, ищем родительскую .img-box
+  if (container.nodeType === Node.TEXT_NODE) {
+    imgBox = container.parentNode.closest('.img-box');
+  } else if (container.nodeType === Node.ELEMENT_NODE) {
+    imgBox = container.closest('.img-box');
+  }
+  
+  if (imgBox && imgBox !== box) {
+    // Найдена другая картинка — вставляем ЭТУ КАРТИНКУ после неё
+    const nextNode = imgBox.nextSibling;
+    if (nextNode) {
+      imgBox.parentNode.insertBefore(box, nextNode);
+    } else {
+      imgBox.parentNode.appendChild(box);
+    }
+  } else {
+    // Нормальная точка, вставляем как обычно
+    range.insertNode(box);
+  }
+}
 function stopDrag() {
 document.removeEventListener('mousemove', doDrag);
 document.removeEventListener('mouseup', stopDrag);
