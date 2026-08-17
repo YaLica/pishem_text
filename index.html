@@ -2413,6 +2413,11 @@ const handle = document.getElementById('panelHandle');
 panel.classList.toggle('open');
 handle.classList.toggle('open');
 handle.textContent = panel.classList.contains('open') ? '‹' : '›';
+// Как только панель открыта любым способом — прячем кнопку "Инструменты"
+if (panel.classList.contains('open')) {
+  const btn = document.getElementById('mobileToolsBtn');
+  if (btn) btn.style.display = 'none';
+}
 }
 
 function onMobileToolsClick() {
