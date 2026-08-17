@@ -641,6 +641,10 @@ cursor: pointer; overflow: hidden;
 <button id="panelHandle" onclick="togglePanel()">›</button>
 
 <div class="stage" id="stageArea">
+<div id="floatUndoRedo">
+<button id="floatUndo" onclick="undoAction()" title="Отменить">↩️</button>
+<button id="floatRedo" onclick="redoAction()" title="Повторить">↪️</button>
+</div>
 <button id="mobileToolsBtn" onclick="onMobileToolsClick()">⚙️ Инструменты</button>
 
 <div id="zoomControls">
