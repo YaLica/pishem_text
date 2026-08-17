@@ -2541,6 +2541,16 @@ function setTbRibbonColor(v) {
   clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
 }
 
+function setTbRibbonOpacity(v) {
+  const box = getTbTargetBox();
+  if (!box) return;
+  box.dataset.ribbonOpacity = v;
+  const lbl = document.getElementById('tbRibbonOpacityLabel'); if (lbl) lbl.textContent = v;
+  const rng = document.getElementById('tbRibbonOpacity'); if (rng) rng.value = v;
+  applyTbBg(box);
+  clearTimeout(typeTimer); typeTimer = setTimeout(saveHistory, 400);
+}
+
 function setTbRibbonRadius(v) {
   const box = getTbTargetBox();
   if (!box) return;
