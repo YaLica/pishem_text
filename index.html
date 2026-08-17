@@ -2425,12 +2425,12 @@ function applyTbBg(box) {
   const rgba = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + (op / 100) + ')';
   const mode = box.dataset.mode || 'plate';
 
-  if (mode === 'ribbon') {
+    if (mode === 'ribbon') {
     box.classList.add('mode-ribbon');
     content.style.background = 'transparent';
     const ribHex = box.dataset.ribbonColor || '#000000';
     const ribRgb = hexToRgb(ribHex);
-    box.style.setProperty('--ribbon-bg', 'rgb(' + ribRgb.r + ',' + ribRgb.g + ',' + ribRgb.b + ')');
+    box.style.setProperty('--ribbon-bg', 'rgba(' + ribRgb.r + ',' + ribRgb.g + ',' + ribRgb.b + ',' + (op / 100) + ')');
     applyRibbonStyles(box);
     wrapTbRibbon(content);
   } else {
