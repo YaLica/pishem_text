@@ -2607,6 +2607,9 @@ function syncTbSettings() {
 
   const ribCol = box.dataset.ribbonColor || '#000000';
   const ribColEl = document.getElementById('tbRibbonColor'); if (ribColEl) ribColEl.value = ribCol;
+  const ribOp = (box.dataset.ribbonOpacity !== undefined) ? parseInt(box.dataset.ribbonOpacity, 10) : 85;
+  const ribOpEl = document.getElementById('tbRibbonOpacity'); if (ribOpEl) ribOpEl.value = ribOp;
+  const ribOpLbl = document.getElementById('tbRibbonOpacityLabel'); if (ribOpLbl) ribOpLbl.textContent = ribOp;
   const ribRad = box.dataset.ribbonRadius || '6';
   const ribRadEl = document.getElementById('tbRibbonRadius'); if (ribRadEl) ribRadEl.value = ribRad;
   const ribRadLbl = document.getElementById('tbRibbonRadiusLabel'); if (ribRadLbl) ribRadLbl.textContent = ribRad;
