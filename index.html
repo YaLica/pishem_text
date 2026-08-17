@@ -1874,7 +1874,7 @@ const editorRect = editor.getBoundingClientRect();
 const dropX = touch.clientX - editorRect.left;
 dragBox.classList.remove('align-right', 'align-center');
 if (dropX > editorRect.width / 2) dragBox.classList.add('align-right');
-range.insertNode(dragBox);
+safeInsertBox(range, dragBox);
 snapImageToLineStart(dragBox);
 const zwsp = document.createTextNode('\u200B');
 dragBox.parentNode.insertBefore(zwsp, dragBox.nextSibling);
