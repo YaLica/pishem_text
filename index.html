@@ -2519,10 +2519,11 @@ function applyRibbonStyles(box) {
   if (!box) return;
   const rad = box.dataset.ribbonRadius || '6';
   const padH = box.dataset.ribbonPadH || '0.3';
-  const padV = box.dataset.ribbonPadV || '0.05';
+  const lh = box.dataset.ribbonPadV || '1.0';
   box.style.setProperty('--ribbon-radius', rad + 'px');
   box.style.setProperty('--ribbon-pad-h', padH + 'em');
-  box.style.setProperty('--ribbon-pad-v', padV + 'em');
+  box.style.setProperty('--ribbon-pad-v', '0.02em');
+  box.style.setProperty('--ribbon-lh', lh);
 }
 
 function setTbRibbonColor(v) {
