@@ -79,8 +79,8 @@ font-weight: 400;
 #editor[placeholder]:empty:before { content: attr(placeholder); opacity: 0.5; }
 #editor code { background: rgba(128,128,128,0.2); padding: 4px 8px; border-radius: 6px; font-family: monospace; }
 #editor a { color: #3d7eff; text-decoration: underline; cursor: pointer; }
-.img-box { position: relative; float: left; margin: 8px 0 8px 20px; width: 50%; max-width: 95%; cursor: grab; user-select: none; -webkit-user-select: none; border-radius: 12px; }
-.img-box.align-right { float: right; margin: 8px 20px 8px 0 }
+.img-box { position: relative; float: left; margin: 8px 20px 8px 0; width: 50%; max-width: 95%; cursor: grab; user-select: none; -webkit-user-select: none; border-radius: 12px; }
+.img-box.align-right { float: right; margin: 8px 0 8px 20px; }
 .img-box.align-center { float: none; display: block; margin: 10px auto; clear: both; }
 .img-spacer-left { float: left; height: 10px; width: var(--side-space, 0px); }
 .img-spacer-right { float: right; height: 10px; width: var(--side-space, 0px); }
@@ -1640,6 +1640,26 @@ event.target.value = '';
 setTimeout(() => focusEditor(), 50);
 }
 
+function safeInsertBox(range, box) {
+  let container = range.commonAncestorContainer;
+  let imgBox = null;
+  if (container.nodeType === Node.TEXT_NODE) {
+    imgBox = container.parentNode.closest('.img-box');
+  } else if (container.nodeType === Node.ELEMENT_NODE) {
+    imgBox = container.closest('.img-box');
+  }
+  if (imgBox && imgBox !== box) {
+    const nextNode = imgBox.nextSibling;
+    if (nextNode) {
+      imgBox.parentNode.insertBefore(box, nextNode);
+    } else {
+      imgBox.parentNode.appendChild(box);
+    }
+  } else {
+    range.insertNode(box);
+  }
+}
+
 function createImageBox(url) {
 const box = document.createElement('span');
 box.className = 'img-box';
@@ -1681,32 +1701,7 @@ if (percent > 100) percent = 100;
 box.style.width = percent + '%';
 applyImgStyles(box);
 }
-  
-function safeInsertBox(range, box) {
-  // Защита: если точка drop'а внутри другой картинки, вставляем рядом
-  let container = range.commonAncestorContainer;
-  let imgBox = null;
-  
-  // Проходим вверх по DOM, ищем родительскую .img-box
-  if (container.nodeType === Node.TEXT_NODE) {
-    imgBox = container.parentNode.closest('.img-box');
-  } else if (container.nodeType === Node.ELEMENT_NODE) {
-    imgBox = container.closest('.img-box');
-  }
-  
-  if (imgBox && imgBox !== box) {
-    // Найдена другая картинка — вставляем ЭТУ КАРТИНКУ после неё
-    const nextNode = imgBox.nextSibling;
-    if (nextNode) {
-      imgBox.parentNode.insertBefore(box, nextNode);
-    } else {
-      imgBox.parentNode.appendChild(box);
-    }
-  } else {
-    // Нормальная точка, вставляем как обычно
-    range.insertNode(box);
-  }
-}
+
 function stopDrag() {
 document.removeEventListener('mousemove', doDrag);
 document.removeEventListener('mouseup', stopDrag);
