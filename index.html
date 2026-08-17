@@ -823,6 +823,10 @@ window.addEventListener('orientationchange', function(){ setTimeout(setRealVH, 2
 function updateUndoRedoButtons() {
 document.getElementById('btnUndo').disabled = (historyIndex <= 0);
 document.getElementById('btnRedo').disabled = (historyIndex >= historyStack.length - 1);
+const fU = document.getElementById('floatUndo');
+const fR = document.getElementById('floatRedo');
+if (fU) fU.disabled = (historyIndex <= 0);
+if (fR) fR.disabled = (historyIndex >= historyStack.length - 1);
 }
 
 function saveHistory() {
