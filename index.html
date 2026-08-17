@@ -2270,8 +2270,11 @@ else if (e.key === 'u') { e.preventDefault(); format('underline'); }
 
 const panelEl = document.querySelector('.panel');
 panelEl.addEventListener('mousedown', function(e) {
-if (e.target.closest('button') || e.target.closest('.emoji-bar span')) {
-e.preventDefault();
+if (e.target.closest('button') || e.target.closest('.emoji-bar span') || e.target.closest('input[type=color]')) {
+// Сохраняем выделение ПРЯМО СЕЙЧАС, до потери фокуса
+saveSelectionBeforeAction();
+// Не даём фокусу уйти с текста на кнопку/палитру
+if (!e.target.closest('input[type=color]')) e.preventDefault();
 }
 });
 
